@@ -8,7 +8,7 @@ export default async function Layout({ children }: React.PropsWithChildren) {
   const data = await getData();
 
   if (!data.session?.user) {
-    return redirect("/login");
+    return redirect("/auth/login");
   }
 
   return <BaseLayout>{children}</BaseLayout>;

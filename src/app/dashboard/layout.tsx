@@ -1,22 +1,21 @@
+"use client";
 import authOptions from "@app/api/auth/[...nextauth]/options";
 import { Layout as BaseLayout } from "@components/layout";
+import { useIsAuthenticated } from "@refinedev/core";
 import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
 
-export default async function Layout({ children }: React.PropsWithChildren) {
-  const data = await getData();
+export default function Layout({ children }: React.PropsWithChildren) {
+  const { data, isSuccess, isLoading, isError, refetch } = useIsAuthenticated();
 
-  if (!data.session?.user) {
-    return redirect("/login");
-  }
+  useEffect(() => {
+    if (data) {
+      if (!data.authenticated) {
+        redirect("/auth/login");
+      }
+    }
+  }, [data]);
 
   return <BaseLayout>{children}</BaseLayout>;
-}
-
-async function getData() {
-  const session = await getServerSession(authOptions);
-  return {
-    session,
-  };
 }
