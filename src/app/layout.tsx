@@ -34,13 +34,6 @@ export default function RootLayout({
               resources={[
                 {
                   name: "cases",
-                  list: "/dashboard",
-                  meta: {
-                    canDelete: true,
-                  },
-                },
-                {
-                  name: "cases",
                   list: "/cases",
                   meta: {
                     canDelete: true,

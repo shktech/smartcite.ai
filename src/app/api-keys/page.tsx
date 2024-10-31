@@ -8,6 +8,7 @@ import {
   useDelete,
   useTable,
 } from "@refinedev/core";
+import { Layout as BaseLayout } from "@components/layout";
 import Link from "next/link";
 
 export interface ApiKeyResponseDto {
@@ -78,6 +79,7 @@ export default function BlogPostList() {
     );
   };
   return (
+    <BaseLayout>
     <div className="p-5">
       <div className="text-sm">Create New Case</div>
       <form onSubmit={handleSubmit}>
@@ -146,5 +148,6 @@ export default function BlogPostList() {
         </Table>
       </div>
     </div>
+    </BaseLayout>
   );
 }

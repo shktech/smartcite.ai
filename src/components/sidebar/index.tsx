@@ -2,57 +2,66 @@
 
 import { useGetIdentity, useLogout, useMenu, useOne } from "@refinedev/core";
 import { usePathname, useSearchParams } from "next/navigation";
-import { dashboardMenuItems, menuItems } from "@utils/menuData";
+import { menuItems } from "@utils/menuData";
 import Link from "next/link";
-import { IconBriefcase, IconCircle } from "@tabler/icons-react";
+import { IconAntennaBars5, IconSettings } from "@tabler/icons-react";
 
 export const Sidebar = () => {
-  // const { menuItems, selectedKey } = useMenu();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const caseId = searchParams.get("caseId");
-  const { data: caseData, isLoading: caseLoading } = useOne<any>({
-    resource: "cases",
-    id: caseId as string,
-  });
+  const { mutate: logout } = useLogout();
+  const { data } = useGetIdentity();
+  const user = data as any;
   const selectedKey = pathname.split("/")[1].split("?")[0];
-  const menus = selectedKey == "dashboard" ? dashboardMenuItems : menuItems;
+  const menus = menuItems;
   return (
     <div className="border-r border-[#eeeeef]">
-      <nav className="w-[250px]">
-        <div className="px-4 py-3 flex items-end text-3xl font-bold text-black">
-          <span className="text-[#3040d6] text-4xl">S</span>
-          martcite
+      <nav className="w-[270px] flex flex-col h-screen">
+        <div className="p-6 flex items-center text-xl text-black">
+          <IconAntennaBars5 size={24} />
+          <span className="text-[#394149] font-bold ml-2">SMART</span>
+          <span className="text-[#394149]">CITE</span>
         </div>
-        <Link
-          href="/dashboard"
-          className="px-4 py-3 flex items-center gap-2 text-md text-black cursor-pointer"
-        >
-          <IconBriefcase size={14} /> Matters
-        </Link>
-        {caseId && (
-          <Link
-            href={`/documents?caseId=${caseId}`}
-            className="px-4 py-3 flex items-center gap-2 text-md text-black cursor-pointer"
-          >
-            <IconCircle size={14} />
-            {caseData?.data?.title}
-          </Link>
-        )}
-        <div className="flex flex-col gap-2 w-full">
+        <div className="flex flex-col gap-2 w-full flex-1">
           {menus.map((item) => (
             <Link
               key={item.key}
               href={item.route + `?caseId=${caseId}`}
-              className={`w-full px-9 py-3 no-underline hover:bg-[#f0f0f0] hover:text-[#0c1e29] duration-500 text-sm ${
+              className={`px-3 py-3 mx-3 no-underline hover:bg-[#f0f0f0] rounded-lg hover:text-[#0c1e29] duration-500 text-md flex items-center gap-2 ${
                 selectedKey === item.key
-                  ? "bg-[#d6d9f7] text-[#3040d6] font-medium"
-                  : "text-[#0c1e29]"
+                  ? "bg-[#f4f4f4] text-[#292929] font-bold"
+                  : "text-[#7c7c7c]"
               }`}
             >
+              {item.icon}
               {item.label}
             </Link>
           ))}
+        </div>
+        <div className="">
+          <Link
+            href="/settings"
+            className={`px-3 py-3 mx-3 no-underline hover:bg-[#f0f0f0] rounded-lg hover:text-[#0c1e29] duration-500 text-md flex items-center gap-2 ${
+              selectedKey === "settings"
+                ? "bg-[#f4f4f4] text-[#292929] font-bold"
+                : "text-[#7c7c7c]"
+            }`}
+          >
+            <IconSettings />
+            Settings
+          </Link>
+          <div className="h-16 flex border-b border-[#eeeeef]">
+            <div
+              onClick={() => logout()}
+              className="flex items-center px-6 gap-2"
+            >
+              <div className="w-9 h-9 flex items-center justify-center bg-[#394149] text-white rounded-full text-base">
+                {user?.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="text-sm">{user?.email}</div>
+            </div>
+          </div>
         </div>
       </nav>
     </div>

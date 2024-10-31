@@ -39,6 +39,7 @@ import {
 } from "@services/admin-file-upload.service";
 import ExhibitsPanel from "@components/documents/ExhibitsPanel";
 import { useDisclosure } from "@mantine/hooks";
+import { Layout as BaseLayout } from "@components/layout";
 
 export default function BlogPostList() {
   const { push } = useNavigation();
@@ -186,164 +187,174 @@ export default function BlogPostList() {
   };
 
   return (
-    <div className="p-5 h-full flex flex-col">
-      <div className="flex justify-between">
-        <div className="text-3xl text-black">
-          {caseData?.data.title}
-          <span className="text-sm ml-3 mr-1">/</span>
-          <span className="text-sm">All documents</span>
-        </div>
-        <Button
-          leftSection={
-            opened ? <IconMinus size={14} /> : <IconPlus size={14} />
-          }
-          variant="default"
-          onClick={toggle}
-        >
-          Add Document
-        </Button>
-      </div>
-      <Collapse in={opened}>
-        <div className="py-2">
-          <FileUploadDropzone handleFileChange={handleMainFileChange} />
-        </div>
-      </Collapse>
-      <div className="py-2 flex flex-col">
-        {uploadingFiles.map((uf) => (
-          <div
-            key={uf.index}
-            className="border p-4 my-2 rounded-lg flex gap-8 items-center"
-          >
-            <div className="flex flex-col gap-2 flex-1">
-              <div className="text-sm font-bold">{files?.[uf.index].name}</div>
-              <div className="text-xs flex justify-between">
-                <div>{formatFileSize(files?.[uf.index].size as number)}</div>
-                <div className="">{uf.progress}%</div>
-              </div>
-              <Progress value={uf.progress} animated />
-            </div>
+    <BaseLayout>
+      <div className="p-5 h-full flex flex-col">
+        <div className="flex justify-between">
+          <div className="text-3xl text-black">
+            {caseData?.data.title}
+            <span className="text-sm ml-3 mr-1">/</span>
+            <span className="text-sm">All documents</span>
           </div>
-        ))}
-      </div>
-      <div className="relative">
-        <LoadingOverlay
-          visible={caseLoading || documentLoading}
-          zIndex={1000}
-          overlayProps={{ radius: "sm", blur: 2 }}
-          loaderProps={{ color: "pink", type: "bars" }}
-        />
-      </div>
-      <div className="grid grid-cols-10 flex-1">
-        <div className="col-span-4 relative">
+          <Button
+            leftSection={
+              opened ? <IconMinus size={14} /> : <IconPlus size={14} />
+            }
+            variant="default"
+            onClick={toggle}
+          >
+            Add Document
+          </Button>
+        </div>
+        <Collapse in={opened}>
+          <div className="py-2">
+            <FileUploadDropzone handleFileChange={handleMainFileChange} />
+          </div>
+        </Collapse>
+        <div className="py-2 flex flex-col">
+          {uploadingFiles.map((uf) => (
+            <div
+              key={uf.index}
+              className="border p-4 my-2 rounded-lg flex gap-8 items-center"
+            >
+              <div className="flex flex-col gap-2 flex-1">
+                <div className="text-sm font-bold">
+                  {files?.[uf.index].name}
+                </div>
+                <div className="text-xs flex justify-between">
+                  <div>{formatFileSize(files?.[uf.index].size as number)}</div>
+                  <div className="">{uf.progress}%</div>
+                </div>
+                <Progress value={uf.progress} animated />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="relative">
           <LoadingOverlay
-            visible={loading}
+            visible={caseLoading || documentLoading}
             zIndex={1000}
             overlayProps={{ radius: "sm", blur: 2 }}
             loaderProps={{ color: "pink", type: "bars" }}
           />
-          {documents
-            .filter((doc) => doc.type === DocType.MAIN)
-            .map((doc, _i) => (
-              <div
-                key={doc.id}
-                className={`border p-4 border-r-0 flex justify-between items-center cursor-pointer
+        </div>
+        <div className="grid grid-cols-10 flex-1">
+          <div className="col-span-4 relative">
+            <LoadingOverlay
+              visible={loading}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+              loaderProps={{ color: "pink", type: "bars" }}
+            />
+            {documents
+              .filter((doc) => doc.type === DocType.MAIN)
+              .map((doc, _i) => (
+                <div
+                  key={doc.id}
+                  className={`border p-4 border-r-0 flex justify-between items-center cursor-pointer
                   ${
                     selectedMainDocumentId === doc.id
                       ? "text-[#3040d6]"
                       : "text-[#6e6e6e]"
                   } 
                   ${_i === 0 ? "border-t" : "border-t-0"}`}
-              >
-                <div
-                  onClick={() => setSelectedMainDocumentId(doc.id)}
-                  className="font-bold flex gap-2 items-center cursor-pointer text-sm"
                 >
-                  <IconExternalLink
-                    style={{ width: rem(20), height: rem(20) }}
-                  />
-                  {doc.title}
-                </div>
-                <Menu shadow="md" width={200}>
-                  <Menu.Target>
-                    <button className="border p-2 rounded-md hover:bg-[#f0f0f0] duration-300">
-                      <IconBaselineDensityMedium
-                        style={{ width: rem(14), height: rem(14) }}
-                      />
-                    </button>
-                  </Menu.Target>
+                  <div
+                    onClick={() => setSelectedMainDocumentId(doc.id)}
+                    className="font-bold flex gap-2 items-center cursor-pointer text-sm"
+                  >
+                    <IconExternalLink
+                      style={{ width: rem(20), height: rem(20) }}
+                    />
+                    {doc.title}
+                  </div>
+                  <Menu shadow="md" width={200}>
+                    <Menu.Target>
+                      <button className="border p-2 rounded-md hover:bg-[#f0f0f0] duration-300">
+                        <IconBaselineDensityMedium
+                          style={{ width: rem(14), height: rem(14) }}
+                        />
+                      </button>
+                    </Menu.Target>
 
-                  <Menu.Dropdown>
-                    <Menu.Item
-                      leftSection={
-                        <IconEye style={{ width: rem(14), height: rem(14) }} />
-                      }
-                      onClick={() =>
-                        push(
-                          `/documents/detail/?documentId=${doc.id}&caseId=${caseId}`
-                        )
-                      }
-                    >
-                      View Details
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={
-                        <IconLayersSubtract
-                          style={{ width: rem(14), height: rem(14) }}
-                        />
-                      }
-                      onClick={() => handleExtractCitations(doc.id)}
-                    >
-                      Extract Citations
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={
-                        <IconEye style={{ width: rem(14), height: rem(14) }} />
-                      }
-                      onClick={() =>
-                        push(`/citations?documentId=${doc.id}&caseId=${caseId}`)
-                      }
-                    >
-                      View Citations
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={
-                        <IconEyeDown
-                          style={{ width: rem(14), height: rem(14) }}
-                        />
-                      }
-                      component="a"
-                      href={doc.mediaUrl}
-                      target="_blank"
-                    >
-                      View File
-                    </Menu.Item>
-                    <Menu.Item
-                      color="red"
-                      leftSection={
-                        <IconTrash
-                          style={{ width: rem(14), height: rem(14) }}
-                        />
-                      }
-                      onClick={() => handleDeleteDocument(doc.id)}
-                    >
-                      Delete my account
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
-              </div>
-            ))}
-        </div>
-        <div className="border col-span-6 p-4">
-          {selectedMainDocumentId && (
-            <ExhibitsPanel
-              mainDocumentId={selectedMainDocumentId}
-              caseId={caseId}
-              setDocuments={setDocuments}
-              documents={documents}
-            />
-          )}
+                    <Menu.Dropdown>
+                      <Menu.Item
+                        leftSection={
+                          <IconEye
+                            style={{ width: rem(14), height: rem(14) }}
+                          />
+                        }
+                        onClick={() =>
+                          push(
+                            `/documents/detail/?documentId=${doc.id}&caseId=${caseId}`
+                          )
+                        }
+                      >
+                        View Details
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={
+                          <IconLayersSubtract
+                            style={{ width: rem(14), height: rem(14) }}
+                          />
+                        }
+                        onClick={() => handleExtractCitations(doc.id)}
+                      >
+                        Extract Citations
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={
+                          <IconEye
+                            style={{ width: rem(14), height: rem(14) }}
+                          />
+                        }
+                        onClick={() =>
+                          push(
+                            `/citations?documentId=${doc.id}&caseId=${caseId}`
+                          )
+                        }
+                      >
+                        View Citations
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={
+                          <IconEyeDown
+                            style={{ width: rem(14), height: rem(14) }}
+                          />
+                        }
+                        component="a"
+                        href={doc.mediaUrl}
+                        target="_blank"
+                      >
+                        View File
+                      </Menu.Item>
+                      <Menu.Item
+                        color="red"
+                        leftSection={
+                          <IconTrash
+                            style={{ width: rem(14), height: rem(14) }}
+                          />
+                        }
+                        onClick={() => handleDeleteDocument(doc.id)}
+                      >
+                        Delete my account
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                </div>
+              ))}
+          </div>
+          <div className="border col-span-6 p-4">
+            {selectedMainDocumentId && (
+              <ExhibitsPanel
+                mainDocumentId={selectedMainDocumentId}
+                caseId={caseId}
+                setDocuments={setDocuments}
+                documents={documents}
+              />
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </BaseLayout>
   );
 }

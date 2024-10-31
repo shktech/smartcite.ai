@@ -13,7 +13,7 @@ export default function LoginLayout({
 
   const { data: identity, isLoading } = useGetIdentity<any>();
   if (identity) {
-    push("/dashboard");
+    push("/cases");
   }
   return (
     <>

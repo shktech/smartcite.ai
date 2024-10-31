@@ -52,7 +52,7 @@ export const authProvider: AuthProvider = {
       localStorage.setItem("accessToken", response.data.access_token);
       return {
         success: true,
-        redirectTo: "/dashboard",
+        redirectTo: "/cases",
       };
     } else {
       return {
