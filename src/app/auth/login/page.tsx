@@ -86,7 +86,7 @@ export default function AuthenticationForm() {
               <div className="mt-4 flex justify-between">
                 <Checkbox label="Remember me" />
                 <Link
-                  href="/forgot-password"
+                  href="/auth/forgot-password"
                   className="text-black underline text-sm"
                 >
                   Forgot password?

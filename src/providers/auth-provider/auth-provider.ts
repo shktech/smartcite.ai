@@ -111,6 +111,11 @@ export const authProvider: AuthProvider = {
           authenticated: false,
           redirectTo: `/auth/organization-join?organizationId=${decodedTokenData.org_id}&key=${key}`,
         };
+      } else if (tokenType == "execute-actions") {
+        return {
+          authenticated: false,
+          redirectTo: `/auth/forgot-password/reset-password?userId=${decodedTokenData.sub}&key=${key}`,
+        }
       }
     }
     const user = getCurrentUser();

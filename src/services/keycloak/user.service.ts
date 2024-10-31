@@ -39,6 +39,54 @@ export const getHeaderFromToken = (token: string) => {
   };
   return header;
 };
+export const sendResetPasswordEmail = async (userId: string, token: string) => {
+  try {
+    const sendResetPasswordEmail = await axios.put(
+      `${keycloakUrl}/admin/realms/${realmId}/users/${userId}/reset-password-email?client_id=${clientId}`,
+      {},
+      getHeaderFromToken(token)
+    );
+    return "Succssfully sent reset password email";
+  } catch (error) {
+    console.error("Error found:", error);
+    throw error;
+  }
+};
+export const getUserByEmail = async (email: string, token: string) => {
+  try {
+    const getUserByEmail = await axios.get(
+      `${keycloakUrl}/admin/realms/${realmId}/users?email=${email}`,
+      getHeaderFromToken(token)
+    );
+    return getUserByEmail.data[0];
+  } catch (error) {
+    console.error("Error found:", error);
+    throw error;
+  }
+};
+
+export const resetPassword = async (
+  userId: string,
+  password: string,
+  token: string
+) => {
+  try {
+    const payload = {
+      type: "password",
+      value: password,
+      temporary: false,
+    } as any;
+    const resetPassword = await axios.put(
+      `${keycloakUrl}/admin/realms/${realmId}/users/${userId}/reset-password`,
+      payload,
+      getHeaderFromToken(token)
+    );
+    return "Successfully reset password";
+  } catch (error) {
+    console.error("Error found:", error);
+    throw error;
+  }
+};
 export const registerUser = async (
   email: string,
   firstName: string,
