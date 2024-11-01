@@ -16,7 +16,7 @@ export const Sidebar = () => {
   const selectedKey = pathname.split("/")[1].split("?")[0];
   const menus = menuItems;
   return (
-    <div className="border-r border-[#eeeeef]">
+    <div className="">
       <nav className="w-[270px] flex flex-col h-screen">
         <div className="p-6 flex items-center text-xl text-black">
           <IconAntennaBars5 size={24} />

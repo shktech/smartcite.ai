@@ -26,3 +26,16 @@ export interface CitationResponseDto {
   sourceText: number;
   referencedText: string;
 }
+
+export interface CaseResponseDto {
+  id: string;
+  title: string;
+  description: string;
+  createdAt: string;
+  uploadedDocumentsCount: number;
+  citationsCount: number;
+  client: string;
+  clientRole: string;
+  assignedLawyers: string;
+  state: string;
+}

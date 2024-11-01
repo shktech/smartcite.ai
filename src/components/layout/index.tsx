@@ -49,12 +49,12 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
       Table: {
         styles: (theme: any) => ({
           td: {
-            backgroundColor: "transparent", // Set your desired background color here
             fontSize: "14px",
           },
           th: {
-            backgroundColor: "#f5f6f6", // Set your desired background color here
-            fontSize: "12px",
+            fontSize: "14px",
+            color: "#989898",
+            fontWeight: "normal",
           },
         }),
       },
@@ -65,7 +65,7 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
       <div className="flex h-screen">
         <Sidebar />
         <div className="w-full h-screen flex flex-col">
-          <div className="bg-[#f8f9f9] flex-1">{children}</div>
+          <div className="bg-[#eeeff1] flex-1">{children}</div>
         </div>
       </div>
     </MantineProvider>

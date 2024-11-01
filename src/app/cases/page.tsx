@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Input, Modal, Table } from "@mantine/core";
+import { Button, Input, Modal, Table, TextInput } from "@mantine/core";
 import {
   GetManyResponse,
   useCreate,
@@ -11,22 +11,20 @@ import {
 } from "@refinedev/core";
 import Link from "next/link";
 import { useDisclosure } from "@mantine/hooks";
+// import { DateRangePicker } from '@mantine/dates';
 
-export interface CaseResponseDto {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: string;
-  uploadedDocumentsCount: number;
-  citationsCount: number;
-}
+
 import { Layout as BaseLayout } from "@components/layout";
-
+import { getFormatedDate } from "@utils/util.functions";
+import { IconEdit, IconPencilMinus, IconSearch, IconTrash } from "@tabler/icons-react";
+import { CaseResponseDto } from "@/types/types";
+const caseStates = ["View All", "Opened", "In Progress", "Closed"];
 export default function BlogPostList() {
   const { mutate: createMutate } = useCreate();
   const { mutate: UpdateMutate } = useUpdate();
   const { mutate: deleteMutate } = useDelete();
   const [opened, { open, close }] = useDisclosure(false);
+  const [caseState, setCaseState] = useState(caseStates[0]);
   const {
     tableQueryResult: { data, isLoading },
     setCurrent,
@@ -138,27 +136,64 @@ export default function BlogPostList() {
     close();
   };
 
+  const handleFilterCaseState = (state: string) => () => {
+    setCaseState(state);
+  };
+
   return (
     <BaseLayout>
-      <div className="p-5">
+      <div className="p-6">
         <div className="flex justify-between">
-          <div className="text-3xl text-black">
-            Matters
-            <span className="text-sm ml-3 mr-1">/</span>
-            <span className="text-sm">All documents</span>
+          <div>
+            <div className="text-xl text-[#292929] font-bold">
+              Matters Management
+            </div>
+            <div className="text-[#7c7c7c] py-2">
+              Quickly access case info and documents
+            </div>
           </div>
           <div className="">
             <Button
-              variant="outline"
-              color="violet.7"
+              variant=""
+              color="dark.6"
               type="submit"
-              onClick={handleCreateModal}
+              component="a"
+              href="/cases/create"
+              // onClick={handleCreateModal}
             >
-              Create Case
+              Add matter
             </Button>
           </div>
         </div>
-        <div className="mt-6 text-xs">
+        <div className="flex justify-between items-center mt-4">
+          <div className="flex gap-2 bg-white px-2.5 py-2 rounded-lg">
+            {caseStates.map((state) => (
+              <div
+                onClick={handleFilterCaseState(state)}
+                key={state}
+                className={`px-4 py-1 text-[#989898] cursor-pointer hover:bg-[#f4f4f4] ${
+                  state === caseState && "bg-[#f4f4f4] text-[#353535]"
+                } rounded-md`}
+              >
+                {state}
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Search"
+              leftSection={<IconSearch size={18} color="#adb5bd"/>}
+              styles={{
+                input: {
+                  backgroundColor: "#fff", // Set your desired color here
+                  border: 'none',
+                  borderRadius: '10px'
+                },
+              }}
+            />
+          </div>
+        </div>
+        <div className="mt-6 text-xs bg-white rounded-xl">
           <Table
             style={{
               border: "1px solid #eeeeef",
@@ -168,66 +203,44 @@ export default function BlogPostList() {
             }}
             horizontalSpacing="md"
             verticalSpacing="md"
-            highlightOnHover
           >
             <Table.Thead>
               <Table.Tr>
+                <Table.Th>#</Table.Th>
                 <Table.Th>Title</Table.Th>
-                <Table.Th>Description</Table.Th>
+                <Table.Th>Client</Table.Th>
+                <Table.Th>Status</Table.Th>
+                <Table.Th>No.Documents</Table.Th>
+                <Table.Th>Assigned Lawyer</Table.Th>
+                <Table.Th>Created At</Table.Th>
+                {/* <Table.Th>Description</Table.Th>
                 <Table.Th>Citation</Table.Th>
-                <Table.Th>Documents</Table.Th>
+                <Table.Th>Documents</Table.Th> */}
                 <Table.Th>Actions</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {cases.map((caseItem: CaseResponseDto) => (
+              {cases.map((caseItem: CaseResponseDto, _i) => (
                 <Table.Tr key={caseItem.id}>
-                  <Table.Td>{caseItem.title}</Table.Td>
-                  <Table.Td>{caseItem.description}</Table.Td>
-                  <Table.Td>{caseItem.citationsCount}</Table.Td>
+                  <Table.Td>{_i + 1}</Table.Td>
                   <Table.Td>
-                    {/* <div className="text-[#99a9ee] hover:underline cursor-pointer"> */}
-                    <Link
-                      href={`/documents?caseId=${caseItem.id}`}
-                      className="text-[#99a9ee] hover:underline cursor-pointer"
-                    >
-                      View {caseItem.uploadedDocumentsCount} document(s)
-                    </Link>
-                    {/* </div> */}
+                    <div className="text-[#1576f4] underline">
+                      {caseItem.title}
+                    </div>
                   </Table.Td>
+                  <Table.Td>{caseItem?.client}</Table.Td>
+                  <Table.Td>{caseItem?.state}</Table.Td>
+                  <Table.Td>{caseItem.uploadedDocumentsCount}</Table.Td>
+                  <Table.Td>{caseItem?.assignedLawyers}</Table.Td>
+                  <Table.Td>{getFormatedDate(caseItem.createdAt)}</Table.Td>
                   <Table.Td>
-                    <div className="flex gap-2">
-                      <Link
-                        href={`/exhibits?caseId=${caseItem.id}`}
-                        className="text-[#228be8] border border-[#228be8] cursor-pointer flex items-center justify-center px-4 rounded text-xs"
-                      >
-                        View Exhibits
+                    <div className="flex gap-4 items-center text-[#c5c5c5]">
+                      <Link href={`/cases/edit?caseId=${caseItem.id}`} className="cursor-pointer hover:text-[#2e2e2e]">
+                        <IconEdit size={20} />
                       </Link>
-                      <Button
-                        variant="outline"
-                        type="submit"
-                        size="xs"
-                        onClick={() => handleExtractCitations(caseItem.id)}
-                      >
-                        Extract Citations
-                      </Button>
-                      <Button
-                        variant="outline"
-                        type="submit"
-                        size="xs"
-                        onClick={() => handleEditModal(caseItem)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        color="red.9"
-                        type="submit"
-                        size="xs"
-                        onClick={() => handleDelete(caseItem.id)}
-                      >
-                        Delete
-                      </Button>
+                      <div className="cursor-pointer hover:text-[#2e2e2e]">
+                        <IconTrash size={20} />
+                      </div>
                     </div>
                   </Table.Td>
                 </Table.Tr>
