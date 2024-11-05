@@ -27,7 +27,7 @@ export interface CitationResponseDto {
   referencedText: string;
 }
 
-export interface CaseResponseDto {
+export interface ICase {
   id: string;
   title: string;
   description: string;
