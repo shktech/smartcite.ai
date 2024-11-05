@@ -3,105 +3,140 @@
 import React, { useEffect, useState } from "react";
 import {
   Button,
-  Input,
-  Modal,
-  Select,
-  Table,
-  TagsInput,
+  MultiSelect,
+  Select as MantineSelect,
   TextInput,
+  LoadingOverlay,
 } from "@mantine/core";
-import {
-  GetManyResponse,
-  useCreate,
-  useDelete,
-  useTable,
-  useUpdate,
-} from "@refinedev/core";
+import { useCreate, useNavigation } from "@refinedev/core";
 import Link from "next/link";
-import { useDisclosure } from "@mantine/hooks";
-export interface CaseResponseDto {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: string;
-  uploadedDocumentsCount: number;
-  citationsCount: number;
-  client?: string;
-  assignedLawyer?: string;
-  status?: string;
-}
 import { Layout as BaseLayout } from "@components/layout";
-import { getFormatedDate } from "@utils/util.functions";
-import {
-  IconArrowLeft,
-  IconEdit,
-  IconMoodEmpty,
-  IconPencilMinus,
-  IconSearch,
-  IconTrash,
-  IconUpload,
-} from "@tabler/icons-react";
+import { IconArrowLeft } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
-const MatterStates = ["Opened", "In Progress", "Close"];
-const ClientRoles = ["Petitioner", "Respondent"];
+import { getAllUsers } from "@services/keycloak/user.service";
+import {
+  CaseStates,
+  CaseStateTextColor,
+  ClientRoles,
+} from "@utils/util.constants";
+import { Select } from "antd";
 
-export default function BlogPostList() {
-  const lawyers = [
-    "John Doe",
-    "Micael Davis",
-    "Emily Turner",
-    "James Mitchell",
-  ];
+interface FormValues {
+  title: string;
+  client: string;
+}
+
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+
+export default function CreateCase() {
+  const { push } = useNavigation();
+  const [isLoading, setIsLoading] = useState(false);
+  const [userLoading, setUserLoading] = useState(true);
   const { mutate: createMutate } = useCreate();
-  const { mutate: UpdateMutate } = useUpdate();
-  const { mutate: deleteMutate } = useDelete();
-  const [matterState, setMatterState] = useState<string>(MatterStates[0]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [matterState, setMatterState] = useState<string>(CaseStates[0]);
   const [assignedLawyers, setAssignedLawyers] = useState<string[]>([]);
   const [clientRole, setClientRole] = useState(ClientRoles[0]);
-  const handleSave = () => {};
 
-  const handleCancel = () => {};
-
-  const form = useForm({
+  const form = useForm<FormValues>({
     initialValues: {
       title: "",
       client: "",
     },
-
-    validate: {},
+    validate: {
+      title: (value) => (!value ? "Title is required" : null),
+      client: (value) => (!value ? "Client is required" : null),
+    },
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const fetchUsers = async () => {
+    setUserLoading(true);
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await getAllUsers(token as string);
+      setUsers(response);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (form.validate().hasErrors) {
       return;
     }
+
+    setIsLoading(true);
+
     const payload = {
       title: form.values.title,
       client: form.values.client,
-      clientRole: clientRole,
+      clientRole,
       assignedLawyers: assignedLawyers.join(","),
       state: matterState,
     };
+
     createMutate(
       {
         resource: "cases",
         values: payload,
       },
       {
-        onError: (error) => console.log(error),
+        onError: (error) => {
+          console.error(error);
+          setIsLoading(false);
+          push("/cases");
+        },
         onSuccess: () => {
-          close();
+          setIsLoading(false);
+          push("/cases");
         },
       }
     );
   };
 
-  const handleMatterStateChange = (ms: string | null) => {
-    setMatterState(ms as string);
+  const renderFormField = (
+    label: string,
+    name: keyof FormValues,
+    placeholder: string
+  ) => (
+    <TextInput
+      required
+      label={label}
+      placeholder={placeholder}
+      value={form.values[name]}
+      onChange={(event) => form.setFieldValue(name, event.currentTarget.value)}
+      error={form.errors[name]}
+      radius="sm"
+      labelProps={{
+        style: { color: "black", marginBottom: "6px" },
+      }}
+    />
+  );
+
+  const commonInputStyles = {
+    input: { backgroundColor: "white" },
+    label: { color: "black", marginBottom: "6px" },
   };
+
   return (
     <BaseLayout>
+      <LoadingOverlay
+        visible={isLoading || userLoading}
+        zIndex={1000}
+        loaderProps={{ color: "black", type: "bars" }}
+      />
       <form onSubmit={handleSubmit}>
         <div className="p-6">
           <div className="flex justify-between">
@@ -116,32 +151,29 @@ export default function BlogPostList() {
             </div>
             <div className="flex gap-2">
               <Select
-                placeholder="Pick value"
-                defaultValue={"Opened"}
-                data={MatterStates}
-                onChange={handleMatterStateChange}
-                styles={{
-                  input: {
-                    backgroundColor: "white", // Customize the background color
-                    width: "140px",
-                  },
-                }}
-              />
+                onChange={setMatterState}
+                style={{ width: "120px", height: "100%" }}
+                value={matterState}
+              >
+                {CaseStates.map((state) => (
+                  <Select.Option key={state} value={state}>
+                    <span style={{ color: CaseStateTextColor[state] }}>
+                      {state}
+                    </span>
+                  </Select.Option>
+                ))}
+              </Select>
               <Button
                 variant="default"
                 color="dark.6"
                 type="submit"
-                onClick={handleSave}
-                style={{ borderColor: "black" }}
+                style={{ borderColor: "black", backgroundColor: "white" }}
+                component={Link}
+                href="/cases"
               >
                 Cancel
               </Button>
-              <Button
-                variant=""
-                color="dark.6"
-                type="submit"
-                onClick={handleSave}
-              >
+              <Button variant="" color="dark.6" type="submit">
                 Save
               </Button>
             </div>
@@ -150,98 +182,30 @@ export default function BlogPostList() {
             <div className="text-xl text-[#292929]">General Information</div>
             <div className="mt-3">
               <div className="grid grid-cols-2 gap-4">
-                <TextInput
-                  required
-                  label="Title"
-                  placeholder="Enter title here"
-                  value={form.values.title}
-                  onChange={(event) =>
-                    form.setFieldValue("title", event.currentTarget.value)
-                  }
-                  error={form.errors.title}
-                  radius="sm"
-                  labelProps={{
-                    style: { color: "black", marginBottom: "6px" },
-                  }}
-                />
-                <TextInput
-                  required
-                  label="Client"
-                  placeholder="Enter client here"
-                  value={form.values.client}
-                  onChange={(event) =>
-                    form.setFieldValue("client", event.currentTarget.value)
-                  }
-                  error={form.errors.client}
-                  radius="sm"
-                  labelProps={{
-                    style: { color: "black", marginBottom: "6px" },
-                  }}
-                />
-                <Select
+                {renderFormField("Title", "title", "Enter title here")}
+                {renderFormField("Client", "client", "Enter client here")}
+                <MantineSelect
                   label="Client Role"
                   placeholder="Client Role"
                   defaultValue={"Petitioner"}
                   required
-                  data={["Petitioner", "Respondent"]}
-                  styles={{
-                    input: {
-                      backgroundColor: "white", // Customize the background color
-                    },
-                    label: {
-                      color: "black", // Customize the label color
-                      marginBottom: "6px",
-                    },
-                  }}
+                  value={clientRole}
+                  onChange={(value) => setClientRole(value as string)}
+                  data={ClientRoles}
+                  styles={commonInputStyles}
                 />
-                <TagsInput
+                <MultiSelect
                   label="Assigned Lawyer"
                   required
                   placeholder="Assigned Lawyer"
-                  data={lawyers}
+                  data={users.map((user) => ({
+                    value: user.id,
+                    label: `${user.firstName} ${user.lastName}`,
+                  }))}
                   value={assignedLawyers}
                   onChange={setAssignedLawyers}
-                  acceptValueOnBlur
-                  styles={{
-                    input: {
-                      backgroundColor: "white", // Customize the background color
-                    },
-                    label: {
-                      color: "black", // Customize the label color
-                      marginBottom: "6px",
-                    },
-                  }}
+                  styles={commonInputStyles}
                 />
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg p-4 mt-6">
-            <div className="flex justify-between">
-              <div className="text-xl text-[#292929]">Document List</div>
-              <Button
-                variant="default"
-                color="dark.6"
-                type="submit"
-                leftSection={<IconUpload size={14} />}
-              >
-                Upload document
-              </Button>
-            </div>
-            <div className="mt-6 bg-white rounded-xl border">
-              <div className="border-b flex items-center p-3 gap-2">
-                <div className="px-2">#</div>
-                <div className="flex-1 px-2">Document Name</div>
-                <div className="px-2">Actions</div>
-              </div>
-              <div className="h-[200px] flex items-center justify-center flex-col">
-                <IconMoodEmpty color="black" size={64} />
-                <div className="text-xl text-[#292929]">
-                  Main Document List is Empty
-                </div>
-                <div className="text-[#7c7c7c] py-1">
-                  Drag your file into this box or click Upload Document to get
-                  started
-                </div>
               </div>
             </div>
           </div>
