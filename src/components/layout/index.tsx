@@ -11,7 +11,7 @@ import {
 } from "@mantine/core";
 import { redirect } from "next/navigation";
 export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
-
+  
   const { data, isSuccess, isLoading, isError, refetch } = useIsAuthenticated();
 
   useEffect(() => {
@@ -65,7 +65,7 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
       <div className="flex h-screen">
         <Sidebar />
         <div className="w-full h-screen flex flex-col">
-          <div className="bg-[#eeeff1] flex-1">{children}</div>
+          <div className="flex-1 relative">{children}</div>
         </div>
       </div>
     </MantineProvider>
