@@ -23,7 +23,7 @@ export default function BlogPostList() {
   const { mutate: createMutate } = useCreate();
   const { mutate: deleteMutate } = useDelete();
   const [searchKey, setSearchKey] = useState("");
-  const [caseState, setCaseState] = useState(CaseStates[0]);
+  const [caseState, setCaseState] = useState("View All");
   const [userLoading, setUserLoading] = useState<boolean>(true);
   const {
     tableQueryResult: { data: caseData, isLoading: caseLoading },
@@ -140,9 +140,12 @@ export default function BlogPostList() {
         <div className="flex gap-2 items-center text-[#c5c5c5]">
           <Link
             href={`/cases/edit?caseId=${record.id}`}
-            className="cursor-pointer hover:text-[#2e2e2e]"
+            className="cursor-pointer"
           >
-            <IconEdit size={18} />
+            <IconEdit
+              size={18}
+              className="hover:text-[#2e2e2e] text-[#c5c5c5]"
+            />
           </Link>
           <DeleteConfirmModal
             onDelete={() => handleDelete(record.id)}
@@ -270,7 +273,7 @@ export default function BlogPostList() {
         </div>
         <div className="flex justify-between items-center mt-4">
           <div className="flex gap-2 bg-white px-2.5 py-2 rounded-lg">
-            {CaseStates.map((state) => (
+            {["View All", ...CaseStates].map((state) => (
               <div
                 onClick={() => setCaseState(state)}
                 key={state}
