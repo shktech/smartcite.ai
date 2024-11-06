@@ -6,7 +6,7 @@ import { useList, useNavigation, useOne, useParsed } from "@refinedev/core";
 import { Worker } from "@react-pdf-viewer/core";
 import Link from "next/link";
 import { DocType } from "@utils/util.constants";
-import { DocumentResponseDto } from "../../types/types";
+import { IDocument } from "../../types/types";
 import { IconExternalLink } from "@tabler/icons-react";
 import { Viewer } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
@@ -17,8 +17,8 @@ export default function BlogPostList() {
   const { params } = useParsed();
   const caseId = params?.caseId;
   const [selectedMainDocument, setSelectedMainDocument] =
-    useState<DocumentResponseDto>();
-  const [documents, setDocuments] = useState<DocumentResponseDto[]>([]);
+    useState<IDocument>();
+  const [documents, setDocuments] = useState<IDocument[]>([]);
   useEffect(() => {
     if (!caseId) {
       push("/cases"); // Redirect if caseId is missing
@@ -41,7 +41,7 @@ export default function BlogPostList() {
   useEffect(() => {
     const d = documentData?.data as any;
     if (d) {
-      const allDocuments = d?.items as DocumentResponseDto[];
+      const allDocuments = d?.items as IDocument[];
       setDocuments(allDocuments);
     }
   }, [documentData]);

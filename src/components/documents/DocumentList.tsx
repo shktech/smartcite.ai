@@ -39,16 +39,16 @@ import {
   formatFileSize,
   getDateStringFromTimestamp,
 } from "@utils/util.functions";
-import { DocumentResponseDto } from "../../types/types";
+import { IDocument } from "../../types/types";
 
 interface DocumentListProps {
-  documents: DocumentResponseDto[];
+  documents: IDocument[];
   handleSelectRow?: (documentId: string) => void;
   relatedMainDocumentId: string;
   caseId: string;
   dockType: string;
   selectedMainDocumentId?: string;
-  setDocuments: (docs: DocumentResponseDto[]) => void;
+  setDocuments: (docs: IDocument[]) => void;
   refetchDocument: () => void;
 }
 
@@ -148,7 +148,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
   };
 
   const handleFileChange = async (fs: File[]) => {
-    const newDocuments: DocumentResponseDto[] = [];
+    const newDocuments: IDocument[] = [];
     setFiles(fs);
     setUploadingFiles(
       fs.map((_, i) => ({
@@ -292,7 +292,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
           <Table.Tbody>
             {documents
               ?.filter((doc) => doc.mainDocumentId === relatedMainDocumentId)
-              .map((d: DocumentResponseDto) => (
+              .map((d: IDocument) => (
                 <Table.Tr key={d.id}>
                   <Table.Td onClick={() => handleSelectRow?.(d.id)}>
                     <div

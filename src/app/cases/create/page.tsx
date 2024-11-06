@@ -166,7 +166,6 @@ export default function CreateCase() {
               <Button
                 variant="default"
                 color="dark.6"
-                type="submit"
                 style={{ borderColor: "black", backgroundColor: "white" }}
                 component={Link}
                 href="/cases"

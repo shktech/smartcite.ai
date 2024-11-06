@@ -18,7 +18,7 @@ import {
   useParsed,
 } from "@refinedev/core";
 import { DocType } from "@utils/util.constants";
-import { DocumentResponseDto } from "../../types/types";
+import { IDocument } from "../../types/types";
 import FileUploadDropzone from "@components/documents/FileUploadDropzone";
 
 import { createDocument } from "@services/document.service";
@@ -56,7 +56,7 @@ export default function BlogPostList() {
   >([]); // Define type for uploadingFiles
   const [opened, { toggle }] = useDisclosure(false);
 
-  const [documents, setDocuments] = useState<DocumentResponseDto[]>([]);
+  const [documents, setDocuments] = useState<IDocument[]>([]);
   useEffect(() => {
     if (!caseId) {
       push("/cases"); // Redirect if caseId is missing
@@ -79,7 +79,7 @@ export default function BlogPostList() {
   useEffect(() => {
     const d = documentData?.data as any;
     if (d) {
-      const allDocuments = d?.items as DocumentResponseDto[];
+      const allDocuments = d?.items as IDocument[];
       setDocuments(allDocuments);
     }
   }, [documentData]);
@@ -99,7 +99,7 @@ export default function BlogPostList() {
   };
 
   const handleMainFileChange = async (fs: File[]) => {
-    const newDocuments: DocumentResponseDto[] = [];
+    const newDocuments: IDocument[] = [];
     setFiles(fs);
     setUploadingFiles(
       fs.map((_, i) => ({

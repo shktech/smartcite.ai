@@ -23,7 +23,7 @@ const EmptyDropzone = ({ handleUploadFile, label }: EmptyDropzoneProps) => {
           <IconFaceIdError size={60} color="black" />
           <div className="text-base text-black mt-3">{label}</div>
           <div className="text-[#7c7c7c] text-center">
-            Drag your file into this box or click "Upload Document" to get
+            Drag your file into this box or click &quot;Upload Document&quot; to get
             started
           </div>
         </div>

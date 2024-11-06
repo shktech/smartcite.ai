@@ -10,7 +10,7 @@ import {
   useParsed,
 } from "@refinedev/core";
 import Link from "next/link";
-import { CitationResponseDto, DocumentResponseDto } from "../../../types/types";
+import { CitationResponseDto, IDocument } from "../../../types/types";
 import { IconPaperclip, IconTrash } from "@tabler/icons-react";
 
 interface ExhibitInfo {
@@ -29,7 +29,7 @@ export default function BlogPostList() {
   const [exhibits, setExhibits] = useState<ExhibitInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [caseDocumentsMap, setCaseDocumentsMap] = useState<
-    Map<string, DocumentResponseDto>
+    Map<string, IDocument>
   >(new Map());
   useEffect(() => {
     if (!caseId || !documentId) {
@@ -62,8 +62,8 @@ export default function BlogPostList() {
   useEffect(() => {
     const d = documentsData?.data as any;
     if (d) {
-      const allDocuments = d?.items as DocumentResponseDto[];
-      const allDocumentsMap = new Map<string, DocumentResponseDto>();
+      const allDocuments = d?.items as IDocument[];
+      const allDocumentsMap = new Map<string, IDocument>();
       allDocuments.forEach((doc) => {
         allDocumentsMap.set(doc.id, doc);
       });

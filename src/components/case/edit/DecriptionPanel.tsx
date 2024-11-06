@@ -19,17 +19,17 @@ const DecriptionPanel = ({}: DecriptionPanelProps) => {
           <span className="underline text-[#0550b3]">
             Motion for Extension of Time
           </span>{" "}
-          as 'Exhibit_1'
+          as &lsquo;Exhibit_1&lsquo;
         </div>
         <div className="">
           <span className="underline text-[#0550b3]">
             Motion for Summary Judgement
           </span>{" "}
-          as 'Exhibit_2'
+          as &lsquo;Exhibit_2&lsquo;
         </div>
         <div className="">
           <span className="underline text-[#0550b3]">Motion to Dismiss</span> as
-          'Exhibit_4'
+          &lsquo;Exhibit_4&lsquo;
         </div>
       </div>
     </>

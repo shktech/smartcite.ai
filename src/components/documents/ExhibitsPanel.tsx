@@ -10,7 +10,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import FileUploadDropzone from "./FileUploadDropzone";
-import { DocumentResponseDto } from "@/types/types";
+import { IDocument } from "@/types/types";
 import {
   getMediaPresignedUrl,
   uploadFile,
@@ -22,8 +22,8 @@ import { formatFileSize } from "@utils/util.functions";
 interface ComponentProps {
   caseId: string;
   mainDocumentId: string;
-  documents: DocumentResponseDto[];
-  setDocuments: (docs: DocumentResponseDto[]) => void;
+  documents: IDocument[];
+  setDocuments: (docs: IDocument[]) => void;
 }
 
 interface FormValues {
@@ -81,7 +81,7 @@ const ExhibitsPanel: React.FC<ComponentProps> = ({
   };
 
   const handleMainFileChange = async (fs: File[]) => {
-    const newDocuments: DocumentResponseDto[] = [];
+    const newDocuments: IDocument[] = [];
     setFiles(fs);
     setUploadingFiles(
       fs.map((_, i) => ({
