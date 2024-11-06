@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import React, { Suspense } from "react";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
+import "@mantine/dropzone/styles.css";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 import { Refine } from "@refinedev/core";
 import routerProvider from "@refinedev/nextjs-router";

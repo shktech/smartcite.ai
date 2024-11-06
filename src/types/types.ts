@@ -1,4 +1,4 @@
-export interface DocumentResponseDto {
+export interface IDocument {
   id: string;
   title: string;
   mediaId: string;

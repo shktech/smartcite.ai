@@ -1,93 +1,82 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Button,
-  FileButton,
-  Input,
-  Menu,
-  Modal,
-  rem,
-  Select,
-  Table,
-  TagsInput,
-  TextInput,
-} from "@mantine/core";
-import {
-  GetManyResponse,
-  useCreate,
-  useDelete,
-  useList,
-  useOne,
-  useParsed,
-  useTable,
-  useUpdate,
-} from "@refinedev/core";
-import Link from "next/link";
+import { Button, LoadingOverlay, Menu, Loader } from "@mantine/core";
+import { useDelete, useList, useOne, useParsed } from "@refinedev/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Layout as BaseLayout } from "@components/layout";
-import { getFormatedDate } from "@utils/util.functions";
 import {
-  IconArrowLeft,
-  IconBaselineDensityMedium,
-  IconEdit,
-  IconExternalLink,
-  IconEye,
-  IconLayersSubtract,
-  IconMoodEmpty,
-  IconPencilMinus,
-  IconSearch,
+  IconCheck,
+  IconClick,
   IconTrash,
   IconUpload,
+  IconX,
 } from "@tabler/icons-react";
-import { useForm } from "@mantine/form";
-import { CaseResponseDto, DocumentResponseDto } from "@/types/types";
+import { ICase, IDocument } from "@/types/types";
 import {
   getMediaPresignedUrl,
   uploadFile,
 } from "@services/admin-file-upload.service";
 import { createDocument } from "@services/document.service";
 import { DocType } from "@utils/util.constants";
-const MatterStates = ["Opened", "In Progress", "Close"];
-const ClientRoles = ["Petitioner", "Respondent"];
+import DeleteConfirmModal from "@components/common/DeleteBtnWithConfirmModal";
+import UploadExhibitModal from "@components/case/UploadExhibitModal";
+import DecriptionPanel from "@components/case/edit/DecriptionPanel";
+import GeneralInformationWithHeader from "@components/case/edit/GeneralInformationWithHeader";
+import EmptyDropzone from "@components/case/edit/EmptyDropzone";
 
-export default function BlogPostList() {
+// Constants
+const PANEL_CONFIGS = {
+  noDocuments: {
+    Main: "col-span-12",
+    Exhibit: "hidden",
+    Document: "hidden",
+  },
+  mainDocSelected: {
+    Main: "col-span-3",
+    Exhibit: "flex flex-col col-span-4",
+    Document: "block col-span-5",
+  },
+  mainDocOnly: {
+    Main: "col-span-5",
+    Exhibit: "flex flex-col col-span-7",
+    Document: "hidden",
+  },
+};
+
+const UploadingState = {
+  DOING: "DOING",
+  SUCCESS: "SUCCESS",
+  FAIL: "FAIL",
+};
+
+const CaseEditPage = () => {
+  // State hooks
+  const [
+    uploadModalOpened,
+    { open: openUploadModal, close: closeUploadModal },
+  ] = useDisclosure(false);
+  const [selMDocId, setSelMDocId] = useState<string>();
+  const [selEDocId, setSelEDocId] = useState<string>();
+  const [uploadingFiles, setUploadingFiles] = useState<Map<string, File[]>>(
+    new Map()
+  );
+  const [documents, setDocuments] = useState<IDocument[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [uploadingStates, setUploadingStates] = useState<string[]>([]);
+  const [panelsCss, setPanelsCss] = useState(PANEL_CONFIGS.noDocuments);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // URL params
   const { params } = useParsed();
-  const lawyers = [
-    "John Doe",
-    "Micael Davis",
-    "Emily Turner",
-    "James Mitchell",
-  ];
-  const [selectedMainDocumentId, setSelectedMainDocumentId] =
-    useState<string>();
   const caseId = params?.caseId;
-  const { data: caseData, isLoading: caseLoading } = useOne<CaseResponseDto>({
-    resource: "cases",
-    id: params?.caseId,
-  });
-  const [files, setFiles] = useState<File[] | null>(null);
-  const [uploadingFiles, setUploadingFiles] = useState<
-    { index: number; progress: number }[]
-  >([]); // Define type for uploadingFiles
 
-  useEffect(() => {
-    if (caseData?.data) {
-      const c = caseData.data;
-      setMatterState(c.state);
-      setAssignedLawyers(c.assignedLawyers.split(","));
-      setClientRole(c.clientRole);
-      form.setFieldValue("title", c.title);
-      form.setFieldValue("client", c.client);
-    }
-  }, [caseData]);
-  const { mutate: createMutate } = useCreate();
-  const { mutate: UpdateMutate } = useUpdate();
-  const { mutate: deleteMutate } = useDelete();
-  const [matterState, setMatterState] = useState<string>(MatterStates[0]);
-  const [assignedLawyers, setAssignedLawyers] = useState<string[]>([]);
-  const [documents, setDocuments] = useState<DocumentResponseDto[]>([]);
-  const [clientRole, setClientRole] = useState(ClientRoles[0]);
+  // Data fetching hooks
+  const { data: caseData, isLoading: caseLoading } = useOne<ICase>({
+    resource: "cases",
+    id: caseId,
+  });
 
   const {
     data: documentData,
@@ -98,309 +87,343 @@ export default function BlogPostList() {
     hasPagination: false,
   });
 
-  useEffect(() => {
-    const d = documentData?.data as any;
-    if (d) {
-      const allDocuments = d?.items as DocumentResponseDto[];
-      setDocuments(allDocuments);
-    }
-  }, [documentData]);
+  const { mutate: deleteMutate } = useDelete();
 
-  const handleSave = () => {};
+  // Helper functions
+  const getMDocs = () => documents.filter((doc) => doc.type === DocType.MAIN);
+  const getEDocs = () =>
+    documents.filter((doc) => doc.mainDocumentId === selMDocId);
 
-  const handleCancel = () => {};
+  const getSelDocCss = (selected: boolean) =>
+    selected
+      ? "bg-[#fafafa] border-r-4 border-r-[#292929]"
+      : "bg-white border-r-4 border-r-transparent";
 
-  const form = useForm({
-    initialValues: {
-      title: "",
-      client: "",
-    },
-
-    validate: {},
-  });
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (form.validate().hasErrors) {
-      return;
-    }
-    const payload = {
-      title: form.values.title,
-      client: form.values.client,
-      clientRole: clientRole,
-      assignedLawyers: assignedLawyers.join(","),
-      state: matterState,
+  const getStateBadge = (state: string) => {
+    const badges = {
+      [UploadingState.DOING]: <Loader color="orange" size={14} />,
+      [UploadingState.SUCCESS]: (
+        <div className="w-4 h-4 rounded-full bg-[#4bae4f] flex items-center justify-center text-white">
+          <IconCheck size={10} />
+        </div>
+      ),
+      [UploadingState.FAIL]: (
+        <div className="w-4 h-4 rounded-full bg-[#e73b3b] flex items-center justify-center text-white">
+          <IconX size={10} />
+        </div>
+      ),
     };
-    UpdateMutate(
+    return badges[state];
+  };
+
+  // Event handlers
+  const handleUploadFile = async (
+    fs: File[],
+    dockType: string,
+    mainDocId: string
+  ) => {
+    const newDocuments: IDocument[] = [];
+    setUploadingFiles((prev) => {
+      prev.set(dockType, fs);
+      return prev;
+    });
+    setUploadingStates(fs.map(() => UploadingState.DOING));
+
+    const uploadPromises = fs.map(async (file, i) => {
+      try {
+        const presignedUrl = await getMediaPresignedUrl();
+        const uploadFileResponse = await uploadFile(
+          file,
+          presignedUrl.uploadUrl
+        );
+        if (!uploadFileResponse) throw new Error("Failed to upload file");
+
+        const createdDocument = await createDocument(
+          caseId,
+          presignedUrl.id,
+          file.name,
+          dockType,
+          mainDocId
+        );
+        if (!createdDocument) throw new Error("Failed to create document");
+
+        setUploadingStates((prev) =>
+          prev.map((p, _i) => (_i === i ? UploadingState.SUCCESS : p))
+        );
+        newDocuments.push(createdDocument);
+      } catch (error: any) {
+        alert("Failed to upload file: " + error.message);
+        setUploadingStates((prev) =>
+          prev.map((p, _i) => (_i === i ? UploadingState.FAIL : p))
+        );
+      }
+    });
+
+    await Promise.all(uploadPromises);
+    setDocuments([...documents, ...newDocuments]);
+    setUploadingFiles(new Map());
+  };
+
+  const handleMenuItemClick = () => fileInputRef.current?.click();
+
+  const handleDeleteDocument = async (doc: IDocument) => {
+    setLoading(true);
+    doc.type === DocType.MAIN
+      ? setSelMDocId(undefined)
+      : setSelEDocId(undefined);
+
+    deleteMutate(
       {
-        resource: "cases",
-        id: params?.caseId,
-        values: payload,
+        resource: `documents`,
+        id: doc.id,
       },
       {
-        onError: (error) => console.log(error),
+        onError: (error) => {
+          console.log(error);
+          setLoading(false);
+        },
         onSuccess: () => {
-          close();
+          setDocuments(documents.filter((d) => d.id !== doc.id));
+          setLoading(false);
         },
       }
     );
   };
 
-  const handleMatterStateChange = (ms: string | null) => {
-    setMatterState(ms as string);
-  };
+  // Effects
+  useEffect(() => {
+    const hasMainDocs = getMDocs().length > 0;
 
-  const handleUploadMainFile = async (fs: File[]) => {
-    console.log("fs");
-    const newDocuments: DocumentResponseDto[] = [];
-    setFiles(fs);
-    setUploadingFiles(
-      fs.map((_, i) => ({
-        index: i,
-        progress: 0,
-      }))
-    );
-
-    const uploadPromises = fs.map(async (file, i) => {
-      try {
-        const presignedUrl = await getMediaPresignedUrl();
-        await uploadFile(file, presignedUrl.uploadUrl, (progressEvent) => {
-          const percent = Math.round(
-            (progressEvent.loaded * 99) / (progressEvent.total || 1)
-          );
-          updateUploadProgress(i, percent);
-        });
-        const createdDocument = await createDocument(
-          caseId,
-          presignedUrl.id,
-          file.name,
-          DocType.MAIN,
-          DocType.MAIN
-        );
-        updateUploadProgress(i, 100);
-        newDocuments.push(createdDocument);
-        setTimeout(() => {
-          setUploadingFiles((prev) => prev.filter((uf) => uf.index !== i));
-        }, 1000);
-      } catch (error: any) {
-        alert("Failed to upload file: " + error.message);
-      }
-    });
-
-    await Promise.all(uploadPromises); // Wait for all uploads to complete
-    setDocuments([...documents, ...newDocuments]);
-  };
-
-  const updateUploadProgress = (index: number, progress: number) => {
-    setUploadingFiles((prev) => {
-      return prev.map((p) => {
-        if (p.index === index) {
-          return {
-            ...p,
-            progress: progress,
-          };
-        }
-        return p;
-      });
-    });
-  };
-
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const handleMenuItemClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
+    if (!hasMainDocs) {
+      setPanelsCss(PANEL_CONFIGS.noDocuments);
+    } else if (selMDocId && selEDocId) {
+      setPanelsCss(PANEL_CONFIGS.mainDocSelected);
+    } else {
+      setPanelsCss(PANEL_CONFIGS.mainDocOnly);
     }
-  };
+  }, [selMDocId, selEDocId, documents]);
+
+  useEffect(() => {
+    const d = documentData?.data as any;
+    if (d) {
+      setDocuments(d?.items as IDocument[]);
+    }
+  }, [documentData]);
+
+  useEffect(() => {
+    setSelEDocId(undefined);
+  }, [selMDocId]);
 
   return (
     <BaseLayout>
-      <form onSubmit={handleSubmit}>
-        <div className="p-6">
+      <div className="p-6 min-h-screen flex flex-col">
+        <GeneralInformationWithHeader caseData={caseData?.data} />
+        <div className="bg-white rounded-lg p-4 mt-6 flex flex-col flex-1 relative">
+          <LoadingOverlay
+            visible={loading || documentLoading}
+            zIndex={1000}
+            loaderProps={{ color: "black", type: "bars" }}
+          />
           <div className="flex justify-between">
-            <div className="flex items-center gap-3">
-              <Link
-                href="/cases"
-                className="border rounded-lg p-1.5 border-[#292929]"
-              >
-                <IconArrowLeft color="#292929" size={24} />
-              </Link>
-              <div className="text-xl text-[#292929]">Untitled Matter</div>
-            </div>
-            <div className="flex gap-2">
-              <Select
-                placeholder="Pick value"
-                defaultValue={"Opened"}
-                data={MatterStates}
-                onChange={handleMatterStateChange}
-                styles={{
-                  input: {
-                    backgroundColor: "white", // Customize the background color
-                    width: "140px",
-                  },
-                }}
-              />
-              <Button
-                variant="default"
-                color="dark.6"
-                type="submit"
-                onClick={handleSave}
-                style={{ borderColor: "black" }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant=""
-                color="dark.6"
-                type="submit"
-                onClick={handleSave}
-              >
-                Save
-              </Button>
-            </div>
+            <div className="text-xl text-[#292929]">Document List</div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              onChange={(e) =>
+                handleUploadFile(
+                  Array.from(e.target.files || []),
+                  DocType.MAIN,
+                  DocType.MAIN
+                )
+              }
+              accept="application/pdf"
+              multiple
+            />
+            <Menu shadow="md" width={200}>
+              <Menu.Target>
+                <Button
+                  variant="default"
+                  color="dark.6"
+                  leftSection={<IconUpload size={14} />}
+                >
+                  Upload document
+                </Button>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item onClick={handleMenuItemClick}>
+                  Upload main documents
+                </Menu.Item>
+                <Menu.Item onClick={openUploadModal} disabled={!selMDocId}>
+                  Upload exhibit
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
           </div>
-          <div className="bg-white rounded-lg p-4 mt-6">
-            <div className="text-xl text-[#292929]">General Information</div>
-            <div className="mt-3">
-              <div className="grid grid-cols-2 gap-4">
-                <TextInput
-                  required
-                  label="Title"
-                  placeholder="Enter title here"
-                  value={form.values.title}
-                  onChange={(event) =>
-                    form.setFieldValue("title", event.currentTarget.value)
-                  }
-                  error={form.errors.title}
-                  radius="sm"
-                  labelProps={{
-                    style: { color: "black", marginBottom: "6px" },
-                  }}
-                />
-                <TextInput
-                  required
-                  label="Client"
-                  placeholder="Enter client here"
-                  value={form.values.client}
-                  onChange={(event) =>
-                    form.setFieldValue("client", event.currentTarget.value)
-                  }
-                  error={form.errors.client}
-                  radius="sm"
-                  labelProps={{
-                    style: { color: "black", marginBottom: "6px" },
-                  }}
-                />
-                <Select
-                  label="Client Role"
-                  placeholder="Client Role"
-                  defaultValue={"Petitioner"}
-                  required
-                  data={["Petitioner", "Respondent"]}
-                  styles={{
-                    input: {
-                      backgroundColor: "white", // Customize the background color
-                    },
-                    label: {
-                      color: "black", // Customize the label color
-                      marginBottom: "6px",
-                    },
-                  }}
-                />
-                <TagsInput
-                  label="Assigned Lawyer"
-                  required
-                  placeholder="Assigned Lawyer"
-                  data={lawyers}
-                  value={assignedLawyers}
-                  onChange={setAssignedLawyers}
-                  acceptValueOnBlur
-                  styles={{
-                    input: {
-                      backgroundColor: "white", // Customize the background color
-                    },
-                    label: {
-                      color: "black", // Customize the label color
-                      marginBottom: "6px",
-                    },
-                  }}
-                />
+          <div className="grid grid-cols-12 text-sm gap-1 flex-1 pt-6 text-[#989898]">
+            <div
+              className={` rounded-xl border flex flex-col ${panelsCss.Main}`}
+            >
+              <div className="flex items-center py-3">
+                <div className="w-10 pl-3">#</div>
+                <div className="flex-1">Document Name</div>
+                <div className="w-20 text-center">Actions</div>
               </div>
+              {getMDocs().map((doc, _i) => (
+                <div
+                  key={doc.id}
+                  onClick={() => setSelMDocId(doc.id)}
+                  className={`flex py-4 cursor-pointer border-t ${getSelDocCss(
+                    doc.id == selMDocId
+                  )}`}
+                >
+                  <div className="w-10 pl-3">{_i + 1}</div>
+                  <div className="flex-1 text-[#0550b3] truncate">
+                    <div className="truncate flex items-center gap-2">
+                      <div className="truncate underline">{doc.title}</div>
+                      <div className="flex-1">
+                        <div className="w-4 h-4 rounded-full bg-[#4bae4f] flex items-center justify-center text-white">
+                          <IconCheck size={10} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-[#bdbdbd] text-sm mt-1 truncate">
+                      Document ready for citation use
+                    </div>
+                  </div>
+                  <div className="w-20" onClick={(e) => e.stopPropagation()}>
+                    <DeleteConfirmModal
+                      onDelete={() => handleDeleteDocument(doc)}
+                      trigger={
+                        <div className="cursor-pointer flex justify-center text-[#989898] hover:text-[#2e2e2e]">
+                          <IconTrash size={20} />
+                        </div>
+                      }
+                    />
+                  </div>
+                </div>
+              ))}
+              {uploadingFiles.get(DocType.MAIN)?.map((file, i) => (
+                <div key={i} className="flex py-4 border-t">
+                  <div className="w-10 pl-3">{getMDocs().length + i + 1}</div>
+                  <div className="flex-1 text-[#0550b3] truncate">
+                    <div className="truncate flex items-center gap-2">
+                      <div className="truncate underline">{file.name}</div>
+                      <div className="pr-9 flex-1">
+                        {getStateBadge(uploadingStates[i])}
+                      </div>
+                    </div>
+                    <div className="text-[#bdbdbd] text-sm mt-1 truncate">
+                      {uploadingStates[i] === UploadingState.DOING
+                        ? "Document is currently processing..."
+                        : "Document ready for citation use"}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {getMDocs().length == 0 && !uploadingFiles.get(DocType.MAIN) && (
+                <EmptyDropzone
+                  handleUploadFile={(files) =>
+                    handleUploadFile(files, DocType.MAIN, DocType.MAIN)
+                  }
+                  label="Main Document List is Empty"
+                />
+              )}
             </div>
-          </div>
-          <div className="bg-white rounded-lg p-4 mt-6">
-            <div className="flex justify-between">
-              <div className="text-xl text-[#292929]">Document List</div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                onChange={(e) => handleUploadMainFile(Array.from(e.target.files || []))}
-                accept="image/png,image/jpeg"
-                multiple
-              />
-              <Menu shadow="md" width={200}>
-                <Menu.Target>
-                  <Button
-                    variant="default"
-                    color="dark.6"
-                    leftSection={<IconUpload size={14} />}
-                  >
-                    Upload document
-                  </Button>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Item onClick={handleMenuItemClick}>
-                    Upload main documents
-                  </Menu.Item>
-                  <Menu.Item>Upload exhibit</Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            </div>
-            <div className="mt-6 bg-white rounded-xl border">
-              <div className="border-b flex items-center p-3 gap-2">
-                <div className="px-2">#</div>
-                <div className="flex-1 px-2">Document Name</div>
-                <div className="px-2">Actions</div>
+            <div className={` rounded-xl border  ${panelsCss.Exhibit}`}>
+              <div className="flex items-center py-3">
+                <div className="w-20 pl-6">#</div>
+                <div className="flex-1">Exhibits Name</div>
+                <div className="flex-1">Referenced As</div>
+                <div className="w-20 text-center">Actions</div>
               </div>
-              {/* <div className="h-[200px] flex items-center justify-center flex-col">
-                <IconMoodEmpty color="black" size={64} />
-                <div className="text-xl text-[#292929]">
-                  Main Document List is Empty
-                </div>
-                <div className="text-[#7c7c7c] py-1">
-                  Drag your file into this box or click 'Upload Document' to get
-                  started
-                </div>
-              </div> */}
-              {documents
-                .filter((doc) => doc.type === DocType.MAIN)
-                .map((doc, _i) => (
+              {selMDocId &&
+                getEDocs().map((doc, _i) => (
                   <div
                     key={doc.id}
-                    className={`border p-4 border-r-0 flex justify-between items-center cursor-pointer
-                  ${
-                    selectedMainDocumentId === doc.id
-                      ? "text-[#3040d6]"
-                      : "text-[#6e6e6e]"
-                  } 
-                  ${_i === 0 ? "border-t" : "border-t-0"}`}
+                    onClick={() => setSelEDocId(doc.id)}
+                    className={`flex items-center py-4 cursor-pointer border-t ${getSelDocCss(
+                      doc.id == selEDocId
+                    )}`}
                   >
-                    <div
-                      onClick={() => setSelectedMainDocumentId(doc.id)}
-                      className="font-bold flex gap-2 items-center cursor-pointer text-sm"
-                    >
-                      <IconExternalLink
-                        style={{ width: rem(20), height: rem(20) }}
+                    <div className="w-20 pl-6">{_i + 1}</div>
+                    <div className="flex-1 text-[#0550b3] truncate underline flex items-center gap-2">
+                      <div className="truncate underline">{doc.title}</div>
+                      <div className="flex-1">
+                        <div className="w-4 h-4 rounded-full bg-[#4bae4f] flex items-center justify-center text-white">
+                          <IconCheck size={10} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-20" onClick={(e) => e.stopPropagation()}>
+                      <DeleteConfirmModal
+                        onDelete={() => handleDeleteDocument(doc)}
+                        trigger={
+                          <span className="cursor-pointer flex justify-center text-[#989898] hover:text-[#2e2e2e]">
+                            <IconTrash size={20} />
+                          </span>
+                        }
                       />
-                      {doc.title}
                     </div>
                   </div>
                 ))}
+              {selMDocId &&
+                uploadingFiles.get(DocType.EXHIBIT)?.map((file, i) => (
+                  <div key={i} className="flex py-4 border-t">
+                    <div className="w-20 pl-6">{getEDocs().length + i + 1}</div>
+                    <div className="flex-1 text-[#0550b3] truncate">
+                      <div className="truncate flex items-center gap-2">
+                        <div className="truncate underline">{file.name}</div>
+                        <div className="pr-9 flex-1">
+                          {getStateBadge(uploadingStates[i])}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              {selMDocId &&
+                getEDocs().length == 0 &&
+                !uploadingFiles.get(DocType.EXHIBIT) && (
+                  <EmptyDropzone
+                    handleUploadFile={(files) =>
+                      handleUploadFile(
+                        files,
+                        DocType.EXHIBIT,
+                        selMDocId ?? DocType.EXHIBIT
+                      )
+                    }
+                    label="Exhibit List is Empty"
+                  />
+                )}
+              {!selMDocId && (
+                <div className="flex-1 rounded-none flex items-center justify-center">
+                  <div className="flex justify-center items-center h-full flex-col py-10">
+                    <IconClick size={60} color="black" stroke={1} />
+                    <div className="text-[#7c7c7c] text-center mt-4">
+                      Click a document to see the Exhibits it cites
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className={`rounded-xl border  ${panelsCss.Document}`}>
+              <DecriptionPanel />
             </div>
           </div>
         </div>
-      </form>
+      </div>
+
+      <UploadExhibitModal
+        opened={uploadModalOpened}
+        close={closeUploadModal}
+        open={openUploadModal}
+        documents={documents}
+        caseTitle={caseData?.data?.title ?? ""}
+        mainDocumentId={selMDocId ?? ""}
+        handleUploadFile={handleUploadFile}
+      />
     </BaseLayout>
   );
-}
+};
+
+export default CaseEditPage;
