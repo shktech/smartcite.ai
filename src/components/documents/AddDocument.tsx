@@ -264,7 +264,9 @@ const AddDocument: React.FC<AddDocumentProps> = ({ cases, setDocuments }) => {
     <>
       <div className="text-[#7c7c7c] pb-4">
         Upload an exhibit for the document{" "}
-        <span className="text-[#292929]">'Motion for Extension of Time'</span>
+        <span className="text-[#292929]">
+          &apos;Motion for Extension of Time&apos;
+        </span>
       </div>
       <FileUploadDropzone handleFileChange={setFiles} />
       <FileList />
@@ -357,7 +359,11 @@ const AddDocument: React.FC<AddDocumentProps> = ({ cases, setDocuments }) => {
     </>
   );
 
-  const StepComponents = [<StepOne />, <StepTwo />, <StepThree />];
+  const StepComponents = [
+    <StepOne key="step-1" />,
+    <StepTwo key="step-2" />,
+    <StepThree key="step-3" />,
+  ];
 
   return (
     <>

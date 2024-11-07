@@ -172,7 +172,7 @@ const AddExhibit: React.FC<AddExhibitProps> = ({ document, setDocuments }) => {
     <>
       <div className="text-[#7c7c7c] pb-4">
         Upload an exhibit for the document{" "}
-        <span className="text-[#292929]">'Motion for Extension of Time'</span>
+        <span className="text-[#292929]">&apos;Motion for Extension of Time&apos;</span>
       </div>
       <FileUploadDropzone handleFileChange={setFiles} />
       <FileList />
