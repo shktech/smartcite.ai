@@ -15,6 +15,7 @@ import { DocType } from "@utils/util.constants";
 import MyTable from "@components/common/MyTable";
 import { useDisclosure } from "@mantine/hooks";
 import DocumentDetailDrawer from "@components/documents/DocumentDetailDrawer";
+import AddExhibit from "@components/documents/AddExhibit";
 
 const { RangePicker } = DatePicker;
 
@@ -115,7 +116,7 @@ export default function DocumentList() {
           className="flex gap-2 items-center text-[#c5c5c5]"
           onClick={(e) => e.stopPropagation()}
         >
-          <IconPlus size={20} className="cursor-pointer hover:text-[#2e2e2e]" />
+          <AddExhibit document={record} setDocuments={setDocuments} />
           <DeleteConfirmModal
             onDelete={() => handleDeleteDocument(record)}
             trigger={
