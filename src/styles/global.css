@@ -21,3 +21,7 @@ body {
 .react-tel-input .form-control {
   width: 100% !important;
 }
+
+.ant-table-cell {
+  background-color: white !important;
+}

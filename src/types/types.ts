@@ -2,7 +2,9 @@ export interface IDocument {
   id: string;
   title: string;
   mediaId: string;
+  userId: string;
   mainDocumentId: string;
+  caseId: string;
   type: string;
   mediaUrl: string;
   createdAt: string;
