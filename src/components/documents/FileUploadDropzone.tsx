@@ -5,13 +5,17 @@ import { Group, rem, useMantineTheme } from "@mantine/core";
 import { IconCloudUpload, IconDownload, IconX } from "@tabler/icons-react";
 interface ComponentProps {
   handleFileChange: (files: File[]) => void;
+  singleFile?: boolean;
 }
 
 interface FormValues {
   files: File[];
 }
 
-const FileUploadDropzone: React.FC<ComponentProps> = ({ handleFileChange }) => {
+const FileUploadDropzone: React.FC<ComponentProps> = ({
+  handleFileChange,
+  singleFile = false,
+}) => {
   const theme = useMantineTheme();
   const form = useForm<FormValues>({
     mode: "uncontrolled",
@@ -21,7 +25,7 @@ const FileUploadDropzone: React.FC<ComponentProps> = ({ handleFileChange }) => {
     <div className="relative">
       <Dropzone
         p={0}
-        multiple
+        multiple={!singleFile}
         radius="md"
         maxSize={30 * 1024 ** 2}
         onDrop={(files) => handleFileChange(files)} // Ensure handleFileChange is passed as a prop

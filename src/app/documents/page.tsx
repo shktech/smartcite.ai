@@ -16,6 +16,7 @@ import MyTable from "@components/common/MyTable";
 import { useDisclosure } from "@mantine/hooks";
 import DocumentDetailDrawer from "@components/documents/DocumentDetailDrawer";
 import AddExhibit from "@components/documents/AddExhibit";
+import AddDocument from "@components/documents/AddDocument";
 
 const { RangePicker } = DatePicker;
 
@@ -199,7 +200,10 @@ export default function DocumentList() {
     if (dateRange?.[0] && dateRange?.[1]) {
       filteredDocs = filteredDocs.filter((doc) => {
         const docDate = dayjs(doc.createdAt);
-        return docDate.isAfter(dateRange[0]) && docDate.isBefore(dateRange[1]);
+        return (
+          docDate.isAfter(dateRange[0]) &&
+          docDate.isBefore(dateRange[1].add(1, "day"))
+        );
       });
     }
 
@@ -243,15 +247,7 @@ export default function DocumentList() {
             </div>
           </div>
           <div>
-            <Button
-              variant=""
-              color="dark.6"
-              type="submit"
-              component="a"
-              href="/cases/create"
-            >
-              + Add document
-            </Button>
+            <AddDocument cases={cases} setDocuments={setDocuments} />
           </div>
         </div>
 
