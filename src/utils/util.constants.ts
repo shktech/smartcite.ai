@@ -27,3 +27,9 @@ export const CaseStateTextColor: Record<string, string> = {
   "In Progress": "#056cf3",
   Closed: "#989898",
 };
+
+export const UploadingState = {
+  DOING: "DOING",
+  SUCCESS: "SUCCESS",
+  FAIL: "FAIL",
+};
