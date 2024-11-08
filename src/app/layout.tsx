@@ -49,6 +49,13 @@ export default function RootLayout({
                     },
                   },
                   {
+                    name: "documents",
+                    list: "/exhibits",
+                    meta: {
+                      canDelete: true,
+                    },
+                  },
+                  {
                     name: "api-keys",
                     list: "/api-keys",
                     meta: {
