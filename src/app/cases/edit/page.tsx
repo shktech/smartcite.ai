@@ -2,12 +2,19 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Button, LoadingOverlay, Menu, Loader } from "@mantine/core";
-import { useDelete, useList, useOne, useParsed } from "@refinedev/core";
+import {
+  useCreate,
+  useDelete,
+  useList,
+  useOne,
+  useParsed,
+} from "@refinedev/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Layout as BaseLayout } from "@components/layout";
 import {
   IconCheck,
   IconClick,
+  IconRefresh,
   IconTrash,
   IconUpload,
   IconX,
@@ -86,7 +93,7 @@ const CaseEditPage = () => {
     resource: `cases/${caseId}/documents`,
     hasPagination: false,
   });
-
+  const { mutate: createMutate } = useCreate();
   const { mutate: deleteMutate } = useDelete();
 
   // Helper functions
@@ -214,6 +221,22 @@ const CaseEditPage = () => {
     setSelEDocId(undefined);
   }, [selMDocId]);
 
+  const handleExtractCitations = async () => {
+    createMutate(
+      {
+        resource: `documents/${selMDocId}/extract-citations`,
+        values: {},
+      },
+      {
+        onError: (error) => console.log(error),
+        onSuccess: (res) => {
+          setLoading(false);
+          refetchDocuments();
+        },
+      }
+    );
+  };
+
   return (
     <BaseLayout>
       <div className="p-6 min-h-screen flex flex-col">
@@ -240,25 +263,35 @@ const CaseEditPage = () => {
               accept="application/pdf"
               multiple
             />
-            <Menu shadow="md" width={200}>
-              <Menu.Target>
-                <Button
-                  variant="default"
-                  color="dark.6"
-                  leftSection={<IconUpload size={14} />}
-                >
-                  Upload document
-                </Button>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item onClick={handleMenuItemClick}>
-                  Upload main documents
-                </Menu.Item>
-                <Menu.Item onClick={openUploadModal} disabled={!selMDocId}>
-                  Upload exhibit
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleExtractCitations}
+                disabled={!selMDocId}
+                variant="default"
+                leftSection={<IconRefresh size={14} />}
+              >
+                Extract citations
+              </Button>
+              <Menu shadow="md" width={200}>
+                <Menu.Target>
+                  <Button
+                    variant="default"
+                    color="dark.6"
+                    leftSection={<IconUpload size={14} />}
+                  >
+                    Upload document
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item onClick={handleMenuItemClick}>
+                    Upload main documents
+                  </Menu.Item>
+                  <Menu.Item onClick={openUploadModal} disabled={!selMDocId}>
+                    Upload exhibit
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </div>
           </div>
           <div className="grid grid-cols-12 text-sm gap-1 flex-1 pt-6 text-[#989898]">
             <div
