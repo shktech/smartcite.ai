@@ -5,7 +5,7 @@ import { DataProvider } from "@refinedev/core";
 import { stringify } from "querystring";
 import axios, { AxiosError } from "axios";
 
-const API_URL = "http://localhost:3001/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface PARAMS {
   limit?: number;
