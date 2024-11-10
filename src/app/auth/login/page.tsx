@@ -12,6 +12,7 @@ import {
 import { useLogin } from "@refinedev/core";
 import Link from "next/link";
 import { useForm } from "@mantine/form";
+// import { IconAntennaBars5 } from "@tabler/icons-react";
 
 export default function AuthenticationForm() {
   const { mutate: login } = useLogin();
@@ -36,11 +37,16 @@ export default function AuthenticationForm() {
     }
     login({ email: form.values.email, password: form.values.password });
   };
-  
+
   return (
     <MantineProvider>
       <div className="h-screen w-full flex items-center justify-center bg-[#fafafa]">
         <div className="w-[500px] flex flex-col p-8 bg-white rounded-lg shadow-2xl">
+          <div className="p-6 flex items-center justify-center text-xl text-black">
+            {/* <IconAntennaBars5 size={24} /> */}
+            <span className="text-[#394149] font-bold ml-2">SMART</span>
+            <span className="text-[#394149]">CITE</span>
+          </div>
           <div className="flex items-center text-black text-2xl font-bold">
             Sign in
           </div>
@@ -104,7 +110,7 @@ export default function AuthenticationForm() {
               >
                 Sign in
               </Button>
-              <Divider
+              {/* <Divider
                 my="xs"
                 label="Or"
                 labelPosition="center"
@@ -143,7 +149,7 @@ export default function AuthenticationForm() {
                 }
               >
                 Continue with Google
-              </Button>
+              </Button> */}
             </form>
           </div>
         </div>

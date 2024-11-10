@@ -50,8 +50,7 @@ export default function AuthenticationForm() {
           <IconMessage color="white" size={32} stroke={2} />
         </div>
         <div className="py-4 flex justify-center items-center flex-col">
-          <span className="font-bold">Please click on the link</span> in the
-          email we just sent you to confirm your email address
+          <span className="font-bold">Verification Email Sent</span> We’ve sent a verification email. Please check your inbox (and spam/junk folder) and click the link to complete your signup
         </div>
         <Button
           variant="default"

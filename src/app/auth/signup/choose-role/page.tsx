@@ -15,7 +15,7 @@ export default function Page() {
   const options = [
     {
       role: RoleOptiosn.INDIVIDUAL,
-      label: "Individual Lawyer",
+      label: "Individual",
       icon: (
         <svg
           fill="#000000"
