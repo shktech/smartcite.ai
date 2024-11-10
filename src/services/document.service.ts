@@ -1,6 +1,6 @@
 import axios from "axios";
 import { getAccessToken } from "./auth.service";
-import { DocumentResponseDto } from "../types/types";
+import { IDocument } from "../types/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL; // Use environment variables for base URL
 
@@ -26,5 +26,5 @@ export const createDocument = async (
     }
   );
 
-  return response.data as DocumentResponseDto;
+  return response.data as IDocument;
 };

@@ -65,6 +65,19 @@ export const getUserByEmail = async (email: string, token: string) => {
   }
 };
 
+export const getAllUsers = async (token: string) => {
+  try {
+    const getAllUsers = await axios.get(
+      `${keycloakUrl}/admin/realms/${realmId}/users`,
+      getHeaderFromToken(token)
+    );
+    return getAllUsers.data;
+  } catch (error) {
+    console.error("Error found:", error);
+    throw error;
+  }
+};
+
 export const resetPassword = async (
   userId: string,
   password: string,

@@ -1,360 +1,313 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  Button,
-  Collapse,
-  LoadingOverlay,
-  Menu,
-  Progress,
-  rem,
-} from "@mantine/core";
-import {
-  useCreate,
-  useDelete,
-  useList,
-  useNavigation,
-  useOne,
-  useParsed,
-} from "@refinedev/core";
-import { DocType } from "@utils/util.constants";
-import { DocumentResponseDto } from "../../types/types";
-import FileUploadDropzone from "@components/documents/FileUploadDropzone";
-
-import { createDocument } from "@services/document.service";
-import { formatFileSize } from "@utils/util.functions";
-import {
-  IconBaselineDensityMedium,
-  IconExternalLink,
-  IconEye,
-  IconEyeDown,
-  IconLayersSubtract,
-  IconMinus,
-  IconPlus,
-  IconTrash,
-} from "@tabler/icons-react";
-import {
-  getMediaPresignedUrl,
-  uploadFile,
-} from "@services/admin-file-upload.service";
-import ExhibitsPanel from "@components/documents/ExhibitsPanel";
-import { useDisclosure } from "@mantine/hooks";
+import { Button, Input, LoadingOverlay } from "@mantine/core";
+import { DatePicker } from "antd";
+import type { TableColumnType } from "antd";
+import { useDelete, useTable } from "@refinedev/core";
+import dayjs from "dayjs";
 import { Layout as BaseLayout } from "@components/layout";
+import DeleteConfirmModal from "@components/common/DeleteBtnWithConfirmModal";
+import { IconPlus, IconSearch, IconTrash } from "@tabler/icons-react";
+import { ICase, IDocument } from "@/types/types";
+import { getFormatedDate } from "@utils/util.functions";
+import { DocType } from "@utils/util.constants";
+import MyTable from "@components/common/MyTable";
+import { useDisclosure } from "@mantine/hooks";
+import DocumentDetailDrawer from "@components/documents/DocumentDetailDrawer";
+import AddExhibit from "@components/documents/AddExhibit";
+import AddDocument from "@components/documents/AddDocument";
 
-export default function BlogPostList() {
-  const { push } = useNavigation();
-  const { mutate: deleteMutate } = useDelete();
-  const { mutate: createMutate } = useCreate();
-  const { params } = useParsed();
-  const caseId = params?.caseId;
-  const [selectedMainDocumentId, setSelectedMainDocumentId] =
-    useState<string>();
-  const [files, setFiles] = useState<File[] | null>(null);
+const { RangePicker } = DatePicker;
+
+export default function DocumentList() {
+  // State
+  const [searchKey, setSearchKey] = useState("");
+  const [documents, setDocuments] = useState<IDocument[]>([]);
+  const [mainDocuments, setMainDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [uploadingFiles, setUploadingFiles] = useState<
-    { index: number; progress: number }[]
-  >([]); // Define type for uploadingFiles
-  const [opened, { toggle }] = useDisclosure(false);
+  const [selMDoc, setSelMDoc] = useState<any>();
+  const [cases, setCases] = useState<ICase[]>([]);
+  const [dateRange, setDateRange] = useState<[any, any] | null>([
+    dayjs().subtract(6, "month"),
+    dayjs(),
+  ]);
 
-  const [documents, setDocuments] = useState<DocumentResponseDto[]>([]);
-  useEffect(() => {
-    if (!caseId) {
-      push("/cases"); // Redirect if caseId is missing
-    }
-  }, [caseId]);
-  const { data: caseData, isLoading: caseLoading } = useOne<any>({
+  // Hooks
+  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
+    useDisclosure(false);
+  const { mutate: deleteMutate } = useDelete();
+
+  const { data: documentData, isLoading: documentLoading } = useTable<any>({
+    syncWithLocation: false,
+  }).tableQueryResult;
+
+  const { data: caseData, isLoading: caseLoading } = useTable<any>({
     resource: "cases",
-    id: caseId,
-  });
+    syncWithLocation: false,
+  }).tableQueryResult;
 
-  const {
-    data: documentData,
-    isLoading: documentLoading,
-    refetch: refetchDocuments,
-  } = useList<any>({
-    resource: `cases/${caseId}/documents`,
-    hasPagination: false,
-  });
-
-  useEffect(() => {
-    const d = documentData?.data as any;
-    if (d) {
-      const allDocuments = d?.items as DocumentResponseDto[];
-      setDocuments(allDocuments);
-    }
-  }, [documentData]);
-
-  const updateUploadProgress = (index: number, progress: number) => {
-    setUploadingFiles((prev) => {
-      return prev.map((p) => {
-        if (p.index === index) {
-          return {
-            ...p,
-            progress: progress,
-          };
-        }
-        return p;
-      });
-    });
-  };
-
-  const handleMainFileChange = async (fs: File[]) => {
-    const newDocuments: DocumentResponseDto[] = [];
-    setFiles(fs);
-    setUploadingFiles(
-      fs.map((_, i) => ({
-        index: i,
-        progress: 0,
-      }))
-    );
-
-    const uploadPromises = fs.map(async (file, i) => {
-      try {
-        const presignedUrl = await getMediaPresignedUrl();
-        await uploadFile(file, presignedUrl.uploadUrl, (progressEvent) => {
-          const percent = Math.round(
-            (progressEvent.loaded * 99) / (progressEvent.total || 1)
-          );
-          updateUploadProgress(i, percent);
-        });
-        const createdDocument = await createDocument(
-          caseId,
-          presignedUrl.id,
-          file.name,
-          DocType.MAIN,
-          DocType.MAIN
-        );
-        updateUploadProgress(i, 100);
-        newDocuments.push(createdDocument);
-        setTimeout(() => {
-          setUploadingFiles((prev) => prev.filter((uf) => uf.index !== i));
-        }, 1000);
-      } catch (error: any) {
-        alert("Failed to upload file: " + error.message);
-      }
-    });
-
-    await Promise.all(uploadPromises); // Wait for all uploads to complete
-    setDocuments([...documents, ...newDocuments]);
-  };
-  const handleExtractCitations = async (documentId: string) => {
-    const document = documents.find((doc) => doc.id === documentId);
-    const confirmExtract = window.confirm(
-      `Are you sure you want to begin citation extraction for document "${document?.title}"?`
-    );
-    if (!confirmExtract) {
-      return;
-    }
-
-    setLoading(true);
-
-    createMutate(
-      {
-        resource: `documents/${documentId}/extract-citations`,
-        values: {},
-      },
-      {
-        onError: (error) => console.log(error),
-        onSuccess: (res) => {
-          setLoading(false);
-          refetchDocuments();
-        },
-      }
-    );
-  };
-
-  const handleDeleteDocument = async (documentId: string) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this document?"
-    );
-    if (!confirmDelete) {
-      return;
-    }
+  // Handlers
+  const handleDeleteDocument = async (doc: IDocument) => {
     setLoading(true);
     deleteMutate(
       {
         resource: `documents`,
-        id: documentId,
+        id: doc.id,
       },
       {
-        onError: (error) => console.log(error),
-        onSuccess: () => {
+        onError: (error) => {
+          console.log(error);
           setLoading(false);
-          setDocuments(documents.filter((doc) => doc.id !== documentId));
+        },
+        onSuccess: () => {
+          setDocuments(documents.filter((d) => d.id !== doc.id));
+          setLoading(false);
         },
       }
     );
   };
 
-  return (
-    <BaseLayout>
-      <div className="p-5 h-full flex flex-col">
-        <div className="flex justify-between">
-          <div className="text-3xl text-black">
-            {caseData?.data.title}
-            <span className="text-sm ml-3 mr-1">/</span>
-            <span className="text-sm">All documents</span>
-          </div>
-          <Button
-            leftSection={
-              opened ? <IconMinus size={14} /> : <IconPlus size={14} />
-            }
-            variant="default"
-            onClick={toggle}
-          >
-            Add Document
-          </Button>
-        </div>
-        <Collapse in={opened}>
-          <div className="py-2">
-            <FileUploadDropzone handleFileChange={handleMainFileChange} />
-          </div>
-        </Collapse>
-        <div className="py-2 flex flex-col">
-          {uploadingFiles.map((uf) => (
-            <div
-              key={uf.index}
-              className="border p-4 my-2 rounded-lg flex gap-8 items-center"
-            >
-              <div className="flex flex-col gap-2 flex-1">
-                <div className="text-sm font-bold">
-                  {files?.[uf.index].name}
-                </div>
-                <div className="text-xs flex justify-between">
-                  <div>{formatFileSize(files?.[uf.index].size as number)}</div>
-                  <div className="">{uf.progress}%</div>
-                </div>
-                <Progress value={uf.progress} animated />
+  const handleRowClick = (record: any) => {
+    openDrawer();
+    setSelMDoc(record);
+  };
+
+  // Table Columns
+  const mainColumns: TableColumnType<any>[] = [
+    {
+      title: "Document Name",
+      dataIndex: "title",
+      key: "title",
+      sorter: (a: any, b: any) => a.title.localeCompare(b.title),
+      sortDirections: ["ascend", "descend"],
+      render: (title: string) => (
+        <div className="underline text-[#056cf3]">{title}</div>
+      ),
+    },
+    {
+      title: "Case Title",
+      dataIndex: "caseTitle",
+      key: "caseTitle",
+      sorter: (a: any, b: any) => a.title.localeCompare(b.title),
+      sortDirections: ["ascend", "descend"],
+    },
+    {
+      title: "No.Exhibits",
+      dataIndex: "noExhibits",
+      key: "noExhibits",
+      sorter: (a: any, b: any) => a.noExhibits - b.noExhibits,
+      sortDirections: ["ascend", "descend"],
+    },
+    {
+      title: "Uploaded At",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (createdAt: string) => getFormatedDate(createdAt),
+      sorter: (a: any, b: any) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      sortDirections: ["ascend", "descend"],
+    },
+    {
+      title: "Action",
+      dataIndex: "",
+      key: "action",
+      render: (_, record) => (
+        <div
+          className="flex gap-2 items-center text-[#c5c5c5]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <AddExhibit document={record} setDocuments={setDocuments} />
+          <DeleteConfirmModal
+            onDelete={() => handleDeleteDocument(record)}
+            trigger={
+              <div className="cursor-pointer hover:text-[#2e2e2e]">
+                <IconTrash size={18} />
               </div>
-            </div>
-          ))}
-        </div>
-        <div className="relative">
-          <LoadingOverlay
-            visible={caseLoading || documentLoading}
-            zIndex={1000}
-            overlayProps={{ radius: "sm", blur: 2 }}
-            loaderProps={{ color: "pink", type: "bars" }}
+            }
           />
         </div>
-        <div className="grid grid-cols-10 flex-1">
-          <div className="col-span-4 relative">
-            <LoadingOverlay
-              visible={loading}
-              zIndex={1000}
-              overlayProps={{ radius: "sm", blur: 2 }}
-              loaderProps={{ color: "pink", type: "bars" }}
-            />
-            {documents
-              .filter((doc) => doc.type === DocType.MAIN)
-              .map((doc, _i) => (
-                <div
-                  key={doc.id}
-                  className={`border p-4 border-r-0 flex justify-between items-center cursor-pointer
-                  ${
-                    selectedMainDocumentId === doc.id
-                      ? "text-[#3040d6]"
-                      : "text-[#6e6e6e]"
-                  } 
-                  ${_i === 0 ? "border-t" : "border-t-0"}`}
-                >
-                  <div
-                    onClick={() => setSelectedMainDocumentId(doc.id)}
-                    className="font-bold flex gap-2 items-center cursor-pointer text-sm"
-                  >
-                    <IconExternalLink
-                      style={{ width: rem(20), height: rem(20) }}
-                    />
-                    {doc.title}
-                  </div>
-                  <Menu shadow="md" width={200}>
-                    <Menu.Target>
-                      <button className="border p-2 rounded-md hover:bg-[#f0f0f0] duration-300">
-                        <IconBaselineDensityMedium
-                          style={{ width: rem(14), height: rem(14) }}
-                        />
-                      </button>
-                    </Menu.Target>
+      ),
+    },
+  ];
 
-                    <Menu.Dropdown>
-                      <Menu.Item
-                        leftSection={
-                          <IconEye
-                            style={{ width: rem(14), height: rem(14) }}
-                          />
-                        }
-                        onClick={() =>
-                          push(
-                            `/documents/detail/?documentId=${doc.id}&caseId=${caseId}`
-                          )
-                        }
-                      >
-                        View Details
-                      </Menu.Item>
-                      <Menu.Item
-                        leftSection={
-                          <IconLayersSubtract
-                            style={{ width: rem(14), height: rem(14) }}
-                          />
-                        }
-                        onClick={() => handleExtractCitations(doc.id)}
-                      >
-                        Extract Citations
-                      </Menu.Item>
-                      <Menu.Item
-                        leftSection={
-                          <IconEye
-                            style={{ width: rem(14), height: rem(14) }}
-                          />
-                        }
-                        onClick={() =>
-                          push(
-                            `/citations?documentId=${doc.id}&caseId=${caseId}`
-                          )
-                        }
-                      >
-                        View Citations
-                      </Menu.Item>
-                      <Menu.Item
-                        leftSection={
-                          <IconEyeDown
-                            style={{ width: rem(14), height: rem(14) }}
-                          />
-                        }
-                        component="a"
-                        href={doc.mediaUrl}
-                        target="_blank"
-                      >
-                        View File
-                      </Menu.Item>
-                      <Menu.Item
-                        color="red"
-                        leftSection={
-                          <IconTrash
-                            style={{ width: rem(14), height: rem(14) }}
-                          />
-                        }
-                        onClick={() => handleDeleteDocument(doc.id)}
-                      >
-                        Delete my account
-                      </Menu.Item>
-                    </Menu.Dropdown>
-                  </Menu>
-                </div>
-              ))}
+  const exhibitsColumns: TableColumnType<any>[] = [
+    {
+      title: "#",
+      dataIndex: "",
+      key: "index",
+      render: (_, __, index) => <div className="pb-9">{index + 1}</div>,
+    },
+    {
+      title: "Exhibit Name",
+      dataIndex: "title",
+      key: "title",
+      render: (title: string) => (
+        <>
+          <div className="underline text-black">{title}</div>
+          <div className="text-[#989898] line-clamp-2 text-xs mt-1">
+            This Non-Disclosure Agreement (NDA) is a binding contract between
+            ABC Corp and XYZ Inc to protect confidential information shared
+            during their collaboration. Both parties agree to keep all
+            proprietary data, trade s
           </div>
-          <div className="border col-span-6 p-4">
-            {selectedMainDocumentId && (
-              <ExhibitsPanel
-                mainDocumentId={selectedMainDocumentId}
-                caseId={caseId}
-                setDocuments={setDocuments}
-                documents={documents}
-              />
-            )}
+        </>
+      ),
+    },
+    {
+      title: "Referenced As",
+      dataIndex: "",
+      key: "ref_as",
+    },
+    {
+      title: "Action",
+      dataIndex: "",
+      key: "action",
+      render: (_, record) => (
+        <div className="flex gap-2 items-center text-[#c5c5c5]">
+          <DeleteConfirmModal
+            onDelete={() => handleDeleteDocument(record)}
+            trigger={
+              <div className="cursor-pointer hover:text-[#2e2e2e]">
+                <IconTrash size={18} />
+              </div>
+            }
+          />
+        </div>
+      ),
+    },
+  ];
+
+  // Effects
+  useEffect(() => {
+    if (documentData) {
+      setDocuments(documentData.items as IDocument[]);
+    }
+  }, [documentData]);
+
+  useEffect(() => {
+    if (caseData) {
+      setCases(caseData.items as ICase[]);
+    }
+  }, [caseData]);
+
+  useEffect(() => {
+    if (!cases) return;
+
+    let filteredDocs = documents.filter((doc) => doc.type === DocType.MAIN);
+
+    // Date range filter
+    if (dateRange?.[0] && dateRange?.[1]) {
+      filteredDocs = filteredDocs.filter((doc) => {
+        const docDate = dayjs(doc.createdAt);
+        return (
+          docDate.isAfter(dateRange[0]) &&
+          docDate.isBefore(dateRange[1].add(1, "day"))
+        );
+      });
+    }
+
+    // Search filter
+    if (searchKey) {
+      const searchLower = searchKey.toLowerCase();
+      filteredDocs = filteredDocs.filter(
+        (doc: any) =>
+          doc.title.toLowerCase().includes(searchLower) ||
+          doc.caseTitle?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Enrich documents with additional data
+    const enrichedDocs = filteredDocs.map((doc) => ({
+      key: doc.id,
+      ...doc,
+      caseTitle: cases.find((c) => c.id === doc.caseId)?.title,
+      noExhibits: documents.filter((d) => d.mainDocumentId === doc.id).length,
+      exhibits: documents.filter((d) => d.mainDocumentId === doc.id),
+    }));
+
+    setMainDocuments(enrichedDocs);
+  }, [documents, cases, dateRange, searchKey]);
+
+  return (
+    <BaseLayout>
+      <LoadingOverlay
+        visible={loading || documentLoading || caseLoading}
+        zIndex={1000}
+        loaderProps={{ color: "black", type: "bars" }}
+      />
+      <div className="p-6">
+        <div className="flex justify-between">
+          <div>
+            <div className="text-xl text-[#292929] font-semibold">
+              Document Management
+            </div>
+            <div className="text-[#7c7c7c] py-2">
+              Manage all your matter-related documents in one place
+            </div>
+          </div>
+          <div>
+            <AddDocument cases={cases} setDocuments={setDocuments} />
           </div>
         </div>
+
+        <div className="flex justify-between items-center mt-4">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Search"
+              leftSection={<IconSearch size={18} color="#adb5bd" />}
+              value={searchKey}
+              onChange={(e) => setSearchKey(e.target.value)}
+              styles={{
+                input: {
+                  backgroundColor: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                },
+              }}
+            />
+            <RangePicker
+              style={{
+                border: "none",
+                backgroundColor: "#fff",
+                borderRadius: "6px",
+              }}
+              value={dateRange}
+              onChange={(dates) => setDateRange(dates)}
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 text-xs bg-white rounded-xl pb-10">
+          <MyTable
+            columns={mainColumns}
+            dataSource={mainDocuments}
+            pagination={false}
+            expandable={{
+              expandedRowRender: (record: any) => (
+                <div className="ml-10 my-4 border rounded-lg bg-white pb-4">
+                  <MyTable
+                    columns={exhibitsColumns}
+                    dataSource={record.exhibits}
+                    pagination={false}
+                  />
+                </div>
+              ),
+            }}
+            onRow={(record: any) => ({
+              onClick: () => handleRowClick(record),
+            })}
+          />
+        </div>
       </div>
+
+      <DocumentDetailDrawer
+        opened={drawerOpened}
+        close={closeDrawer}
+        selMDoc={selMDoc}
+        setSelMDoc={setSelMDoc}
+        setMainDocuments={setMainDocuments}
+      />
     </BaseLayout>
   );
 }

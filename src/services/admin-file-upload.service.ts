@@ -23,15 +23,16 @@ export const getMediaPresignedUrl = async () => {
 export const uploadFile = async (
   file: File,
   url: string,
-  onProgress: (progressEvent: AxiosProgressEvent) => void
+  onProgress?: (progressEvent: AxiosProgressEvent) => void
 ) => {
   try {
-    await axios.put(url, file, {
+    const response = await axios.put(url, file, {
       headers: {
         "Content-Type": file.type,
       },
       onUploadProgress: onProgress,
     });
+    return "Success";
   } catch (err) {
     console.error(err);
     throw new Error("Error uploading file");

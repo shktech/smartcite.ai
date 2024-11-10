@@ -4,7 +4,8 @@
 
 body {
   font-family: Roboto, sans-serif;
-  color: #4b5a63
+  color: #4b5a63;
+  background-color: #eeeff1;
 }
 /* 
 * These styles were added to improve the appearance of the example pages.
@@ -19,4 +20,8 @@ body {
 
 .react-tel-input .form-control {
   width: 100% !important;
+}
+
+.ant-table-cell {
+  background-color: white !important;
 }

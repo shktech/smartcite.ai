@@ -1,8 +1,10 @@
-export interface DocumentResponseDto {
+export interface IDocument {
   id: string;
   title: string;
   mediaId: string;
+  userId: string;
   mainDocumentId: string;
+  caseId: string;
   type: string;
   mediaUrl: string;
   createdAt: string;
@@ -27,7 +29,7 @@ export interface CitationResponseDto {
   referencedText: string;
 }
 
-export interface CaseResponseDto {
+export interface ICase {
   id: string;
   title: string;
   description: string;
