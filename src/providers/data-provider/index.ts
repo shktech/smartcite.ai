@@ -5,7 +5,10 @@ import { DataProvider } from "@refinedev/core";
 import { stringify } from "querystring";
 import axios, { AxiosError } from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL =
+  (process.env.NODE_ENV === "production"
+    ? process.env.NEXT_PUBLIC_API_URL
+    : process.env.NEXT_PUBLIC_API_URL_DEV) || "";
 
 interface PARAMS {
   limit?: number;
@@ -66,12 +69,9 @@ const customDataProvider: DataProvider = {
       params.order = sorters[0].order;
     }
 
-    const response = await axiosInstance.get(
-      `${API_URL}/${resource}`,
-      {
-        params: params,
-      }
-    );
+    const response = await axiosInstance.get(`${API_URL}/${resource}`, {
+      params: params,
+    });
 
     if (pagination?.mode != "off") {
       return response.data;
@@ -100,7 +100,7 @@ const customDataProvider: DataProvider = {
   },
 
   custom: async ({ url, method, payload }) => {
-    let requestUrl = (API_URL) + `/${url}?`;
+    let requestUrl = API_URL + `/${url}?`;
     let axiosResponse;
     switch (method) {
       case "put":

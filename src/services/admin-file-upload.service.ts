@@ -1,7 +1,10 @@
 import { getAccessToken } from "./auth.service";
 import axios, { AxiosProgressEvent } from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL; // Use environment variables for base URL
+const API_URL =
+  (process.env.NODE_ENV === "production"
+    ? process.env.NEXT_PUBLIC_API_URL
+    : process.env.NEXT_PUBLIC_API_URL_DEV) || "";
 
 export const getMediaPresignedUrl = async () => {
   try {
