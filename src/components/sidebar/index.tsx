@@ -26,7 +26,7 @@ export const Sidebar = () => {
         {menus.map((item) => (
           <Link
             key={item.key}
-            href={item.route + `?caseId=${caseId}`}
+            href={item.route}
             className={`px-3 py-3 mx-3 no-underline hover:bg-[#f0f0f0] rounded-lg hover:text-[#0c1e29] duration-500 text-md flex items-center gap-2 ${
               selectedKey === item.key
                 ? "bg-[#f4f4f4] text-[#292929] font-bold"
