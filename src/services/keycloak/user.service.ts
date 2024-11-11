@@ -1,20 +1,15 @@
-import { Group } from "@utils/util.constants";
 import axios from "axios";
 
 const keycloakUrl = process.env.NEXT_PUBLIC_KEYCLOAK_URL;
 const realmId = process.env.NEXT_PUBLIC_KEYCLOAK_REALM_ID;
 const clientId = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID;
 const clientSecret = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_SECRET;
-const adminUsername = process.env.NEXT_PUBLIC_KEYCLOAK_ADMIN_USERNAME;
-const adminPassword = process.env.NEXT_PUBLIC_KEYCLOAK_ADMIN_PASSWORD;
 export const getSuperAdminToken = async () => {
   try {
     const response = await axios.post(
       `${keycloakUrl}/realms/${realmId}/protocol/openid-connect/token`,
       {
-        username: adminUsername,
-        password: adminPassword,
-        grant_type: "password",
+        grant_type: "client_credentials",
         client_id: clientId,
         client_secret: clientSecret,
       },
@@ -46,6 +41,8 @@ export const sendResetPasswordEmail = async (userId: string, token: string) => {
       {},
       getHeaderFromToken(token)
     );
+    if (!sendResetPasswordEmail)
+      throw new Error("Failed to send reset password email");
     return "Succssfully sent reset password email";
   } catch (error) {
     console.error("Error found:", error);
@@ -94,6 +91,7 @@ export const resetPassword = async (
       payload,
       getHeaderFromToken(token)
     );
+    if (!resetPassword) throw new Error("Failed to reset password");
     return "Successfully reset password";
   } catch (error) {
     console.error("Error found:", error);
@@ -146,6 +144,7 @@ export const sendVerifyEmail = async (userid: string, token: string) => {
       {},
       getHeaderFromToken(token)
     );
+    if (!sendVerifyEmail) throw new Error("Failed to send verify email");
     return "Succssfully sent verify email";
   } catch (error) {
     console.error("Error found:", error);
@@ -174,6 +173,7 @@ export const sendInviteEmail = async (
         },
       }
     );
+    if (!sendInviteEmail) throw new Error("Failed to send invite email");
     return "success";
   } catch (error) {
     console.error("Error found:", error);

@@ -50,6 +50,7 @@ export const authProvider: AuthProvider = {
 
     if (response.status === 200) {
       localStorage.setItem("accessToken", response.data.access_token);
+      localStorage.setItem("refreshToken", response.data.refresh_token);
       return {
         success: true,
         redirectTo: "/cases",
@@ -115,19 +116,39 @@ export const authProvider: AuthProvider = {
         return {
           authenticated: false,
           redirectTo: `/auth/forgot-password/reset-password?userId=${decodedTokenData.sub}&key=${key}`,
-        }
+        };
       }
     }
-    const user = getCurrentUser();
-    if (user) {
+    const refreshToken = localStorage.getItem("refreshToken");
+    const response = await axios.post(
+      `${keycloakUrl}/realms/${realmId}/protocol/openid-connect/token`,
+      {
+        grant_type: "refresh_token",
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+      },
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+    if (response.status === 200) {
+      localStorage.setItem("accessToken", response.data.access_token);
+      localStorage.setItem("refreshToken", response.data.refresh_token);
       return {
         authenticated: true,
       };
+    } else {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("tempToken");
+      return {
+        authenticated: false,
+        redirectTo: "/auth/login",
+      };
     }
-    return {
-      authenticated: false,
-      redirectTo: "/auth/login",
-    };
   },
   getPermissions: async () => {
     return null;
