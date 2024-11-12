@@ -1,7 +1,11 @@
 "use client";
 import { type AuthProvider } from "@refinedev/core";
-import { addUserToOrganization } from "@/services/keycloak/user.service";
-import { RoleOptiosn } from "@/utils/util.constants";
+import {
+  addUserToOrganization,
+  getSuperAdminToken,
+  getUserGroup,
+} from "@/services/keycloak/user.service";
+import { Group, RoleOptiosn } from "@/utils/util.constants";
 import axios from "axios";
 import jwt from "jsonwebtoken";
 import { jwtDecode } from "jwt-decode";
@@ -82,7 +86,6 @@ export const authProvider: AuthProvider = {
   check: async () => {
     const queryParams = new URLSearchParams(window.location.search);
     const pathName = window.location.pathname;
-    const role = localStorage.getItem("signupRole") || RoleOptiosn.INDIVIDUAL;
     if (pathName.includes("registrations") && queryParams.get("token")) {
       const key = queryParams.get("token") as string;
       const decodedTokenData = jwtDecode<any>(key);
@@ -99,7 +102,13 @@ export const authProvider: AuthProvider = {
       const key = queryParams.get("key") as string;
       const decodedTokenData = jwtDecode<any>(key);
       const tokenType = decodedTokenData.typ;
+      const userId = decodedTokenData.sub;
       if (tokenType == "verify-email") {
+        const token = await getSuperAdminToken();
+        const userGroups = await getUserGroup(userId, token.access_token);
+        const role = userGroups.find((group: any) => group.name == Group.ADMIN)
+          ? RoleOptiosn.ORGANIZATION
+          : RoleOptiosn.INDIVIDUAL;
         return {
           authenticated: false,
           redirectTo: `/auth/signup/complete-profile?role=${role}&key=${key}`,

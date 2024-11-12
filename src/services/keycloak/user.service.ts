@@ -34,6 +34,19 @@ export const getHeaderFromToken = (token: string) => {
   };
   return header;
 };
+
+export const getUserGroup = async (userId: string, token: string) => {
+  try {
+    const getGroups = await axios.get(
+      `${keycloakUrl}/admin/realms/${realmId}/users/${userId}/groups`,
+      getHeaderFromToken(token)
+    );
+    return getGroups.data;
+  } catch (error) {
+    console.error("Error found:", error);
+    throw error;
+  }
+};
 export const sendResetPasswordEmail = async (userId: string, token: string) => {
   try {
     const sendResetPasswordEmail = await axios.put(
