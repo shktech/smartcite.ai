@@ -1,22 +1,13 @@
 "use client";
-import {
-  Button,
-  LoadingOverlay,
-  PasswordInput,
-  TextInput,
-} from "@mantine/core";
+import { Button, LoadingOverlay, PasswordInput } from "@mantine/core";
 import { useNavigation } from "@refinedev/core";
-import { useEffect, useState } from "react";
-import { RoleOptiosn } from "@utils/util.constants";
-import { GeneralSignupLayout } from "@components/auth/signup/GeneralSignupLayout";
-import { IconArrowLeft, IconArrowNarrowLeft } from "@tabler/icons-react";
+import { FormEvent, useEffect, useState } from "react";
+import { IconArrowLeft } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
 import {
   getSuperAdminToken,
-  getUserByEmail,
   resetPassword,
-  sendResetPasswordEmail,
-} from "@services/keycloak/user.service";
+} from "@/services/keycloak/user.service";
 import { Notifications, notifications } from "@mantine/notifications";
 import { jwtDecode } from "jwt-decode";
 import { useSearchParams } from "next/navigation";
@@ -64,10 +55,11 @@ export default function Page() {
       }
       return Promise.resolve(decodedToken);
     } catch (error) {
+      console.log(error);
       return Promise.reject(new Error("Token validation failed"));
     }
   };
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (form.validate().hasErrors) {
       return;
@@ -107,7 +99,10 @@ export default function Page() {
             overlayProps={{ radius: "sm", blur: 2 }}
             loaderProps={{ color: "pink", type: "bars" }}
           />
-          <Link href="/auth/login" className="w-10 h-10 border rounded-lg flex items-center justify-center border-black cursor-pointer">
+          <Link
+            href="/auth/login"
+            className="w-10 h-10 border rounded-lg flex items-center justify-center border-black cursor-pointer"
+          >
             <IconArrowLeft size={24} color="black" stroke={2} />
           </Link>
           <div className="text-2xl font-bold pt-4 pb-2.5 text-black">

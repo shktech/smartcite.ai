@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { Modal, Button, TextInput, Select } from "@mantine/core";
 import { IconFileTypePdf, IconX } from "@tabler/icons-react";
 import { IDocument } from "@/types/types";
-import { DocType } from "@utils/util.constants";
-import FileUploadDropzone from "@components/documents/FileUploadDropzone";
-import { formatFileSize } from "@utils/util.functions";
+import { DocType } from "@/utils/util.constants";
+import FileUploadDropzone from "@/components/documents/FileUploadDropzone";
+import { formatFileSize } from "@/utils/util.functions";
 
 interface UploadExhibitModalProps {
   documents: IDocument[];

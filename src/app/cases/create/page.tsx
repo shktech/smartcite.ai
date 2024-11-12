@@ -10,15 +10,15 @@ import {
 } from "@mantine/core";
 import { useCreate, useNavigation } from "@refinedev/core";
 import Link from "next/link";
-import { Layout as BaseLayout } from "@components/layout";
+import { Layout as BaseLayout } from "@/components/layout";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
-import { getAllUsers } from "@services/keycloak/user.service";
+import { getAllUsers } from "@/services/keycloak/user.service";
 import {
   CaseStates,
   CaseStateTextColor,
   ClientRoles,
-} from "@utils/util.constants";
+} from "@/utils/util.constants";
 import { Select } from "antd";
 
 interface FormValues {

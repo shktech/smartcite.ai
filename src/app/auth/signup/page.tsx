@@ -2,8 +2,8 @@
 import { Button } from "@mantine/core";
 import { useNavigation } from "@refinedev/core";
 import { useEffect, useState } from "react";
-import { RoleOptiosn } from "@utils/util.constants";
-import { GeneralSignupLayout } from "@components/auth/signup/GeneralSignupLayout";
+import { RoleOptiosn } from "@/utils/util.constants";
+import { GeneralSignupLayout } from "@/components/auth/signup/GeneralSignupLayout";
 
 export default function Page() {
   const [role, setRole] = useState(RoleOptiosn.INDIVIDUAL);

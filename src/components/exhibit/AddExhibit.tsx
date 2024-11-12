@@ -1,32 +1,24 @@
-import { ReactNode, useEffect, useState } from "react";
-import {
-  Button,
-  Loader,
-  LoadingOverlay,
-  Modal,
-  Select,
-  Text,
-} from "@mantine/core";
+import React, { useState } from "react";
+import { Button, Loader, LoadingOverlay, Modal, Select } from "@mantine/core";
 import {
   IconCheck,
   IconFileTypePdf,
-  IconPlus,
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
-import { formatFileSize } from "@utils/util.functions";
+import { formatFileSize } from "@/utils/util.functions";
 import {
   uploadFile,
   getMediaPresignedUrl,
-} from "@services/admin-file-upload.service";
-import { createDocument } from "@services/document.service";
+} from "@/services/admin-file-upload.service";
+import { createDocument } from "@/services/document.service";
 import { IDocument } from "@/types/types";
-import { DocType, UploadingState } from "@utils/util.constants";
-import DeleteConfirmModal from "@components/common/DeleteBtnWithConfirmModal";
+import { DocType, UploadingState } from "@/utils/util.constants";
+import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
 import { useDataProvider } from "@refinedev/core";
 import { Notifications, notifications } from "@mantine/notifications";
-import FileUploadDropzone from "@components/documents/FileUploadDropzone";
+import FileUploadDropzone from "@/components/documents/FileUploadDropzone";
 
 // Types
 interface AddExhibitProps {
@@ -40,7 +32,7 @@ interface UploadStateBadgeProps {
   state: string;
 }
 
-const AddExhibit: React.FC<AddExhibitProps> = ({ cases, setDocuments }) => {
+const AddExhibit = ({ cases, setDocuments }: AddExhibitProps) => {
   // State management
   const [opened, { open, close }] = useDisclosure(false);
   const [files, setFiles] = useState<File[]>([]);
@@ -176,7 +168,7 @@ const AddExhibit: React.FC<AddExhibitProps> = ({ cases, setDocuments }) => {
   };
 
   // UI Components
-  const UploadStateBadge: React.FC<UploadStateBadgeProps> = ({ state }) => {
+  const UploadStateBadge = ({ state }: UploadStateBadgeProps) => {
     const badges = {
       [UploadingState.DOING]: <Loader color="orange" size={14} />,
       [UploadingState.SUCCESS]: (

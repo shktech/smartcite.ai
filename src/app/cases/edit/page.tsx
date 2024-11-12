@@ -10,7 +10,7 @@ import {
   useParsed,
 } from "@refinedev/core";
 import { useDisclosure } from "@mantine/hooks";
-import { Layout as BaseLayout } from "@components/layout";
+import { Layout as BaseLayout } from "@/components/layout";
 import {
   IconCheck,
   IconClick,
@@ -23,14 +23,14 @@ import { ICase, IDocument } from "@/types/types";
 import {
   getMediaPresignedUrl,
   uploadFile,
-} from "@services/admin-file-upload.service";
-import { createDocument } from "@services/document.service";
-import { DocType } from "@utils/util.constants";
-import DeleteConfirmModal from "@components/common/DeleteBtnWithConfirmModal";
-import UploadExhibitModal from "@components/case/UploadExhibitModal";
-import DecriptionPanel from "@components/case/edit/DecriptionPanel";
-import GeneralInformationWithHeader from "@components/case/edit/GeneralInformationWithHeader";
-import EmptyDropzone from "@components/case/edit/EmptyDropzone";
+} from "@/services/admin-file-upload.service";
+import { createDocument } from "@/services/document.service";
+import { DocType } from "@/utils/util.constants";
+import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
+import UploadExhibitModal from "@/components/case/UploadExhibitModal";
+import DecriptionPanel from "@/components/case/edit/DecriptionPanel";
+import GeneralInformationWithHeader from "@/components/case/edit/GeneralInformationWithHeader";
+import EmptyDropzone from "@/components/case/edit/EmptyDropzone";
 
 // Constants
 const PANEL_CONFIGS = {
@@ -80,7 +80,7 @@ const CaseEditPage = () => {
   const caseId = params?.caseId;
 
   // Data fetching hooks
-  const { data: caseData, isLoading: caseLoading } = useOne<ICase>({
+  const { data: caseData } = useOne<ICase>({
     resource: "cases",
     id: caseId,
   });
@@ -229,7 +229,7 @@ const CaseEditPage = () => {
       },
       {
         onError: (error) => console.log(error),
-        onSuccess: (res) => {
+        onSuccess: () => {
           setLoading(false);
           refetchDocuments();
         },

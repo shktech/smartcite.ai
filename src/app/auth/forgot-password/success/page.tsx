@@ -1,10 +1,5 @@
 "use client";
-import {
-  PaperProps,
-  Button,
-  MantineProvider,
-  createTheme,
-} from "@mantine/core";
+import { Button } from "@mantine/core";
 import Link from "next/link";
 import { IconArrowNarrowLeft, IconCheck } from "@tabler/icons-react";
 
@@ -19,7 +14,8 @@ export default function AuthenticationForm() {
           Password Reset Successfully!
         </div>
         <div className="text-sm text-slate-500 mt-3 mb-8 px-10 text-center">
-          Your password has been updated. You can now sign in with your new credentials
+          Your password has been updated. You can now sign in with your new
+          credentials
         </div>
         <Button
           variant="default"

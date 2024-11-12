@@ -1,23 +1,18 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Input, LoadingOverlay } from "@mantine/core";
-import { DatePicker } from "antd";
+import { Input, LoadingOverlay } from "@mantine/core";
 import type { TableColumnType } from "antd";
-import { useDelete, useTable } from "@refinedev/core";
-import dayjs from "dayjs";
-import { Layout as BaseLayout } from "@components/layout";
+import { useTable } from "@refinedev/core";
+import { Layout as BaseLayout } from "@/components/layout";
 import { IconClick, IconSearch } from "@tabler/icons-react";
 import { ICase, IDocument } from "@/types/types";
-import { DocType } from "@utils/util.constants";
-import MyTable from "@components/common/MyTable";
+import { DocType } from "@/utils/util.constants";
+import MyTable from "@/components/common/MyTable";
 import { useDisclosure } from "@mantine/hooks";
-import AddExhibit from "@components/exhibit/AddExhibit";
+import AddExhibit from "@/components/exhibit/AddExhibit";
 import { Viewer, Worker } from "@react-pdf-viewer/core";
-import ExhibitDetailDrawer from "@components/exhibit/ExhibitDetailDrawer";
-
-// Constants
-const INITIAL_DATE_RANGE = [dayjs().subtract(6, "month"), dayjs()];
+import ExhibitDetailDrawer from "@/components/exhibit/ExhibitDetailDrawer";
 
 // Table Column Definitions
 const getMainColumns = (): TableColumnType<any>[] => [
@@ -84,7 +79,6 @@ export default function DocumentList() {
   // State Management
   const [searchKey, setSearchKey] = useState("");
   const [documents, setDocuments] = useState<IDocument[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
   const [cases, setCases] = useState<ICase[]>([]);
   const [tableCases, setTableCases] = useState<any[]>([]);
   const [selExh, setSelExh] = useState<any>();
@@ -141,7 +135,7 @@ export default function DocumentList() {
   return (
     <BaseLayout>
       <LoadingOverlay
-        visible={loading || documentLoading || caseLoading}
+        visible={documentLoading || caseLoading}
         zIndex={1000}
         loaderProps={{ color: "black", type: "bars" }}
       />
@@ -215,7 +209,7 @@ export default function DocumentList() {
                 </div>
               </div>
             ) : (
-              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
                 <Viewer
                   fileUrl={selExh?.mediaUrl}
                   renderLoader={() => (

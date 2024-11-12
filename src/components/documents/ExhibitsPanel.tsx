@@ -1,33 +1,25 @@
-import { Dropzone } from "@mantine/dropzone";
-import React, { useEffect, useState } from "react"; // Import React
-import { useForm } from "@mantine/form";
-import { Group, LoadingOverlay, Progress, rem, useMantineTheme } from "@mantine/core";
+
+import React, { useState } from "react"; // Import React
+import { LoadingOverlay, Progress, rem } from "@mantine/core";
 import {
-  IconCloudUpload,
-  IconDownload,
   IconPaperclip,
   IconTrash,
-  IconX,
 } from "@tabler/icons-react";
 import FileUploadDropzone from "./FileUploadDropzone";
 import { IDocument } from "@/types/types";
 import {
   getMediaPresignedUrl,
   uploadFile,
-} from "@services/admin-file-upload.service";
-import { createDocument } from "@services/document.service";
-import { DocType } from "@utils/util.constants";
+} from "@/services/admin-file-upload.service";
+import { createDocument } from "@/services/document.service";
+import { DocType } from "@/utils/util.constants";
 import { useDelete } from "@refinedev/core";
-import { formatFileSize } from "@utils/util.functions";
+import { formatFileSize } from "@/utils/util.functions";
 interface ComponentProps {
   caseId: string;
   mainDocumentId: string;
   documents: IDocument[];
   setDocuments: (docs: IDocument[]) => void;
-}
-
-interface FormValues {
-  files: File[];
 }
 
 const ExhibitsPanel: React.FC<ComponentProps> = ({
@@ -149,7 +141,7 @@ const ExhibitsPanel: React.FC<ComponentProps> = ({
         />
         {documents
           .filter((doc) => doc.mainDocumentId === mainDocumentId)
-          ?.map((doc, _i) => (
+          ?.map((doc) => (
             <div className="flex items-center justify-between border-b" key={doc.id}>
               <div className="font-bold flex gap-2 items-center cursor-pointer text-sm py-3">
                 <IconPaperclip style={{ width: rem(20), height: rem(20) }} />

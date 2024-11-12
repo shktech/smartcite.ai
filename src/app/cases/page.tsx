@@ -4,23 +4,22 @@ import React, { useEffect, useState } from "react";
 import { Button, Input, LoadingOverlay } from "@mantine/core";
 import { DatePicker, Table } from "antd";
 import type { TableColumnType } from "antd";
-import { useCreate, useDelete, useTable } from "@refinedev/core";
+import { useDelete, useTable } from "@refinedev/core";
 import Link from "next/link";
 import dayjs from "dayjs";
-import { Layout as BaseLayout } from "@components/layout";
-import DeleteConfirmModal from "@components/common/DeleteBtnWithConfirmModal";
+import { Layout as BaseLayout } from "@/components/layout";
+import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
 import { IconEdit, IconSearch, IconTrash } from "@tabler/icons-react";
 import { ICase } from "@/types/types";
-import { getFormatedDate } from "@utils/util.functions";
+import { getFormatedDate } from "@/utils/util.functions";
 import {
   CaseStateBgColor,
   CaseStates,
   CaseStateTextColor,
-} from "@utils/util.constants";
-import { getAllUsers } from "@services/keycloak/user.service";
+} from "@/utils/util.constants";
+import { getAllUsers } from "@/services/keycloak/user.service";
 const { RangePicker } = DatePicker;
 export default function BlogPostList() {
-  const { mutate: createMutate } = useCreate();
   const { mutate: deleteMutate } = useDelete();
   const [searchKey, setSearchKey] = useState("");
   const [caseState, setCaseState] = useState("View All");
@@ -207,19 +206,6 @@ export default function BlogPostList() {
       setCases(filteredCases);
     }
   }, [caseData, caseState, dateRange, searchKey]);
-  const handleExtractCitations = async (caseId: string) => {
-    const c = cases.find((c) => c.id === caseId);
-    createMutate(
-      {
-        resource: `cases/${caseId}/extract-citations`,
-        values: {},
-      },
-      {
-        onError: (error) => console.log(error),
-        onSuccess: () => console.log("success"),
-      }
-    );
-  };
   const handleDelete = async (caseId: string) => {
     setLoading2(true);
     deleteMutate(

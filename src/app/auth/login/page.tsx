@@ -2,16 +2,14 @@
 import {
   TextInput,
   PasswordInput,
-  PaperProps,
   Button,
   MantineProvider,
-  createTheme,
   Checkbox,
-  Divider,
 } from "@mantine/core";
 import { useLogin } from "@refinedev/core";
 import Link from "next/link";
 import { useForm } from "@mantine/form";
+import { FormEvent } from "react";
 // import { IconAntennaBars5 } from "@tabler/icons-react";
 
 export default function AuthenticationForm() {
@@ -30,7 +28,7 @@ export default function AuthenticationForm() {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (form.validate().hasErrors) {
       return;

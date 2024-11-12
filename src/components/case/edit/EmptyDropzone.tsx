@@ -1,6 +1,5 @@
 import { Dropzone } from "@mantine/dropzone";
 import { IconFaceIdError } from "@tabler/icons-react";
-import { DocType } from "@utils/util.constants";
 
 interface EmptyDropzoneProps {
   handleUploadFile: (files: File[]) => void;

@@ -16,15 +16,15 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { IDocument } from "@/types/types";
-import { DocType, UploadingState } from "@utils/util.constants";
+import { DocType, UploadingState } from "@/utils/util.constants";
 import { useState } from "react";
-import DeleteConfirmModal from "@components/common/DeleteBtnWithConfirmModal";
+import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
 import { useDelete } from "@refinedev/core";
 import { useDisclosure } from "@mantine/hooks";
 import FileUploadDropzone from "./FileUploadDropzone";
-import { formatFileSize } from "@utils/util.functions";
-import { uploadFile, getMediaPresignedUrl } from "@services/admin-file-upload.service";
-import { createDocument } from "@services/document.service";
+import { formatFileSize } from "@/utils/util.functions";
+import { uploadFile, getMediaPresignedUrl } from "@/services/admin-file-upload.service";
+import { createDocument } from "@/services/document.service";
 
 interface DocumentDetailDrawerProps {
   opened: boolean;
@@ -337,7 +337,7 @@ const DocumentDetailDrawer = ({
           </div>
           <div className="col-span-6 border rounded-xl p-2 relative">
             {selEDoc?.mediaUrl && (
-              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
                 <Viewer
                   fileUrl={selEDoc?.mediaUrl}
                   renderLoader={() => (

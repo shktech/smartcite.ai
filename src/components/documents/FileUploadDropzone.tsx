@@ -1,5 +1,5 @@
 import { Dropzone } from "@mantine/dropzone";
-import React, { useEffect, useState } from "react"; // Import React
+import React from "react"; // Import React
 import { useForm } from "@mantine/form";
 import { Group, rem, useMantineTheme } from "@mantine/core";
 import { IconCloudUpload, IconDownload, IconX } from "@tabler/icons-react";

@@ -19,6 +19,7 @@ export const getMediaPresignedUrl = async () => {
     );
     return response.data as MediaResponseDto;
   } catch (error) {
+    console.log(error);
     throw new Error("Error fetching media presigned url");
   }
 };
@@ -35,6 +36,7 @@ export const uploadFile = async (
       },
       onUploadProgress: onProgress,
     });
+    if (!response) throw new Error("Failed to upload file");
     return "Success";
   } catch (err) {
     console.error(err);

@@ -1,13 +1,13 @@
 "use client";
-import { PaperProps, Button, createTheme, LoadingOverlay } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { Button, LoadingOverlay } from "@mantine/core";
 import { useSearchParams } from "next/navigation";
 import { IconMessage, IconSend } from "@tabler/icons-react";
 import {
   getSuperAdminToken,
   sendVerifyEmail,
-} from "@services/keycloak/user.service";
+} from "@/services/keycloak/user.service";
 import { Notifications, notifications } from "@mantine/notifications";
+import { useState } from "react";
 
 export default function AuthenticationForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);

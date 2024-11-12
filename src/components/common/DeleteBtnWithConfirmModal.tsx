@@ -7,10 +7,7 @@ type DeleteConfirmModalProps = {
   trigger: ReactNode;
 };
 
-const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
-  onDelete,
-  trigger,
-}) => {
+const DeleteConfirmModal = ({ onDelete, trigger }: DeleteConfirmModalProps) => {
   const [opened, setOpened] = useState(false);
 
   const handleConfirm = () => {

@@ -1,30 +1,28 @@
-import { ReactNode, useEffect, useState } from "react";
+import React, { useState } from "react"; // Import React
 import {
   Button,
   Loader,
   LoadingOverlay,
   Modal,
   Select,
-  Text,
 } from "@mantine/core";
 import {
   IconCheck,
   IconFileTypePdf,
-  IconPlus,
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import FileUploadDropzone from "./FileUploadDropzone";
-import { formatFileSize } from "@utils/util.functions";
+import { formatFileSize } from "@/utils/util.functions";
 import {
   uploadFile,
   getMediaPresignedUrl,
-} from "@services/admin-file-upload.service";
-import { createDocument } from "@services/document.service";
+} from "@/services/admin-file-upload.service";
+import { createDocument } from "@/services/document.service";
 import { ICase, IDocument } from "@/types/types";
-import { DocType, UploadingState } from "@utils/util.constants";
-import DeleteConfirmModal from "@components/common/DeleteBtnWithConfirmModal";
+import { DocType, UploadingState } from "@/utils/util.constants";
+import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
 import { useDataProvider } from "@refinedev/core";
 import { Notifications, notifications } from "@mantine/notifications";
 

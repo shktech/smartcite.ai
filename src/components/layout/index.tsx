@@ -2,17 +2,15 @@
 
 import { useEffect, type PropsWithChildren } from "react";
 import { Sidebar } from "../sidebar";
-import { useGetIdentity, useIsAuthenticated, useLogout } from "@refinedev/core";
+import { useIsAuthenticated } from "@refinedev/core";
 import {
-  InputWrapper,
   MantineProvider,
-  TableTr,
   createTheme,
 } from "@mantine/core";
 import { redirect } from "next/navigation";
-export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
+export const Layout = ({ children }: PropsWithChildren) => {
   
-  const { data, isSuccess, isLoading, isError, refetch } = useIsAuthenticated();
+  const { data } = useIsAuthenticated();
 
   useEffect(() => {
     if (data) {
@@ -25,14 +23,14 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
     /** Put your mantine theme override here */
     components: {
       Button: {
-        styles: (theme: any) => ({
+        styles: () => ({
           root: {
             fontWeight: "normal", // Set button font weight to normal
           },
         }),
       },
       InputWrapper: {
-        styles: (theme: any) => ({
+        styles: () => ({
           description: {
             color: "#000",
             paddingBottom: 4,
@@ -40,14 +38,14 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
         }),
       },
       Input: {
-        styles: (theme: any) => ({
+        styles: () => ({
           input: {
             backgroundColor: "transparent", // Set your desired background color here
           },
         }),
       },
       Table: {
-        styles: (theme: any) => ({
+        styles: () => ({
           td: {
             fontSize: "14px",
           },
