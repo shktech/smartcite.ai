@@ -50,7 +50,7 @@ export default function AuthenticationForm() {
           <IconMessage color="white" size={32} stroke={2} />
         </div>
         <div className="py-4 flex justify-center items-center flex-col">
-          <span className="font-bold">Verification Email Sent</span> We’ve sent a verification email. Please check your inbox (and spam/junk folder) and click the link to complete your signup
+          <span className="font-bold">Verification Email Sent</span> We’ve sent a verification email. Please check your inbox (and spam/junk folder) and click the link to complete your signup. It may take up to 10 mins. If not, click resend.
         </div>
         <Button
           variant="default"
