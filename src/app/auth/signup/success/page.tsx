@@ -1,10 +1,5 @@
 "use client";
-import {
-  PaperProps,
-  Button,
-  MantineProvider,
-  createTheme,
-} from "@mantine/core";
+import { Button, MantineProvider, createTheme } from "@mantine/core";
 import Link from "next/link";
 import { IconArrowNarrowLeft, IconCheck } from "@tabler/icons-react";
 

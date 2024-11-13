@@ -2,22 +2,12 @@
 
 import nestjsxDataProvider, { axiosInstance } from "@refinedev/nestjsx-crud";
 import { DataProvider } from "@refinedev/core";
-import { stringify } from "querystring";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 
 const API_URL =
   (process.env.NODE_ENV === "production"
     ? process.env.NEXT_PUBLIC_API_URL
     : process.env.NEXT_PUBLIC_API_URL_DEV) || "";
-
-interface PARAMS {
-  limit?: number;
-  page?: number;
-  offset?: number;
-  filter?: string;
-  sort?: string;
-  order?: string;
-}
 
 const replaceUrlIfNeeded = (url: string | undefined): string | undefined => {
   if (!url) return url;
@@ -39,7 +29,7 @@ axiosInstance.interceptors.request.use((config) => {
 
 const customDataProvider: DataProvider = {
   ...nestjsxDataProvider(API_URL, axiosInstance),
-  getList: async ({ resource, pagination, filters, sorters, meta }) => {
+  getList: async ({ resource, pagination, filters, sorters }) => {
     let params: any = {};
 
     if (pagination?.mode != "off") {

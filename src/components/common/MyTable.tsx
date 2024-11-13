@@ -1,5 +1,5 @@
 import { Table } from "antd";
-import React, { useEffect } from "react";
+import React from "react";
 
 const MyTable = ({ columns, dataSource, ...props }: any) => {
   return (

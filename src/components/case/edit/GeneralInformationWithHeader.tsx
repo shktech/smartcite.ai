@@ -1,12 +1,12 @@
 import { IconArrowLeft } from "@tabler/icons-react";
 import { useNavigation, useParsed, useUpdate } from "@refinedev/core";
 import { ICase } from "@/types/types";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import {
   CaseStates,
   CaseStateTextColor,
   ClientRoles,
-} from "@utils/util.constants";
+} from "@/utils/util.constants";
 import { useForm } from "@mantine/form";
 import Link from "next/link";
 import { Select } from "antd";
@@ -17,7 +17,7 @@ import {
   MultiSelect,
   LoadingOverlay,
 } from "@mantine/core";
-import { getAllUsers } from "@services/keycloak/user.service";
+import { getAllUsers } from "@/services/keycloak/user.service";
 
 interface GeneralInformationWithHeaderProps {
   caseData?: ICase;
@@ -63,7 +63,7 @@ const GeneralInformationWithHeader = ({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (form.validate().hasErrors) return;
 

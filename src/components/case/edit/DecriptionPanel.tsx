@@ -1,6 +1,4 @@
-interface DecriptionPanelProps {}
-
-const DecriptionPanel = ({}: DecriptionPanelProps) => {
+const DecriptionPanel = () => {
   return (
     <>
       <div className="border-b flex items-center py-3 text-black px-4">

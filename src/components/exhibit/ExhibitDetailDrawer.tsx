@@ -76,7 +76,7 @@ const ExhibitDetailDrawer = ({
           </div>
           <div className="col-span-6 border rounded-xl p-2 relative">
             {selExh?.mediaUrl && (
-              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
                 <Viewer
                   fileUrl={selExh?.mediaUrl}
                   renderLoader={() => (

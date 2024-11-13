@@ -1,15 +1,15 @@
 "use client";
 import { LoadingOverlay } from "@mantine/core";
 import { useEffect, useState } from "react";
-import { CompleteProfile } from "@components/auth/signup/CompleteProfile";
+import { CompleteProfile } from "@/components/auth/signup/CompleteProfile";
 import { useSearchParams } from "next/navigation";
-import { RoleOptiosn } from "@utils/util.constants";
-import { CompleteTeamProfile } from "@components/auth/signup/CompleteTeamProfile";
-import { GeneralSignupLayout } from "@components/auth/signup/GeneralSignupLayout";
+import { RoleOptiosn } from "@/utils/util.constants";
+import { CompleteTeamProfile } from "@/components/auth/signup/CompleteTeamProfile";
+import { GeneralSignupLayout } from "@/components/auth/signup/GeneralSignupLayout";
 import {
   getSuperAdminToken,
   verifyEmail,
-} from "@services/keycloak/user.service";
+} from "@/services/keycloak/user.service";
 import { jwtDecode } from "jwt-decode";
 
 export default function Page() {
@@ -28,6 +28,7 @@ export default function Page() {
         await verifyEmail(token.sub, adminToken.access_token);
         setIsLoading(false);
       } catch (error) {
+        console.log(error);
         setIsLoading(false);
       }
     };
@@ -50,6 +51,7 @@ export default function Page() {
       }
       return Promise.resolve(decodedToken);
     } catch (error) {
+      console.log(error);
       return Promise.reject(new Error("Token validation failed"));
     }
   };

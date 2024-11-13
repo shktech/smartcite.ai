@@ -2,27 +2,21 @@
 import {
   TextInput,
   PasswordInput,
-  PaperProps,
   Button,
   MantineProvider,
-  createTheme,
 } from "@mantine/core";
-import { useLogin, useOne, useParsed } from "@refinedev/core";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useLogin } from "@refinedev/core";
+import { FormEvent, useEffect, useState } from "react";
 import { useForm } from "@mantine/form";
-import { getSuperAdminToken } from "@services/keycloak/user.service";
-import { getOrganizationById } from "@services/keycloak/organization.service";
+import { getSuperAdminToken } from "@/services/keycloak/user.service";
+import { getOrganizationById } from "@/services/keycloak/organization.service";
 import { useSearchParams } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 
 export default function AuthenticationForm() {
   const { mutate: login } = useLogin();
-  const { params } = useParsed();
-  const [isLoading, setIsLoading] = useState(true);
   const [orgData, setOrgData] = useState<any>({});
   const searchParams = useSearchParams();
-  const [tokenData, setTokenData] = useState<any>();
   const form = useForm({
     initialValues: {
       email: "",
@@ -42,7 +36,6 @@ export default function AuthenticationForm() {
     if (token) {
       validateInviteToken(token)
         .then((decodedToken) => {
-          setTokenData(decodedToken);
           form.setFieldValue("email", decodedToken.eml);
         })
         .catch((error) => {
@@ -58,9 +51,8 @@ export default function AuthenticationForm() {
           adminToken.access_token
         );
         setOrgData(orgData);
-        setIsLoading(false);
       } catch (error) {
-        setIsLoading(false);
+        console.log(error);
       }
     };
     if (organizationId) {
@@ -82,11 +74,12 @@ export default function AuthenticationForm() {
       }
       return Promise.resolve(decodedToken);
     } catch (error) {
+      console.log(error);
       return Promise.reject(new Error("Token validation failed"));
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (form.validate().hasErrors) {
       return;

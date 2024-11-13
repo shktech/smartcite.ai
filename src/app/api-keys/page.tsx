@@ -3,13 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { Button, Input, Table } from "@mantine/core";
 import {
-  GetManyResponse,
   useCreate,
   useDelete,
   useTable,
 } from "@refinedev/core";
-import { Layout as BaseLayout } from "@components/layout";
-import Link from "next/link";
+import { Layout as BaseLayout } from "@/components/layout";
 
 export interface ApiKeyResponseDto {
   id: string;
@@ -23,13 +21,12 @@ export default function BlogPostList() {
   const { mutate: createMutate } = useCreate();
   const { mutate: deleteMutate } = useDelete();
   const {
-    tableQueryResult: { data, isLoading },
+    tableQueryResult: { data },
   } = useTable<any>();
   const [newApiKey, setNewApiKey] = useState({ name: "" });
   const [apiKeys, setApiKeys] = useState<ApiKeyResponseDto[]>([]);
   const handleInputChange = (event: any) => {
     const { name, value } = event.target;
-    console.log(name, value);
     setNewApiKey({ ...newApiKey, [name]: value });
   };
   const handleSubmit = async (event: any) => {

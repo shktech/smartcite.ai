@@ -1,9 +1,6 @@
 "use client";
-import authOptions from "@app/api/auth/[...nextauth]/options";
-import { createTheme, MantineProvider } from "@mantine/core";
+import { MantineProvider } from "@mantine/core";
 import { useGetIdentity, useNavigation } from "@refinedev/core";
-import { getServerSession } from "next-auth/next";
-import { redirect } from "next/navigation";
 import React from "react";
 
 export default function LoginLayout({
@@ -11,7 +8,7 @@ export default function LoginLayout({
 }: React.PropsWithChildren) {
   const { push } = useNavigation();
 
-  const { data: identity, isLoading } = useGetIdentity<any>();
+  const { data: identity } = useGetIdentity<any>();
   if (identity) {
     push("/cases");
   }
@@ -20,12 +17,4 @@ export default function LoginLayout({
       <MantineProvider>{children}</MantineProvider>
     </>
   );
-}
-
-async function getData() {
-  const session = await getServerSession(authOptions);
-
-  return {
-    session,
-  };
 }

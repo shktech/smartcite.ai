@@ -1,22 +1,22 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Input, LoadingOverlay } from "@mantine/core";
+import { Input, LoadingOverlay } from "@mantine/core";
 import { DatePicker } from "antd";
 import type { TableColumnType } from "antd";
 import { useDelete, useTable } from "@refinedev/core";
 import dayjs from "dayjs";
-import { Layout as BaseLayout } from "@components/layout";
-import DeleteConfirmModal from "@components/common/DeleteBtnWithConfirmModal";
-import { IconPlus, IconSearch, IconTrash } from "@tabler/icons-react";
+import { Layout as BaseLayout } from "@/components/layout";
+import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
+import { IconSearch, IconTrash } from "@tabler/icons-react";
 import { ICase, IDocument } from "@/types/types";
-import { getFormatedDate } from "@utils/util.functions";
-import { DocType } from "@utils/util.constants";
-import MyTable from "@components/common/MyTable";
+import { getFormatedDate } from "@/utils/util.functions";
+import { DocType } from "@/utils/util.constants";
+import MyTable from "@/components/common/MyTable";
 import { useDisclosure } from "@mantine/hooks";
-import DocumentDetailDrawer from "@components/documents/DocumentDetailDrawer";
-import AddExhibit from "@components/documents/AddExhibit";
-import AddDocument from "@components/documents/AddDocument";
+import DocumentDetailDrawer from "@/components/documents/DocumentDetailDrawer";
+import AddExhibit from "@/components/documents/AddExhibit";
+import AddDocument from "@/components/documents/AddDocument";
 
 const { RangePicker } = DatePicker;
 

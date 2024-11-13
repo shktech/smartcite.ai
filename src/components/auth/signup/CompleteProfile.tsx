@@ -2,18 +2,18 @@
 
 import { Button, LoadingOverlay, TextInput } from "@mantine/core";
 import { useNavigation } from "@refinedev/core";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { useForm } from "@mantine/form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { useSearchParams } from "next/navigation";
-import { completeProfile } from "@services/keycloak/user.service";
+import { completeProfile } from "@/services/keycloak/user.service";
 import { Notifications, notifications } from "@mantine/notifications";
 interface PageProps {
   userId: string;
 }
 
-export const CompleteProfile: React.FC<PageProps> = ({ userId }) => {
+export const CompleteProfile = ({ userId }: PageProps) => {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { push } = useNavigation();
@@ -28,7 +28,7 @@ export const CompleteProfile: React.FC<PageProps> = ({ userId }) => {
 
     validate: {},
   });
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (form.validate().hasErrors) {
       return;

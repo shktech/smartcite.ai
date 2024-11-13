@@ -1,44 +1,32 @@
-import React, { useEffect, useState } from "react"; // Import React
+import React, { useState } from "react"; // Import React
 import {
-  Button,
-  Center,
-  CloseButton,
   Group,
-  Input,
   LoadingOverlay,
   Menu,
   Progress,
   rem,
   Table,
-  Text,
   useMantineTheme,
 } from "@mantine/core";
-import { Dropzone, MIME_TYPES } from "@mantine/dropzone"; // Import Dropzone
+import { Dropzone } from "@mantine/dropzone"; // Import Dropzone
 import {
-  IconPaperclip,
   IconDownload,
   IconX,
   IconCloudUpload,
   IconTrash,
   IconLayersSubtract,
   IconBaselineDensityMedium,
-  IconBaselineDensitySmall,
   IconEye,
   IconEyeDown,
-  IconCircleMinus,
 } from "@tabler/icons-react";
 import {
   getMediaPresignedUrl,
   uploadFile,
-} from "@services/admin-file-upload.service";
-import { createDocument } from "@services/document.service";
+} from "@/services/admin-file-upload.service";
+import { createDocument } from "@/services/document.service";
 import { useCreate, useDelete, useNavigation } from "@refinedev/core";
 import { useForm } from "@mantine/form";
-import Link from "next/link";
-import {
-  formatFileSize,
-  getDateStringFromTimestamp,
-} from "@utils/util.functions";
+import { formatFileSize } from "@/utils/util.functions";
 import { IDocument } from "../../types/types";
 
 interface DocumentListProps {
@@ -117,7 +105,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
       },
       {
         onError: (error) => console.log(error),
-        onSuccess: (res) => {
+        onSuccess: () => {
           setLoading(true);
           refetchDocument();
         },
@@ -189,8 +177,6 @@ const DocumentList: React.FC<DocumentListProps> = ({
     // setLoading(false);
     setCancelControllers(cancelControllers);
   };
-
-  const cancelUpload = (i: number) => {};
 
   return (
     <div className="relative">

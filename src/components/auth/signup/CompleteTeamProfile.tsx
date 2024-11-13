@@ -2,7 +2,7 @@
 
 import { Button, LoadingOverlay, NumberInput, TextInput } from "@mantine/core";
 import { useNavigation } from "@refinedev/core";
-import { useState } from "react";
+import { FormEvent, KeyboardEvent, useState } from "react";
 import { useForm } from "@mantine/form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -12,14 +12,14 @@ import {
   createOrganization,
   getSuperAdminToken,
   sendInviteEmail,
-} from "@services/keycloak/user.service";
+} from "@/services/keycloak/user.service";
 import { IconX } from "@tabler/icons-react";
 import { Notifications, notifications } from "@mantine/notifications";
 interface PageProps {
   userId: string;
 }
 
-export const CompleteTeamProfile: React.FC<PageProps> = ({ userId }) => {
+export const CompleteTeamProfile = ({ userId }: PageProps) => {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { push } = useNavigation();
@@ -36,7 +36,7 @@ export const CompleteTeamProfile: React.FC<PageProps> = ({ userId }) => {
 
     validate: {},
   });
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (form.validate().hasErrors) {
       return;
@@ -80,7 +80,7 @@ export const CompleteTeamProfile: React.FC<PageProps> = ({ userId }) => {
       });
     }
   };
-  const handleEnterEmail = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleEnterEmail = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
       setInviteEmails([...inviteEmails, event.currentTarget.value]);

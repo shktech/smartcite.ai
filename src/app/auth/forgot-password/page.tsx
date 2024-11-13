@@ -1,16 +1,14 @@
 "use client";
 import { Button, LoadingOverlay, TextInput } from "@mantine/core";
 import { useNavigation } from "@refinedev/core";
-import { useEffect, useState } from "react";
-import { RoleOptiosn } from "@utils/util.constants";
-import { GeneralSignupLayout } from "@components/auth/signup/GeneralSignupLayout";
-import { IconArrowLeft, IconArrowNarrowLeft } from "@tabler/icons-react";
+import { FormEvent, useState } from "react";
+import { IconArrowLeft } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
 import {
   getSuperAdminToken,
   getUserByEmail,
   sendResetPasswordEmail,
-} from "@services/keycloak/user.service";
+} from "@/services/keycloak/user.service";
 import { Notifications, notifications } from "@mantine/notifications";
 import Link from "next/link";
 
@@ -27,7 +25,7 @@ export default function Page() {
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (form.validate().hasErrors) {
       return;

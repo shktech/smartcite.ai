@@ -1,15 +1,13 @@
 "use client";
 
-import { useGetIdentity, useLogout, useMenu, useOne } from "@refinedev/core";
-import { usePathname, useSearchParams } from "next/navigation";
-import { menuItems } from "@utils/menuData";
+import { useGetIdentity, useLogout } from "@refinedev/core";
+import { usePathname } from "next/navigation";
+import { menuItems } from "@/utils/menuData";
 import Link from "next/link";
 import { IconAntennaBars5, IconSettings } from "@tabler/icons-react";
 
 export const Sidebar = () => {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const caseId = searchParams.get("caseId");
   const { mutate: logout } = useLogout();
   const { data } = useGetIdentity();
   const user = data as any;

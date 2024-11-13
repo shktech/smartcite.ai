@@ -1,13 +1,13 @@
 "use client";
-import { PaperProps, Button, createTheme, LoadingOverlay } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { Button, LoadingOverlay } from "@mantine/core";
 import { useSearchParams } from "next/navigation";
 import { IconMessage, IconSend } from "@tabler/icons-react";
 import {
   getSuperAdminToken,
   sendVerifyEmail,
-} from "@services/keycloak/user.service";
+} from "@/services/keycloak/user.service";
 import { Notifications, notifications } from "@mantine/notifications";
+import { useState } from "react";
 
 export default function AuthenticationForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -50,7 +50,7 @@ export default function AuthenticationForm() {
           <IconMessage color="white" size={32} stroke={2} />
         </div>
         <div className="py-4 flex justify-center items-center flex-col">
-          <span className="font-bold">Verification Email Sent</span> We’ve sent a verification email. Please check your inbox (and spam/junk folder) and click the link to complete your signup
+          <span className="font-bold">Verification Email Sent</span> We’ve sent a verification email. Please check your inbox (and spam/junk folder) and click the link to complete your signup. It may take up to 10 mins. If not, click resend.
         </div>
         <Button
           variant="default"

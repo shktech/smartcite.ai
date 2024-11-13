@@ -5,19 +5,19 @@ import {
   Button,
   LoadingOverlay,
 } from "@mantine/core";
-import { useLogin, useNavigation } from "@refinedev/core";
-import { useEffect, useState } from "react";
+import { useNavigation } from "@refinedev/core";
+import { FormEvent, useEffect, useState } from "react";
 import { useForm } from "@mantine/form";
 import { useSearchParams } from "next/navigation";
-import { Group, RoleOptiosn } from "@utils/util.constants";
-import { GeneralSignupLayout } from "@components/auth/signup/GeneralSignupLayout";
+import { Group, RoleOptiosn } from "@/utils/util.constants";
+import { GeneralSignupLayout } from "@/components/auth/signup/GeneralSignupLayout";
 import {
   addUserToOrganization,
   getSuperAdminToken,
   registerUser,
   sendVerifyEmail,
-} from "@services/keycloak/user.service";
-import { getOrganizationById } from "@services/keycloak/organization.service";
+} from "@/services/keycloak/user.service";
+import { getOrganizationById } from "@/services/keycloak/organization.service";
 import { jwtDecode } from "jwt-decode";
 import { Notifications, notifications } from "@mantine/notifications";
 
@@ -69,6 +69,7 @@ export default function Page() {
         setIsLoading(false);
       } catch (error) {
         setIsLoading(false);
+        console.log(error);
       }
     };
     if (organizationId) {
@@ -90,10 +91,11 @@ export default function Page() {
       }
       return Promise.resolve(decodedToken);
     } catch (error) {
+      console.log(error);
       return Promise.reject(new Error("Token validation failed"));
     }
   };
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (form.validate().hasErrors) {
       return;

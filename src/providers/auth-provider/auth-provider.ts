@@ -1,11 +1,14 @@
 "use client";
 import { type AuthProvider } from "@refinedev/core";
-import { addUserToOrganization } from "@services/keycloak/user.service";
-import { RoleOptiosn } from "@utils/util.constants";
+import {
+  addUserToOrganization,
+  getSuperAdminToken,
+  getUserGroup,
+} from "@/services/keycloak/user.service";
+import { Group, RoleOptiosn } from "@/utils/util.constants";
 import axios from "axios";
 import jwt from "jsonwebtoken";
 import { jwtDecode } from "jwt-decode";
-import { decode } from "punycode";
 const keycloakUrl = process.env.NEXT_PUBLIC_KEYCLOAK_URL;
 const realmId = process.env.NEXT_PUBLIC_KEYCLOAK_REALM_ID;
 const clientId = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID;
@@ -83,11 +86,9 @@ export const authProvider: AuthProvider = {
   check: async () => {
     const queryParams = new URLSearchParams(window.location.search);
     const pathName = window.location.pathname;
-    const role = localStorage.getItem("signupRole");
     if (pathName.includes("registrations") && queryParams.get("token")) {
       const key = queryParams.get("token") as string;
       const decodedTokenData = jwtDecode<any>(key);
-      const tokenType = decodedTokenData.typ;
       localStorage.setItem("signupRole", RoleOptiosn.INDIVIDUAL);
       return {
         authenticated: false,
@@ -101,7 +102,13 @@ export const authProvider: AuthProvider = {
       const key = queryParams.get("key") as string;
       const decodedTokenData = jwtDecode<any>(key);
       const tokenType = decodedTokenData.typ;
+      const userId = decodedTokenData.sub;
       if (tokenType == "verify-email") {
+        const token = await getSuperAdminToken();
+        const userGroups = await getUserGroup(userId, token.access_token);
+        const role = userGroups.find((group: any) => group.name == Group.ADMIN)
+          ? RoleOptiosn.ORGANIZATION
+          : RoleOptiosn.INDIVIDUAL;
         return {
           authenticated: false,
           redirectTo: `/auth/signup/complete-profile?role=${role}&key=${key}`,
@@ -120,27 +127,31 @@ export const authProvider: AuthProvider = {
       }
     }
     const refreshToken = localStorage.getItem("refreshToken");
-    const response = await axios.post(
-      `${keycloakUrl}/realms/${realmId}/protocol/openid-connect/token`,
-      {
-        grant_type: "refresh_token",
-        client_id: clientId,
-        client_secret: clientSecret,
-        refresh_token: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+
+    try {
+      const response = await axios.post(
+        `${keycloakUrl}/realms/${realmId}/protocol/openid-connect/token`,
+        {
+          grant_type: "refresh_token",
+          client_id: clientId,
+          client_secret: clientSecret,
+          refresh_token: refreshToken || " ",
         },
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      );
+      if (response.status === 200) {
+        localStorage.setItem("accessToken", response.data.access_token);
+        localStorage.setItem("refreshToken", response.data.refresh_token);
+        return {
+          authenticated: true,
+        };
       }
-    );
-    if (response.status === 200) {
-      localStorage.setItem("accessToken", response.data.access_token);
-      localStorage.setItem("refreshToken", response.data.refresh_token);
-      return {
-        authenticated: true,
-      };
-    } else {
+      throw new Error("Failed to refresh token");
+    } catch (err) {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("tempToken");
