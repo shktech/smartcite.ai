@@ -19,7 +19,7 @@ import {
   IconUpload,
   IconX,
 } from "@tabler/icons-react";
-import { ICase, IDocument } from "@/types/types";
+import { ICase, ICitation, IDocument } from "@/types/types";
 import {
   getMediaPresignedUrl,
   uploadFile,
@@ -31,6 +31,7 @@ import UploadExhibitModal from "@/components/case/UploadExhibitModal";
 import DecriptionPanel from "@/components/case/edit/DecriptionPanel";
 import GeneralInformationWithHeader from "@/components/case/edit/GeneralInformationWithHeader";
 import EmptyDropzone from "@/components/case/edit/EmptyDropzone";
+import { getCitations } from "@services/citation.service";
 
 // Constants
 const PANEL_CONFIGS = {
@@ -85,7 +86,7 @@ const CaseEditPage = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [uploadingStates, setUploadingStates] = useState<string[]>([]);
   const [panelsCss, setPanelsCss] = useState(PANEL_CONFIGS.noDocuments);
-
+  const [citations, setCitations] = useState<ICitation[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // URL params
@@ -169,6 +170,23 @@ const CaseEditPage = () => {
     }
 
     return "Document processing failed";
+  };
+
+  const getCitedInMainDocuments = (exhDocId: string) => {
+    const exhDoc = documents.find((doc) => doc.id === exhDocId);
+    if (!exhDoc) return [];
+
+    const citedInMainDocIds = citations
+      .filter(
+        (citation) =>
+          citation.destinationDocumentId === exhDocId &&
+          citation.sourceDocumentId !== exhDoc.mainDocumentId
+      )
+      .map((citation) => citation.sourceDocumentId);
+    const citedInMainDocs = documents.filter((doc) =>
+      citedInMainDocIds.includes(doc.id)
+    );
+    return citedInMainDocs;
   };
 
   // Event handlers
@@ -264,6 +282,17 @@ const CaseEditPage = () => {
       setDocuments(d?.items as IDocument[]);
     }
   }, [documentData]);
+
+  useEffect(() => {
+    if (documents.length > 0) {
+      getMDocs().forEach((doc) => {
+        getCitations(doc.id).then((res: any) => {
+          const citations = res.items as ICitation[];
+          setCitations((prev) => [...prev, ...citations]);
+        });
+      });
+    }
+  }, [documents]);
 
   useEffect(() => {
     setSelEDocId(undefined);
@@ -484,7 +513,11 @@ const CaseEditPage = () => {
               )}
             </div>
             <div className={`rounded-xl border  ${panelsCss.Document}`}>
-              <DecriptionPanel />
+              <DecriptionPanel
+                citedInMainDocuments={getCitedInMainDocuments(
+                  selEDocId as string
+                )}
+              />
             </div>
           </div>
         </div>

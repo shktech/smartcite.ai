@@ -26,6 +26,7 @@ const MyTable = ({ columns, dataSource, ...props }: any) => {
               {...props}
               style={{
                 color: "#7c7c7c",
+                verticalAlign: "top"
               }}
             />
           ),

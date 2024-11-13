@@ -6,13 +6,14 @@ import type { TableColumnType } from "antd";
 import { useTable } from "@refinedev/core";
 import { Layout as BaseLayout } from "@/components/layout";
 import { IconClick, IconSearch } from "@tabler/icons-react";
-import { ICase, IDocument } from "@/types/types";
+import { ICase, ICitation, IDocument } from "@/types/types";
 import { DocType } from "@/utils/util.constants";
 import MyTable from "@/components/common/MyTable";
 import { useDisclosure } from "@mantine/hooks";
 import AddExhibit from "@/components/exhibit/AddExhibit";
 import { Viewer, Worker } from "@react-pdf-viewer/core";
 import ExhibitDetailDrawer from "@/components/exhibit/ExhibitDetailDrawer";
+import { getCitations } from "@services/citation.service";
 
 // Table Column Definitions
 const getMainColumns = (): TableColumnType<any>[] => [
@@ -58,19 +59,16 @@ const getExhibitsColumns = (): TableColumnType<any>[] => [
   },
   {
     title: "Cited in - As",
-    dataIndex: "",
-    key: "ref_as",
-    render: () => (
-      <>
-        <div className="underline text-[#056cf3]">Complaint</div>
-        <div className="underline text-[#056cf3]">
-          Motion for Summary Judgement
-        </div>
-        <div className="underline text-[#056cf3]">Motion to Dismiss</div>
-        <div className="underline text-[#056cf3]">
-          Motion for Summary Judgement
-        </div>
-      </>
+    dataIndex: "citedInMainDocuments",
+    key: "citedInMainDocuments",
+    render: (citedInMainDocuments: IDocument[]) => (
+      <div className="h-full">
+        {citedInMainDocuments.map((doc) => (
+          <div key={doc.id} className="underline text-[#056cf3]">
+            {doc.title}
+          </div>
+        ))}
+      </div>
     ),
   },
 ];
@@ -82,7 +80,7 @@ export default function DocumentList() {
   const [cases, setCases] = useState<ICase[]>([]);
   const [tableCases, setTableCases] = useState<any[]>([]);
   const [selExh, setSelExh] = useState<any>();
-
+  const [citations, setCitations] = useState<ICitation[]>([]);
   // Hooks
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
@@ -103,6 +101,23 @@ export default function DocumentList() {
     openDrawer();
   };
 
+  const getCitedInMainDocuments = (exhDocId: string) => {
+    const exhDoc = documents.find((doc) => doc.id === exhDocId);
+    if (!exhDoc) return [];
+
+    const citedInMainDocIds = citations
+      .filter(
+        (citation) =>
+          citation.destinationDocumentId === exhDocId &&
+          citation.sourceDocumentId !== exhDoc.mainDocumentId
+      )
+      .map((citation) => citation.sourceDocumentId);
+    const citedInMainDocs = documents.filter((doc) =>
+      citedInMainDocIds.includes(doc.id)
+    );
+    return citedInMainDocs;
+  };
+
   // Data Processing Effects
   useEffect(() => {
     if (documentData) setDocuments(documentData.items as IDocument[]);
@@ -111,6 +126,19 @@ export default function DocumentList() {
   useEffect(() => {
     if (caseData) setCases(caseData.items as ICase[]);
   }, [caseData]);
+
+  const getMDocs = () => documents.filter((doc) => doc.type === DocType.MAIN);
+
+  useEffect(() => {
+    if (documents.length > 0) {
+      getMDocs().forEach((doc) => {
+        getCitations(doc.id).then((res: any) => {
+          const citations = res.items as ICitation[];
+          setCitations((prev) => [...prev, ...citations]);
+        });
+      });
+    }
+  }, [documents]);
 
   useEffect(() => {
     if (!cases || !documents) return;
@@ -123,14 +151,16 @@ export default function DocumentList() {
           main: documents.filter(
             (d) => d.caseId === c.id && d.type === DocType.MAIN
           ),
-          exhibits: documents.filter(
-            (d) => d.caseId === c.id && d.type === DocType.EXHIBIT
-          ),
+          exhibits: documents
+            .filter((d) => d.caseId === c.id && d.type === DocType.EXHIBIT)
+            .map((exh) => ({
+              ...exh,
+              citedInMainDocuments: getCitedInMainDocuments(exh.id),
+            })),
           ...c,
         }))
     );
   }, [cases, documents, searchKey]);
-
 
   return (
     <BaseLayout>
