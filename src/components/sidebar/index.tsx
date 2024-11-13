@@ -4,7 +4,12 @@ import { useGetIdentity, useLogout } from "@refinedev/core";
 import { usePathname } from "next/navigation";
 import { menuItems } from "@/utils/menuData";
 import Link from "next/link";
-import { IconAntennaBars5, IconSettings } from "@tabler/icons-react";
+import {
+  IconAntennaBars5,
+  IconLogout,
+  IconSettings,
+} from "@tabler/icons-react";
+import { Menu } from "@mantine/core";
 
 export const Sidebar = () => {
   const pathname = usePathname();
@@ -49,15 +54,26 @@ export const Sidebar = () => {
           Settings
         </Link>
         <div className="h-16 flex border-b border-[#eeeeef]">
-          <div
-            onClick={() => logout()}
-            className="flex items-center px-6 gap-2"
-          >
-            <div className="w-9 h-9 flex items-center justify-center bg-[#394149] text-white rounded-full text-base">
-              {user?.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="text-sm">{user?.email}</div>
-          </div>
+          <Menu position="right-end">
+            <Menu.Target>
+              <div className="w-full cursor-pointer">
+                <div className="rounded-lg hover:bg-[#f0f0f0] duration-500 flex items-center mx-3 mb-1 px-3 py-2 gap-2">
+                  <div className="w-9 h-9 flex items-center justify-center bg-[#394149] text-white rounded-full text-base">
+                    {user?.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="text-sm">{user?.email}</div>
+                </div>
+              </div>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                onClick={() => logout()}
+                leftSection={<IconLogout size={14} />}
+              >
+                Sign out
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
         </div>
       </div>
     </nav>
