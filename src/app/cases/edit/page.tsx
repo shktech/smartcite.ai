@@ -57,6 +57,19 @@ const UploadingState = {
   FAIL: "FAIL",
 };
 
+const ProcessingStatus = {
+  PENDING: "PENDING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+};
+
+const CitationsExtractionStatus = {
+  PENDING: "PENDING",
+  IN_PROGRESS: "IN_PROGRESS",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+};
+
 const CaseEditPage = () => {
   // State hooks
   const [
@@ -106,7 +119,7 @@ const CaseEditPage = () => {
       ? "bg-[#fafafa] border-r-4 border-r-[#292929]"
       : "bg-white border-r-4 border-r-transparent";
 
-  const getStateBadge = (state: string) => {
+  const getUploadingStateBadge = (state: string) => {
     const badges = {
       [UploadingState.DOING]: <Loader color="orange" size={14} />,
       [UploadingState.SUCCESS]: (
@@ -121,6 +134,41 @@ const CaseEditPage = () => {
       ),
     };
     return badges[state];
+  };
+
+  const getGeneralStateBadge = (doc: IDocument) => {
+    if (
+      doc.processingStatus == ProcessingStatus.COMPLETED &&
+      (doc.citationsExtractionStatus == null ||
+        doc.citationsExtractionStatus == CitationsExtractionStatus.COMPLETED)
+    ) {
+      return (
+        <div className="w-4 h-4 rounded-full bg-[#4bae4f] flex items-center justify-center text-white">
+          <IconCheck size={10} />
+        </div>
+      );
+    }
+    return <Loader color="orange" size={14} />;
+  };
+
+  const getGeneralStateText = (doc: IDocument) => {
+    if (doc.processingStatus === ProcessingStatus.PENDING) {
+      return "Document is currently processing...";
+    }
+
+    if (doc.processingStatus === ProcessingStatus.COMPLETED) {
+      if (doc.citationsExtractionStatus === null) {
+        return "Document ready for citation use";
+      }
+      if (
+        doc.citationsExtractionStatus === CitationsExtractionStatus.COMPLETED
+      ) {
+        return "Document ready for citation use";
+      }
+      return "Extracting citations...";
+    }
+
+    return "Document processing failed";
   };
 
   // Event handlers
@@ -314,14 +362,10 @@ const CaseEditPage = () => {
                   <div className="flex-1 text-[#0550b3] truncate">
                     <div className="truncate flex items-center gap-2">
                       <div className="truncate underline">{doc.title}</div>
-                      <div className="flex-1">
-                        <div className="w-4 h-4 rounded-full bg-[#4bae4f] flex items-center justify-center text-white">
-                          <IconCheck size={10} />
-                        </div>
-                      </div>
+                      <div className="flex-1">{getGeneralStateBadge(doc)}</div>
                     </div>
                     <div className="text-[#bdbdbd] text-sm mt-1 truncate">
-                      Document ready for citation use
+                      {getGeneralStateText(doc)}
                     </div>
                   </div>
                   <div className="w-20" onClick={(e) => e.stopPropagation()}>
@@ -343,13 +387,13 @@ const CaseEditPage = () => {
                     <div className="truncate flex items-center gap-2">
                       <div className="truncate underline">{file.name}</div>
                       <div className="pr-9 flex-1">
-                        {getStateBadge(uploadingStates[i])}
+                        {getUploadingStateBadge(uploadingStates[i])}
                       </div>
                     </div>
                     <div className="text-[#bdbdbd] text-sm mt-1 truncate">
                       {uploadingStates[i] === UploadingState.DOING
-                        ? "Document is currently processing..."
-                        : "Document ready for citation use"}
+                        ? "Document is currently uploading..."
+                        : "Document is successfully uploaded"}
                     </div>
                   </div>
                 </div>
@@ -408,7 +452,7 @@ const CaseEditPage = () => {
                       <div className="truncate flex items-center gap-2">
                         <div className="truncate underline">{file.name}</div>
                         <div className="pr-9 flex-1">
-                          {getStateBadge(uploadingStates[i])}
+                          {getUploadingStateBadge(uploadingStates[i])}
                         </div>
                       </div>
                     </div>
