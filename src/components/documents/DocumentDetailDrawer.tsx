@@ -287,7 +287,6 @@ const DocumentDetailDrawer = ({
             <div className="flex items-center py-3">
               <div className="w-10 pl-6">#</div>
               <div className="flex-1">Exhibits Name</div>
-              <div className="flex-1">Referenced As</div>
               <div className="w-20 text-center">Actions</div>
             </div>
             {selMDoc?.exhibits.map((doc: any, _i: number) => (

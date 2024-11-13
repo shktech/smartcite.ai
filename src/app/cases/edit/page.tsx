@@ -164,7 +164,7 @@ const CaseEditPage = () => {
       if (
         doc.citationsExtractionStatus === CitationsExtractionStatus.COMPLETED
       ) {
-        return "Document ready for citation use";
+        return "Citation is successfully extracted";
       }
       return "Extracting citations...";
     }
@@ -440,7 +440,6 @@ const CaseEditPage = () => {
               <div className="flex items-center py-3">
                 <div className="w-20 pl-6">#</div>
                 <div className="flex-1">Exhibits Name</div>
-                <div className="flex-1">Referenced As</div>
                 <div className="w-20 text-center">Actions</div>
               </div>
               {selMDocId &&
