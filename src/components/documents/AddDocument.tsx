@@ -291,9 +291,6 @@ const AddDocument: React.FC<AddDocumentProps> = ({ cases, setDocuments }) => {
 
   const StepThree = () => (
     <>
-      <div className="text-[#7c7c7c] pb-4">
-        Set a reference name for each exhibit you loaded or selected
-      </div>
       <div className="border rounded-xl relative text-sm">
         <LoadingOverlay
           visible={loading}
@@ -303,7 +300,6 @@ const AddDocument: React.FC<AddDocumentProps> = ({ cases, setDocuments }) => {
         <div className="flex items-center py-3 text-[#7c7c7c]">
           <div className="w-20 pl-6">#</div>
           <div className="flex-1">Exhibits Name</div>
-          <div className="flex-1">Referenced As</div>
           <div className="w-20 text-center">Actions</div>
         </div>
         {upldEFiles.map((doc: any, _i: number) => (

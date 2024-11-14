@@ -1,4 +1,10 @@
-const DecriptionPanel = () => {
+import { IDocument } from "@/types/types";
+
+const DecriptionPanel = ({
+  citedInMainDocuments,
+}: {
+  citedInMainDocuments: IDocument[];
+}) => {
   return (
     <>
       <div className="border-b flex items-center py-3 text-black px-4">
@@ -13,22 +19,11 @@ const DecriptionPanel = () => {
       </div>
       <div className="flex flex-col gap-4 p-3">
         <div className="">Also cited in:</div>
-        <div className="">
-          <span className="underline text-[#0550b3]">
-            Motion for Extension of Time
-          </span>{" "}
-          as &lsquo;Exhibit_1&lsquo;
-        </div>
-        <div className="">
-          <span className="underline text-[#0550b3]">
-            Motion for Summary Judgement
-          </span>{" "}
-          as &lsquo;Exhibit_2&lsquo;
-        </div>
-        <div className="">
-          <span className="underline text-[#0550b3]">Motion to Dismiss</span> as
-          &lsquo;Exhibit_4&lsquo;
-        </div>
+        {citedInMainDocuments.map((doc) => (
+          <div key={doc.id}>
+            <span className="underline text-[#0550b3]">{doc.title}</span>
+          </div>
+        ))}
       </div>
     </>
   );

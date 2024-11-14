@@ -19,7 +19,7 @@ import {
   IconUpload,
   IconX,
 } from "@tabler/icons-react";
-import { ICase, IDocument } from "@/types/types";
+import { ICase, ICitation, IDocument } from "@/types/types";
 import {
   getMediaPresignedUrl,
   uploadFile,
@@ -31,6 +31,7 @@ import UploadExhibitModal from "@/components/case/UploadExhibitModal";
 import DecriptionPanel from "@/components/case/edit/DecriptionPanel";
 import GeneralInformationWithHeader from "@/components/case/edit/GeneralInformationWithHeader";
 import EmptyDropzone from "@/components/case/edit/EmptyDropzone";
+import { getCitations } from "@services/citation.service";
 
 // Constants
 const PANEL_CONFIGS = {
@@ -57,6 +58,19 @@ const UploadingState = {
   FAIL: "FAIL",
 };
 
+const ProcessingStatus = {
+  PENDING: "PENDING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+};
+
+const CitationsExtractionStatus = {
+  PENDING: "PENDING",
+  IN_PROGRESS: "IN_PROGRESS",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+};
+
 const CaseEditPage = () => {
   // State hooks
   const [
@@ -72,7 +86,7 @@ const CaseEditPage = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [uploadingStates, setUploadingStates] = useState<string[]>([]);
   const [panelsCss, setPanelsCss] = useState(PANEL_CONFIGS.noDocuments);
-
+  const [citations, setCitations] = useState<ICitation[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // URL params
@@ -106,7 +120,7 @@ const CaseEditPage = () => {
       ? "bg-[#fafafa] border-r-4 border-r-[#292929]"
       : "bg-white border-r-4 border-r-transparent";
 
-  const getStateBadge = (state: string) => {
+  const getUploadingStateBadge = (state: string) => {
     const badges = {
       [UploadingState.DOING]: <Loader color="orange" size={14} />,
       [UploadingState.SUCCESS]: (
@@ -121,6 +135,58 @@ const CaseEditPage = () => {
       ),
     };
     return badges[state];
+  };
+
+  const getGeneralStateBadge = (doc: IDocument) => {
+    if (
+      doc.processingStatus == ProcessingStatus.COMPLETED &&
+      (doc.citationsExtractionStatus == null ||
+        doc.citationsExtractionStatus == CitationsExtractionStatus.COMPLETED)
+    ) {
+      return (
+        <div className="w-4 h-4 rounded-full bg-[#4bae4f] flex items-center justify-center text-white">
+          <IconCheck size={10} />
+        </div>
+      );
+    }
+    return <Loader color="orange" size={14} />;
+  };
+
+  const getGeneralStateText = (doc: IDocument) => {
+    if (doc.processingStatus === ProcessingStatus.PENDING) {
+      return "Document is currently processing...";
+    }
+
+    if (doc.processingStatus === ProcessingStatus.COMPLETED) {
+      if (doc.citationsExtractionStatus === null) {
+        return "Document ready for citation use";
+      }
+      if (
+        doc.citationsExtractionStatus === CitationsExtractionStatus.COMPLETED
+      ) {
+        return "Citation is successfully extracted";
+      }
+      return "Extracting citations...";
+    }
+
+    return "Document processing failed";
+  };
+
+  const getCitedInMainDocuments = (exhDocId: string) => {
+    const exhDoc = documents.find((doc) => doc.id === exhDocId);
+    if (!exhDoc) return [];
+
+    const citedInMainDocIds = citations
+      .filter(
+        (citation) =>
+          citation.destinationDocumentId === exhDocId &&
+          citation.sourceDocumentId !== exhDoc.mainDocumentId
+      )
+      .map((citation) => citation.sourceDocumentId);
+    const citedInMainDocs = documents.filter((doc) =>
+      citedInMainDocIds.includes(doc.id)
+    );
+    return citedInMainDocs;
   };
 
   // Event handlers
@@ -216,6 +282,17 @@ const CaseEditPage = () => {
       setDocuments(d?.items as IDocument[]);
     }
   }, [documentData]);
+
+  useEffect(() => {
+    if (documents.length > 0) {
+      getMDocs().forEach((doc) => {
+        getCitations(doc.id).then((res: any) => {
+          const citations = res.items as ICitation[];
+          setCitations((prev) => [...prev, ...citations]);
+        });
+      });
+    }
+  }, [documents]);
 
   useEffect(() => {
     setSelEDocId(undefined);
@@ -314,14 +391,10 @@ const CaseEditPage = () => {
                   <div className="flex-1 text-[#0550b3] truncate">
                     <div className="truncate flex items-center gap-2">
                       <div className="truncate underline">{doc.title}</div>
-                      <div className="flex-1">
-                        <div className="w-4 h-4 rounded-full bg-[#4bae4f] flex items-center justify-center text-white">
-                          <IconCheck size={10} />
-                        </div>
-                      </div>
+                      <div className="flex-1">{getGeneralStateBadge(doc)}</div>
                     </div>
                     <div className="text-[#bdbdbd] text-sm mt-1 truncate">
-                      Document ready for citation use
+                      {getGeneralStateText(doc)}
                     </div>
                   </div>
                   <div className="w-20" onClick={(e) => e.stopPropagation()}>
@@ -343,13 +416,13 @@ const CaseEditPage = () => {
                     <div className="truncate flex items-center gap-2">
                       <div className="truncate underline">{file.name}</div>
                       <div className="pr-9 flex-1">
-                        {getStateBadge(uploadingStates[i])}
+                        {getUploadingStateBadge(uploadingStates[i])}
                       </div>
                     </div>
                     <div className="text-[#bdbdbd] text-sm mt-1 truncate">
                       {uploadingStates[i] === UploadingState.DOING
-                        ? "Document is currently processing..."
-                        : "Document ready for citation use"}
+                        ? "Document is currently uploading..."
+                        : "Document is successfully uploaded"}
                     </div>
                   </div>
                 </div>
@@ -367,7 +440,6 @@ const CaseEditPage = () => {
               <div className="flex items-center py-3">
                 <div className="w-20 pl-6">#</div>
                 <div className="flex-1">Exhibits Name</div>
-                <div className="flex-1">Referenced As</div>
                 <div className="w-20 text-center">Actions</div>
               </div>
               {selMDocId &&
@@ -408,7 +480,7 @@ const CaseEditPage = () => {
                       <div className="truncate flex items-center gap-2">
                         <div className="truncate underline">{file.name}</div>
                         <div className="pr-9 flex-1">
-                          {getStateBadge(uploadingStates[i])}
+                          {getUploadingStateBadge(uploadingStates[i])}
                         </div>
                       </div>
                     </div>
@@ -440,7 +512,11 @@ const CaseEditPage = () => {
               )}
             </div>
             <div className={`rounded-xl border  ${panelsCss.Document}`}>
-              <DecriptionPanel />
+              <DecriptionPanel
+                citedInMainDocuments={getCitedInMainDocuments(
+                  selEDocId as string
+                )}
+              />
             </div>
           </div>
         </div>

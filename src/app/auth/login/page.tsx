@@ -5,16 +5,17 @@ import {
   Button,
   MantineProvider,
   Checkbox,
+  LoadingOverlay,
 } from "@mantine/core";
 import { useLogin } from "@refinedev/core";
 import Link from "next/link";
 import { useForm } from "@mantine/form";
 import { FormEvent } from "react";
+import { notifications, Notifications } from "@mantine/notifications";
 // import { IconAntennaBars5 } from "@tabler/icons-react";
 
 export default function AuthenticationForm() {
-  const { mutate: login } = useLogin();
-
+  const { mutate: login, isLoading: isLoginLoading } = useLogin();
   const form = useForm({
     initialValues: {
       email: "",
@@ -33,13 +34,31 @@ export default function AuthenticationForm() {
     if (form.validate().hasErrors) {
       return;
     }
-    login({ email: form.values.email, password: form.values.password });
+    login(
+      { email: form.values.email, password: form.values.password },
+      {
+        onError: (error) => {
+          console.log(error)
+          notifications.show({
+            title: "Fail to login",
+            message: "Email or Password is incorrect",
+            color: "red",
+          });
+        },
+      }
+    );
   };
 
   return (
     <MantineProvider>
       <div className="h-screen w-full flex items-center justify-center bg-[#fafafa]">
-        <div className="w-[500px] flex flex-col p-8 bg-white rounded-lg shadow-2xl">
+        <Notifications position="top-right" zIndex={1000} />
+        <div className="w-[500px] flex flex-col p-8 bg-white rounded-lg shadow-2xl relative">
+          <LoadingOverlay
+            visible={isLoginLoading}
+            zIndex={1000}
+            loaderProps={{ color: "black", type: "bars" }}
+          />
           <div className="p-6 flex items-center justify-center text-xl text-black">
             {/* <IconAntennaBars5 size={24} /> */}
             <span className="text-[#394149] font-bold ml-2">SMART</span>

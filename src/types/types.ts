@@ -13,7 +13,7 @@ export interface IDocument {
   citationsCount: number;
 }
 
-export interface CitationResponseDto {
+export interface ICitation {
   id: string;
   sourceDocumentId: string;
   sourcePageNumber: number | null;

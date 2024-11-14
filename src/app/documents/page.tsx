@@ -155,11 +155,6 @@ export default function DocumentList() {
       ),
     },
     {
-      title: "Referenced As",
-      dataIndex: "",
-      key: "ref_as",
-    },
-    {
       title: "Action",
       dataIndex: "",
       key: "action",

@@ -66,6 +66,7 @@ export const authProvider: AuthProvider = {
   },
   logout: async () => {
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
 
     return {
       success: true,
