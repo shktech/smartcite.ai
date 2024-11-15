@@ -28,6 +28,7 @@ import { useCreate, useDelete, useNavigation } from "@refinedev/core";
 import { useForm } from "@mantine/form";
 import { formatFileSize } from "@/utils/util.functions";
 import { IDocument } from "../../types/types";
+import pRetry from "p-retry";
 
 interface DocumentListProps {
   documents: IDocument[];
@@ -148,19 +149,23 @@ const DocumentList: React.FC<DocumentListProps> = ({
 
     const uploadPromises = fs.map(async (file, i) => {
       try {
-        const presignedUrl = await getMediaPresignedUrl();
-        await uploadFile(file, presignedUrl.uploadUrl, (progressEvent) => {
-          const percent = Math.round(
-            (progressEvent.loaded * 99) / (progressEvent.total || 1)
-          );
-          updateUploadProgress(i, percent);
-        });
-        const createdDocument = await createDocument(
-          caseId,
-          presignedUrl.id,
-          file.name,
-          dockType,
-          relatedMainDocumentId
+        const presignedUrl = await pRetry(() => getMediaPresignedUrl());
+        await pRetry(() =>
+          uploadFile(file, presignedUrl.uploadUrl, (progressEvent) => {
+            const percent = Math.round(
+              (progressEvent.loaded * 99) / (progressEvent.total || 1)
+            );
+            updateUploadProgress(i, percent);
+          })
+        );
+        const createdDocument = await pRetry(() =>
+          createDocument(
+            caseId,
+            presignedUrl.id,
+            file.name,
+            dockType,
+            relatedMainDocumentId
+          )
         );
         updateUploadProgress(i, 100);
         newDocuments.push(createdDocument);

@@ -1,4 +1,5 @@
 import axios from "axios";
+import pRetry from "p-retry";
 
 const keycloakUrl = process.env.NEXT_PUBLIC_KEYCLOAK_URL;
 const realmId = process.env.NEXT_PUBLIC_KEYCLOAK_REALM_ID;
@@ -202,9 +203,11 @@ export const completeProfile = async (
   licenseNumber: string
 ) => {
   try {
-    const adminToken = await getSuperAdminToken();
+    const adminToken = await pRetry(() => getSuperAdminToken());
     if (!adminToken) throw new Error("Failed to retrieve admin token.");
-    const user = await getUserById(userId, adminToken.access_token);
+    const user = await pRetry(() =>
+      getUserById(userId, adminToken.access_token)
+    );
     if (!user) throw new Error("Failed to get user.");
     const payload = {
       ...user,
@@ -231,7 +234,7 @@ export const completeProfile = async (
 
 export const verifyEmail = async (userId: string, token: string) => {
   try {
-    const user = await getUserById(userId, token);
+    const user = await pRetry(() => getUserById(userId, token));
     const payload = {
       ...user,
       emailVerified: true,

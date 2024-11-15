@@ -8,6 +8,7 @@ import {
 } from "@/services/keycloak/user.service";
 import { Notifications, notifications } from "@mantine/notifications";
 import { useState } from "react";
+import pRetry from "p-retry";
 
 export default function AuthenticationForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -16,10 +17,9 @@ export default function AuthenticationForm() {
   const resendEmail = async () => {
     try {
       setIsLoading(true);
-      const adminToken = await getSuperAdminToken();
-      const sendEmail = await sendResetPasswordEmail(
-        userid,
-        adminToken.access_token
+      const adminToken = await pRetry(() => getSuperAdminToken());
+      const sendEmail = await pRetry(() =>
+        sendResetPasswordEmail(userid, adminToken.access_token)
       );
       if (!sendEmail) throw new Error("Error found");
       notifications.show({
@@ -53,7 +53,9 @@ export default function AuthenticationForm() {
           <IconMessage color="white" size={32} stroke={2} />
         </div>
         <div className="py-4 flex justify-center items-center flex-col">
-          <span className="font-bold">Password reset email sent</span> We’ve sent a password reset email. Please check your inbox (and spam/junk folder) and click the link to reset your password
+          <span className="font-bold">Password reset email sent</span> We’ve
+          sent a password reset email. Please check your inbox (and spam/junk
+          folder) and click the link to reset your password
         </div>
         <Button
           variant="default"

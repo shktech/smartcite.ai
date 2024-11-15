@@ -23,8 +23,12 @@ import { useDelete } from "@refinedev/core";
 import { useDisclosure } from "@mantine/hooks";
 import FileUploadDropzone from "./FileUploadDropzone";
 import { formatFileSize } from "@/utils/util.functions";
-import { uploadFile, getMediaPresignedUrl } from "@/services/admin-file-upload.service";
+import {
+  uploadFile,
+  getMediaPresignedUrl,
+} from "@/services/admin-file-upload.service";
 import { createDocument } from "@/services/document.service";
+import pRetry from "p-retry";
 
 interface DocumentDetailDrawerProps {
   opened: boolean;
@@ -41,7 +45,10 @@ const DocumentDetailDrawer = ({
   setSelMDoc,
   setMainDocuments,
 }: DocumentDetailDrawerProps) => {
-  const [uploadModalOpened, { open: openUploadModal, close: closeUploadModal }] = useDisclosure(false);
+  const [
+    uploadModalOpened,
+    { open: openUploadModal, close: closeUploadModal },
+  ] = useDisclosure(false);
   const [selEDoc, setSelEDoc] = useState<IDocument>();
   const [fileLoading, setFileLoading] = useState(false);
   const [fullLoading, setFullLoading] = useState(false);
@@ -61,10 +68,12 @@ const DocumentDetailDrawer = ({
       setFullLoading(false);
       handleCloseDrawer();
     } else {
-      const updatedExhibits = selMDoc.exhibits.filter((d: any) => d.id !== doc.id);
+      const updatedExhibits = selMDoc.exhibits.filter(
+        (d: any) => d.id !== doc.id
+      );
       setSelMDoc({
         ...selMDoc,
-        exhibits: updatedExhibits
+        exhibits: updatedExhibits,
       });
       setMainDocuments((prev: any) =>
         prev.map((doc: any) => ({
@@ -78,10 +87,10 @@ const DocumentDetailDrawer = ({
 
   const handleDeleteDocument = async (doc: IDocument) => {
     doc.type === DocType.MAIN ? setFullLoading(true) : setFileLoading(true);
-    
+
     deleteMutate(
       {
-        resource: 'documents',
+        resource: "documents",
         id: doc.id,
       },
       {
@@ -95,32 +104,36 @@ const DocumentDetailDrawer = ({
   };
 
   const handleRemoveFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleUploadDocument = async (file: File, index: number) => {
     try {
-      const presignedUrl = await getMediaPresignedUrl();
-      const uploadFileResponse = await uploadFile(file, presignedUrl.uploadUrl);
+      const presignedUrl = await pRetry(() => getMediaPresignedUrl());
+      const uploadFileResponse = await pRetry(() =>
+        uploadFile(file, presignedUrl.uploadUrl)
+      );
       if (!uploadFileResponse) throw new Error("Failed to upload file");
 
-      const createdDocument = await createDocument(
-        selMDoc.caseId,
-        presignedUrl.id,
-        file.name,
-        DocType.EXHIBIT,
-        selMDoc.id
+      const createdDocument = await pRetry(() =>
+        createDocument(
+          selMDoc.caseId,
+          presignedUrl.id,
+          file.name,
+          DocType.EXHIBIT,
+          selMDoc.id
+        )
       );
       if (!createdDocument) throw new Error("Failed to create document");
 
-      setUploadingStates(prev => 
-        prev.map((p, i) => i === index ? UploadingState.SUCCESS : p)
+      setUploadingStates((prev) =>
+        prev.map((p, i) => (i === index ? UploadingState.SUCCESS : p))
       );
       return createdDocument;
     } catch (error: any) {
       alert(`Failed to upload file: ${error.message}`);
-      setUploadingStates(prev =>
-        prev.map((p, i) => i === index ? UploadingState.FAIL : p)
+      setUploadingStates((prev) =>
+        prev.map((p, i) => (i === index ? UploadingState.FAIL : p))
       );
       return null;
     }
@@ -145,12 +158,13 @@ const DocumentDetailDrawer = ({
     setMainDocuments((prev: any) =>
       prev.map((doc: any) => ({
         ...doc,
-        exhibits: doc.id === selMDoc.id 
-          ? [...doc.exhibits, ...newDocuments]
-          : doc.exhibits,
+        exhibits:
+          doc.id === selMDoc.id
+            ? [...doc.exhibits, ...newDocuments]
+            : doc.exhibits,
       }))
     );
-    
+
     setUploadingFiles([]);
   };
 

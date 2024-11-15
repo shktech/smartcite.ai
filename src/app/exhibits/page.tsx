@@ -14,6 +14,7 @@ import AddExhibit from "@/components/exhibit/AddExhibit";
 import { Viewer, Worker } from "@react-pdf-viewer/core";
 import ExhibitDetailDrawer from "@/components/exhibit/ExhibitDetailDrawer";
 import { getCitations } from "@services/citation.service";
+import pRetry from "p-retry";
 
 // Table Column Definitions
 const getMainColumns = (): TableColumnType<any>[] => [
@@ -132,10 +133,14 @@ export default function DocumentList() {
   useEffect(() => {
     if (documents.length > 0) {
       getMDocs().forEach((doc) => {
-        getCitations(doc.id).then((res: any) => {
-          const citations = res.items as ICitation[];
-          setCitations((prev) => [...prev, ...citations]);
-        });
+        pRetry(() => getCitations(doc.id))
+          .then((res: any) => {
+            const citations = res.items as ICitation[];
+            setCitations((prev) => [...prev, ...citations]);
+          })
+          .catch((error) => {
+            console.error("Error fetching citations:", error);
+          });
       });
     }
   }, [documents]);

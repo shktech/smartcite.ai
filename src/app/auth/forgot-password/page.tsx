@@ -11,6 +11,7 @@ import {
 } from "@/services/keycloak/user.service";
 import { Notifications, notifications } from "@mantine/notifications";
 import Link from "next/link";
+import pRetry from "p-retry";
 
 export default function Page() {
   const { push } = useNavigation();
@@ -33,16 +34,14 @@ export default function Page() {
 
     try {
       setIsLoading(true);
-      const adminToken = await getSuperAdminToken();
+      const adminToken = await pRetry(() => getSuperAdminToken());
       if (!adminToken) throw new Error("Failed to retrieve admin token.");
-      const user = await getUserByEmail(
-        form.values.email,
-        adminToken.access_token
+      const user = await pRetry(() =>
+        getUserByEmail(form.values.email, adminToken.access_token)
       );
       if (!user) throw new Error("Failed to get user by email.");
-      const sendResetPassword = await sendResetPasswordEmail(
-        user.id,
-        adminToken.access_token
+      const sendResetPassword = await pRetry(() =>
+        sendResetPasswordEmail(user.id, adminToken.access_token)
       );
       if (!sendResetPassword) throw new Error("Failed to send reset password.");
       setIsLoading(false);
@@ -69,7 +68,10 @@ export default function Page() {
             overlayProps={{ radius: "sm", blur: 2 }}
             loaderProps={{ color: "pink", type: "bars" }}
           />
-          <Link href="/auth/login" className="w-10 h-10 border rounded-lg flex items-center justify-center border-black cursor-pointer">
+          <Link
+            href="/auth/login"
+            className="w-10 h-10 border rounded-lg flex items-center justify-center border-black cursor-pointer"
+          >
             <IconArrowLeft size={24} color="black" stroke={2} />
           </Link>
           <div className="text-2xl font-bold pt-4 pb-2.5 text-black">

@@ -17,6 +17,7 @@ import { IDocument } from "@/types/types";
 import { DocType, UploadingState } from "@/utils/util.constants";
 import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
 import { useDataProvider } from "@refinedev/core";
+import pRetry from "p-retry";
 
 interface AddExhibitProps {
   document: IDocument;
@@ -77,16 +78,20 @@ const AddExhibit = ({ document, setDocuments }: AddExhibitProps) => {
 
   const handleUploadDocument = async (file: File, index: number) => {
     try {
-      const presignedUrl = await getMediaPresignedUrl();
-      const uploadFileResponse = await uploadFile(file, presignedUrl.uploadUrl);
+      const presignedUrl = await pRetry(() => getMediaPresignedUrl());
+      const uploadFileResponse = await pRetry(() =>
+        uploadFile(file, presignedUrl.uploadUrl)
+      );
       if (!uploadFileResponse) throw new Error("Failed to upload file");
 
-      const createdDocument = await createDocument(
-        document.caseId,
-        presignedUrl.id,
-        file.name,
-        DocType.EXHIBIT,
-        document.id
+      const createdDocument = await pRetry(() =>
+        createDocument(
+          document.caseId,
+          presignedUrl.id,
+          file.name,
+          DocType.EXHIBIT,
+          document.id
+        )
       );
       if (!createdDocument) throw new Error("Failed to create document");
 
@@ -172,7 +177,9 @@ const AddExhibit = ({ document, setDocuments }: AddExhibitProps) => {
     <>
       <div className="text-[#7c7c7c] pb-4">
         Upload an exhibit for the document{" "}
-        <span className="text-[#292929]">&apos;Motion for Extension of Time&apos;</span>
+        <span className="text-[#292929]">
+          &apos;Motion for Extension of Time&apos;
+        </span>
       </div>
       <FileUploadDropzone handleFileChange={setFiles} />
       <FileList />
