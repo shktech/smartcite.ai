@@ -1,36 +1,33 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Input, Table } from "@mantine/core";
-import {
-  useCreate,
-  useDelete,
-  useTable,
-} from "@refinedev/core";
+import { Button, Input, LoadingOverlay } from "@mantine/core";
+import { useCreate, useDelete, useTable } from "@refinedev/core";
 import { Layout as BaseLayout } from "@/components/layout";
-
-export interface ApiKeyResponseDto {
-  id: string;
-  name: string;
-  key: string;
-  createdAt: string;
-  lastUsedAt: string | null;
-}
+import { IApiKey } from "@/types/types";
+import { Table, type TableColumnType } from "antd";
+import DeleteConfirmModal from "@components/common/DeleteBtnWithConfirmModal";
+import { IconTrash } from "@tabler/icons-react";
+import { getFormatedDate } from "@utils/util.functions";
 
 export default function BlogPostList() {
   const { mutate: createMutate } = useCreate();
   const { mutate: deleteMutate } = useDelete();
   const {
-    tableQueryResult: { data },
-  } = useTable<any>();
+    tableQueryResult: { data, isLoading: isApikeyLoading },
+  } = useTable<any>({
+    hasPagination: false,
+  });
   const [newApiKey, setNewApiKey] = useState({ name: "" });
-  const [apiKeys, setApiKeys] = useState<ApiKeyResponseDto[]>([]);
+  const [apiKeys, setApiKeys] = useState<IApiKey[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const handleInputChange = (event: any) => {
     const { name, value } = event.target;
     setNewApiKey({ ...newApiKey, [name]: value });
   };
   const handleSubmit = async (event: any) => {
     event.preventDefault();
+    setIsLoading(true);
     createMutate(
       {
         resource: "api-keys",
@@ -39,9 +36,13 @@ export default function BlogPostList() {
         },
       },
       {
-        onError: (error) => console.log(error),
+        onError: (error) => {
+          setIsLoading(false);
+          console.log(error);
+        },
         onSuccess: (res) => {
-          setApiKeys([...apiKeys, res.data as ApiKeyResponseDto]);
+          setIsLoading(false);
+          setApiKeys([...apiKeys, res.data as IApiKey]);
           setNewApiKey({ name: "" });
         },
       }
@@ -49,102 +50,142 @@ export default function BlogPostList() {
   };
   useEffect(() => {
     if (data) {
-      setApiKeys(data.items as ApiKeyResponseDto[]);
+      const d = data.data as any;
+      setApiKeys(d?.items);
     }
   }, [data]);
 
   const handleDelete = async (apiKeyId: string) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this apiKey?"
-    );
-    if (!confirmDelete) {
-      return;
-    }
-
+    setIsLoading(true);
     deleteMutate(
       {
         resource: `api-keys`,
         id: apiKeyId,
       },
       {
-        onError: (error) => console.log(error),
+        onError: (error) => {
+          console.log(error);
+          setIsLoading(false);
+        },
         onSuccess: () => {
+          setIsLoading(false);
           const updatedApiKeys = apiKeys.filter((c) => c.id !== apiKeyId);
           setApiKeys(updatedApiKeys);
         },
       }
     );
   };
+
+  const columns: TableColumnType<IApiKey>[] = [
+    {
+      title: "#",
+      dataIndex: "",
+      key: "index",
+      render: (_, __, index) => index + 1,
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      sorter: (a: IApiKey, b: IApiKey) => a.name.localeCompare(b.name),
+      sortDirections: ["ascend", "descend"],
+    },
+    {
+      title: "Key",
+      dataIndex: "key",
+      key: "key",
+      sorter: (a: IApiKey, b: IApiKey) => a.key.localeCompare(b.key),
+      sortDirections: ["ascend", "descend"],
+    },
+    {
+      title: "Created",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      sorter: (a: IApiKey, b: IApiKey) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      sortDirections: ["ascend", "descend"],
+      render: (createdAt: string) => getFormatedDate(createdAt),
+    },
+    {
+      title: "Action",
+      dataIndex: "",
+      key: "action",
+      render: (value, record) => (
+        <div className="flex gap-2 items-center text-[#c5c5c5]">
+          <DeleteConfirmModal
+            onDelete={() => handleDelete(record.id)}
+            trigger={
+              <div className="cursor-pointer hover:text-[#2e2e2e]">
+                <IconTrash size={18} />
+              </div>
+            }
+          />
+        </div>
+      ),
+    },
+  ];
   return (
     <BaseLayout>
-    <div className="p-5">
-      <div className="text-sm">Create New Case</div>
-      <form onSubmit={handleSubmit}>
-        <div className="flex flex-col gap-4 mt-5">
-          <Input.Wrapper description="Name">
-            <Input
-              name="name"
-              value={newApiKey.name}
-              onChange={handleInputChange}
-              required
-            />
-          </Input.Wrapper>
-          <Button
-            variant="outline"
-            style={{ width: "150px", fontWeight: "normal" }}
-            color="violet.7"
-            type="submit"
-          >
-            Create Case
-          </Button>
+      <div className="p-6">
+        <div className="text-xl text-[#292929] font-semibold pb-6">
+          API Keys
         </div>
-      </form>
-      <div className="mt-6 text-xs">
-        <Table
-          style={{
-            border: "1px solid #eeeeef",
-            "th, td": {
-              fontSize: "16px", // Ensures the table headers and cells follow the font size
-            },
-          }}
-          horizontalSpacing="md"
-          verticalSpacing="md"
-          highlightOnHover
-        >
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Name</Table.Th>
-              <Table.Th>Key</Table.Th>
-              <Table.Th>Last used</Table.Th>
-              <Table.Th>Created</Table.Th>
-              <Table.Th>Actions</Table.Th>
-              <Table.Th></Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {apiKeys.map((caseItem: ApiKeyResponseDto) => (
-              <Table.Tr key={caseItem.id}>
-                <Table.Td>{caseItem.name}</Table.Td>
-                <Table.Td>{caseItem.key}</Table.Td>
-                <Table.Td>{caseItem.lastUsedAt}</Table.Td>
-                <Table.Td>{caseItem.createdAt}</Table.Td>
-                <Table.Td>
-                  <Button
-                    variant="outline"
-                    color="red.9"
-                    type="submit"
-                    size="xs"
-                    onClick={() => handleDelete(caseItem.id)}
-                  >
-                    Delete
-                  </Button>
-                </Table.Td>
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+        <form onSubmit={handleSubmit} className="bg-white px-5 py-5 rounded-lg">
+          <div className="flex flex-col gap-4">
+            <Input.Wrapper description="Name">
+              <Input
+                name="name"
+                value={newApiKey.name}
+                onChange={handleInputChange}
+                required
+              />
+            </Input.Wrapper>
+            <Button
+              variant="default"
+              style={{ width: "150px", fontWeight: "normal" }}
+              type="submit"
+            >
+              Create API Key
+            </Button>
+          </div>
+        </form>
+        <div className="mt-6 text-xs bg-white rounded-lg relative">
+          <LoadingOverlay
+            visible={isApikeyLoading || isLoading}
+            zIndex={1000}
+            loaderProps={{ color: "black", type: "bars" }}
+          />
+          <Table<IApiKey>
+            columns={columns}
+            dataSource={apiKeys}
+            components={{
+              header: {
+                cell: (props: any) => (
+                  <th
+                    {...props}
+                    style={{
+                      color: "#989898", // Optional
+                      padding: "12px 16px", // Adjust these values as needed
+                      fontWeight: "semibold",
+                    }}
+                  />
+                ),
+              },
+              body: {
+                cell: (props: any) => (
+                  <td
+                    {...props}
+                    style={{
+                      padding: "6px 16px", // Adjust these values as needed
+                      color: "#7c7c7c",
+                    }}
+                  />
+                ),
+              },
+            }}
+          />
+        </div>
       </div>
-    </div>
     </BaseLayout>
   );
 }
