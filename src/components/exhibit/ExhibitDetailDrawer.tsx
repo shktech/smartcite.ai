@@ -1,4 +1,7 @@
-import PdfViewer from "@components/common/PdfViewer";
+import dynamic from "next/dynamic";
+const PdfViewer = dynamic(() => import("@/components/common/PdfViewer"), {
+  ssr: false,
+});
 import { Drawer, LoadingOverlay } from "@mantine/core";
 import { IconArrowRight } from "@tabler/icons-react";
 interface ExhibitDetailDrawerProps {
@@ -74,7 +77,7 @@ const ExhibitDetailDrawer = ({
               </div>
             </div>
           </div>
-          <div className="col-span-6 border rounded-xl p-2 relative">
+          <div className="col-span-6 border rounded-xl p-2 relative border-4">
             {selExh?.mediaUrl && <PdfViewer mediaUrl={selExh.mediaUrl} />}
           </div>
         </div>

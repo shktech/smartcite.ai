@@ -14,8 +14,10 @@ import AddExhibit from "@/components/exhibit/AddExhibit";
 import ExhibitDetailDrawer from "@/components/exhibit/ExhibitDetailDrawer";
 import { getCitations } from "@services/citation.service";
 import pRetry from "p-retry";
-import PdfViewer from "@components/common/PdfViewer";
-
+import dynamic from "next/dynamic";
+const PdfViewer = dynamic(() => import("@/components/common/PdfViewer"), {
+  ssr: false,
+});
 // Table Column Definitions
 const getMainColumns = (): TableColumnType<any>[] => [
   {
@@ -233,7 +235,7 @@ export default function DocumentList() {
           </div>
 
           {/* Preview Panel */}
-          <div className="col-span-1 bg-white rounded-xl pb-10 relative overflow-hidden">
+          <div className="col-span-1 bg-white rounded-xl pb-10 relative overflow-hidden border-4">
             {!selExh ? (
               <div className="flex items-center justify-center h-full flex-col gap-2">
                 <IconClick size={40} />
