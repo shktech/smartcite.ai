@@ -6,7 +6,6 @@ import {
   Modal,
   Select,
 } from "@mantine/core";
-import { Viewer, Worker } from "@react-pdf-viewer/core";
 import {
   IconArrowRight,
   IconCheck,
@@ -23,8 +22,17 @@ import { useDelete } from "@refinedev/core";
 import { useDisclosure } from "@mantine/hooks";
 import FileUploadDropzone from "./FileUploadDropzone";
 import { formatFileSize } from "@/utils/util.functions";
-import { uploadFile, getMediaPresignedUrl } from "@/services/admin-file-upload.service";
+import {
+  uploadFile,
+  getMediaPresignedUrl,
+} from "@/services/admin-file-upload.service";
 import { createDocument } from "@/services/document.service";
+import pRetry from "p-retry";
+// import PdfViewer from "@components/common/PdfViewer";
+import dynamic from "next/dynamic";
+const PdfViewer = dynamic(() => import("@/components/common/PdfViewer"), {
+  ssr: false,
+});
 
 interface DocumentDetailDrawerProps {
   opened: boolean;
@@ -41,7 +49,10 @@ const DocumentDetailDrawer = ({
   setSelMDoc,
   setMainDocuments,
 }: DocumentDetailDrawerProps) => {
-  const [uploadModalOpened, { open: openUploadModal, close: closeUploadModal }] = useDisclosure(false);
+  const [
+    uploadModalOpened,
+    { open: openUploadModal, close: closeUploadModal },
+  ] = useDisclosure(false);
   const [selEDoc, setSelEDoc] = useState<IDocument>();
   const [fileLoading, setFileLoading] = useState(false);
   const [fullLoading, setFullLoading] = useState(false);
@@ -61,10 +72,12 @@ const DocumentDetailDrawer = ({
       setFullLoading(false);
       handleCloseDrawer();
     } else {
-      const updatedExhibits = selMDoc.exhibits.filter((d: any) => d.id !== doc.id);
+      const updatedExhibits = selMDoc.exhibits.filter(
+        (d: any) => d.id !== doc.id
+      );
       setSelMDoc({
         ...selMDoc,
-        exhibits: updatedExhibits
+        exhibits: updatedExhibits,
       });
       setMainDocuments((prev: any) =>
         prev.map((doc: any) => ({
@@ -78,10 +91,10 @@ const DocumentDetailDrawer = ({
 
   const handleDeleteDocument = async (doc: IDocument) => {
     doc.type === DocType.MAIN ? setFullLoading(true) : setFileLoading(true);
-    
+
     deleteMutate(
       {
-        resource: 'documents',
+        resource: "documents",
         id: doc.id,
       },
       {
@@ -95,32 +108,36 @@ const DocumentDetailDrawer = ({
   };
 
   const handleRemoveFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleUploadDocument = async (file: File, index: number) => {
     try {
-      const presignedUrl = await getMediaPresignedUrl();
-      const uploadFileResponse = await uploadFile(file, presignedUrl.uploadUrl);
+      const presignedUrl = await pRetry(() => getMediaPresignedUrl());
+      const uploadFileResponse = await pRetry(() =>
+        uploadFile(file, presignedUrl.uploadUrl)
+      );
       if (!uploadFileResponse) throw new Error("Failed to upload file");
 
-      const createdDocument = await createDocument(
-        selMDoc.caseId,
-        presignedUrl.id,
-        file.name,
-        DocType.EXHIBIT,
-        selMDoc.id
+      const createdDocument = await pRetry(() =>
+        createDocument(
+          selMDoc.caseId,
+          presignedUrl.id,
+          file.name,
+          DocType.EXHIBIT,
+          selMDoc.id
+        )
       );
       if (!createdDocument) throw new Error("Failed to create document");
 
-      setUploadingStates(prev => 
-        prev.map((p, i) => i === index ? UploadingState.SUCCESS : p)
+      setUploadingStates((prev) =>
+        prev.map((p, i) => (i === index ? UploadingState.SUCCESS : p))
       );
       return createdDocument;
     } catch (error: any) {
       alert(`Failed to upload file: ${error.message}`);
-      setUploadingStates(prev =>
-        prev.map((p, i) => i === index ? UploadingState.FAIL : p)
+      setUploadingStates((prev) =>
+        prev.map((p, i) => (i === index ? UploadingState.FAIL : p))
       );
       return null;
     }
@@ -145,12 +162,13 @@ const DocumentDetailDrawer = ({
     setMainDocuments((prev: any) =>
       prev.map((doc: any) => ({
         ...doc,
-        exhibits: doc.id === selMDoc.id 
-          ? [...doc.exhibits, ...newDocuments]
-          : doc.exhibits,
+        exhibits:
+          doc.id === selMDoc.id
+            ? [...doc.exhibits, ...newDocuments]
+            : doc.exhibits,
       }))
     );
-    
+
     setUploadingFiles([]);
   };
 
@@ -277,7 +295,7 @@ const DocumentDetailDrawer = ({
             Upload document
           </Button>
         </div>
-        <div className="mt-4 grid grid-cols-11 text-xs flex-1 gap-4">
+        <div className="mt-4 grid grid-cols-11 text-xs flex-1 gap-4 pb-2">
           <div className="col-span-5 border rounded-xl relative">
             <LoadingOverlay
               visible={fileLoading}
@@ -334,21 +352,8 @@ const DocumentDetailDrawer = ({
               </div>
             ))}
           </div>
-          <div className="col-span-6 border rounded-xl p-2 relative">
-            {selEDoc?.mediaUrl && (
-              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                <Viewer
-                  fileUrl={selEDoc?.mediaUrl}
-                  renderLoader={() => (
-                    <LoadingOverlay
-                      visible={true}
-                      zIndex={1000}
-                      loaderProps={{ color: "black", type: "bars" }}
-                    />
-                  )}
-                />
-              </Worker>
-            )}
+          <div className="col-span-6 border-4 rounded-xl p-2 pb-4 relative shadow-inner">
+            {selEDoc?.mediaUrl && <PdfViewer mediaUrl={selEDoc.mediaUrl} />}
           </div>
         </div>
       </Drawer>

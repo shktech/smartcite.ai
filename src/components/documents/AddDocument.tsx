@@ -1,11 +1,5 @@
 import React, { useState } from "react"; // Import React
-import {
-  Button,
-  Loader,
-  LoadingOverlay,
-  Modal,
-  Select,
-} from "@mantine/core";
+import { Button, Loader, LoadingOverlay, Modal, Select } from "@mantine/core";
 import {
   IconCheck,
   IconFileTypePdf,
@@ -25,6 +19,7 @@ import { DocType, UploadingState } from "@/utils/util.constants";
 import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
 import { useDataProvider } from "@refinedev/core";
 import { Notifications, notifications } from "@mantine/notifications";
+import pRetry from "p-retry";
 
 // Types
 interface AddDocumentProps {
@@ -124,16 +119,20 @@ const AddDocument: React.FC<AddDocumentProps> = ({ cases, setDocuments }) => {
     mainDocument: string
   ) => {
     try {
-      const presignedUrl = await getMediaPresignedUrl();
-      const uploadFileResponse = await uploadFile(file, presignedUrl.uploadUrl);
+      const presignedUrl = await pRetry(() => getMediaPresignedUrl());
+      const uploadFileResponse = await pRetry(() =>
+        uploadFile(file, presignedUrl.uploadUrl)
+      );
       if (!uploadFileResponse) throw new Error("Failed to upload file");
 
-      const createdDocument = await createDocument(
-        caseId as string,
-        presignedUrl.id,
-        file.name,
-        docType,
-        mainDocument
+      const createdDocument = await pRetry(() =>
+        createDocument(
+          caseId as string,
+          presignedUrl.id,
+          file.name,
+          docType,
+          mainDocument
+        )
       );
 
       if (!createdDocument) throw new Error("Failed to create document");

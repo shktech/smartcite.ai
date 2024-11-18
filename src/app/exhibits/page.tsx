@@ -11,10 +11,13 @@ import { DocType } from "@/utils/util.constants";
 import MyTable from "@/components/common/MyTable";
 import { useDisclosure } from "@mantine/hooks";
 import AddExhibit from "@/components/exhibit/AddExhibit";
-import { Viewer, Worker } from "@react-pdf-viewer/core";
 import ExhibitDetailDrawer from "@/components/exhibit/ExhibitDetailDrawer";
 import { getCitations } from "@services/citation.service";
-
+import pRetry from "p-retry";
+import dynamic from "next/dynamic";
+const PdfViewer = dynamic(() => import("@/components/common/PdfViewer"), {
+  ssr: false,
+});
 // Table Column Definitions
 const getMainColumns = (): TableColumnType<any>[] => [
   {
@@ -108,8 +111,7 @@ export default function DocumentList() {
     const citedInMainDocIds = citations
       .filter(
         (citation) =>
-          citation.destinationDocumentId === exhDocId &&
-          citation.sourceDocumentId !== exhDoc.mainDocumentId
+          citation.destinationDocumentId === exhDocId
       )
       .map((citation) => citation.sourceDocumentId);
     const citedInMainDocs = documents.filter((doc) =>
@@ -132,10 +134,14 @@ export default function DocumentList() {
   useEffect(() => {
     if (documents.length > 0) {
       getMDocs().forEach((doc) => {
-        getCitations(doc.id).then((res: any) => {
-          const citations = res.items as ICitation[];
-          setCitations((prev) => [...prev, ...citations]);
-        });
+        pRetry(() => getCitations(doc.id))
+          .then((res: any) => {
+            const citations = res.items as ICitation[];
+            setCitations((prev) => [...prev, ...citations]);
+          })
+          .catch((error) => {
+            console.error("Error fetching citations:", error);
+          });
       });
     }
   }, [documents]);
@@ -229,7 +235,7 @@ export default function DocumentList() {
           </div>
 
           {/* Preview Panel */}
-          <div className="col-span-1 bg-white rounded-xl pb-10 relative">
+          <div className="col-span-1 bg-white rounded-xl pb-10 relative overflow-hidden border-4">
             {!selExh ? (
               <div className="flex items-center justify-center h-full flex-col gap-2">
                 <IconClick size={40} />
@@ -239,18 +245,19 @@ export default function DocumentList() {
                 </div>
               </div>
             ) : (
-              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                <Viewer
-                  fileUrl={selExh?.mediaUrl}
-                  renderLoader={() => (
-                    <LoadingOverlay
-                      visible={true}
-                      zIndex={1000}
-                      loaderProps={{ color: "black", type: "bars" }}
-                    />
-                  )}
-                />
-              </Worker>
+              // <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+              //   <Viewer
+              //     fileUrl={selExh?.mediaUrl}
+              //     renderLoader={() => (
+              //       <LoadingOverlay
+              //         visible={true}
+              //         zIndex={1000}
+              //         loaderProps={{ color: "black", type: "bars" }}
+              //       />
+              //     )}
+              //   />
+              // </Worker>
+              <PdfViewer mediaUrl={selExh?.mediaUrl} />
             )}
           </div>
         </div>

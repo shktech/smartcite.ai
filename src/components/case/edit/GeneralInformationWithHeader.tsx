@@ -18,6 +18,7 @@ import {
   LoadingOverlay,
 } from "@mantine/core";
 import { getAllUsers } from "@/services/keycloak/user.service";
+import pRetry from "p-retry";
 
 interface GeneralInformationWithHeaderProps {
   caseData?: ICase;
@@ -54,7 +55,7 @@ const GeneralInformationWithHeader = ({
     setUserLoading(true);
     try {
       const token = localStorage.getItem("accessToken");
-      const response = await getAllUsers(token as string);
+      const response = await pRetry(() => getAllUsers(token as string));
       setUsers(response);
     } catch (error) {
       console.error("Error fetching users:", error);

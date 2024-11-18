@@ -41,3 +41,19 @@ export interface ICase {
   assignedLawyers: string;
   state: string;
 }
+export interface IApiKey {
+  id: string;
+  name: string;
+  key: string;
+  lastUsedAt: string;
+  createdAt: string;
+}
+
+export interface IUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
+

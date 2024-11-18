@@ -20,6 +20,7 @@ import {
 import { getOrganizationById } from "@/services/keycloak/organization.service";
 import { jwtDecode } from "jwt-decode";
 import { Notifications, notifications } from "@mantine/notifications";
+import pRetry from "p-retry";
 
 export default function Page() {
   const { push } = useNavigation();
@@ -60,10 +61,9 @@ export default function Page() {
 
     const getOrg = async (organizationId: string) => {
       try {
-        const adminToken = await getSuperAdminToken();
-        const orgData = await getOrganizationById(
-          organizationId,
-          adminToken.access_token
+        const adminToken = await pRetry(() => getSuperAdminToken());
+        const orgData = await pRetry(() =>
+          getOrganizationById(organizationId, adminToken.access_token)
         );
         setOrgData(orgData);
         setIsLoading(false);
@@ -102,31 +102,34 @@ export default function Page() {
     }
     try {
       setIsLoading(true);
-      const adminToken = await getSuperAdminToken();
+      const adminToken = await pRetry(() => getSuperAdminToken());
       if (!adminToken) throw new Error("Failed to retrieve admin token.");
       const role = localStorage.getItem("signupRole");
       const group = role === RoleOptiosn.INDIVIDUAL ? Group.USER : Group.ADMIN;
-      const createdUserId = await registerUser(
-        form.values.email,
-        form.values.firstName,
-        form.values.lastName,
-        form.values.password,
-        group,
-        adminToken.access_token
+      const createdUserId = await pRetry(() =>
+        registerUser(
+          form.values.email,
+          form.values.firstName,
+          form.values.lastName,
+          form.values.password,
+          group,
+          adminToken.access_token
+        )
       );
 
       if (!createdUserId) throw new Error("Failed to create a user.");
       if (orgData.id) {
-        await addUserToOrganization(
-          createdUserId,
-          orgData.id,
-          adminToken.access_token
+        await pRetry(() =>
+          addUserToOrganization(
+            createdUserId,
+            orgData.id,
+            adminToken.access_token
+          )
         );
       }
 
-      const sendEmail = await sendVerifyEmail(
-        createdUserId,
-        adminToken.access_token
+      const sendEmail = await pRetry(() =>
+        sendVerifyEmail(createdUserId, adminToken.access_token)
       );
       if (!sendEmail) throw new Error("Failed to send verify email.");
       setIsLoading(false);

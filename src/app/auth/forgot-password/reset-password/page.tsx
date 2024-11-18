@@ -12,6 +12,7 @@ import { Notifications, notifications } from "@mantine/notifications";
 import { jwtDecode } from "jwt-decode";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import pRetry from "p-retry";
 
 export default function Page() {
   const { push } = useNavigation();
@@ -67,12 +68,14 @@ export default function Page() {
 
     try {
       setIsLoading(true);
-      const adminToken = await getSuperAdminToken();
+      const adminToken = await pRetry(() => getSuperAdminToken());
       if (!adminToken) throw new Error("Failed to retrieve admin token.");
-      const reset = await resetPassword(
-        userId as string,
-        form.values.password,
-        adminToken.access_token
+      const reset = await pRetry(() =>
+        resetPassword(
+          userId as string,
+          form.values.password,
+          adminToken.access_token
+        )
       );
       if (!reset) throw new Error("Failed to reset password.");
       setIsLoading(false);

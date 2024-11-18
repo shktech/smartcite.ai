@@ -1,10 +1,6 @@
-
 import React, { useState } from "react"; // Import React
 import { LoadingOverlay, Progress, rem } from "@mantine/core";
-import {
-  IconPaperclip,
-  IconTrash,
-} from "@tabler/icons-react";
+import { IconPaperclip, IconTrash } from "@tabler/icons-react";
 import FileUploadDropzone from "./FileUploadDropzone";
 import { IDocument } from "@/types/types";
 import {
@@ -15,6 +11,7 @@ import { createDocument } from "@/services/document.service";
 import { DocType } from "@/utils/util.constants";
 import { useDelete } from "@refinedev/core";
 import { formatFileSize } from "@/utils/util.functions";
+import pRetry from "p-retry";
 interface ComponentProps {
   caseId: string;
   mainDocumentId: string;
@@ -84,19 +81,23 @@ const ExhibitsPanel: React.FC<ComponentProps> = ({
 
     const uploadPromises = fs.map(async (file, i) => {
       try {
-        const presignedUrl = await getMediaPresignedUrl();
-        await uploadFile(file, presignedUrl.uploadUrl, (progressEvent) => {
-          const percent = Math.round(
-            (progressEvent.loaded * 99) / (progressEvent.total || 1)
-          );
-          updateUploadProgress(i, percent);
-        });
-        const createdDocument = await createDocument(
-          caseId,
-          presignedUrl.id,
-          file.name,
-          DocType.EXHIBIT,
-          mainDocumentId
+        const presignedUrl = await pRetry(() => getMediaPresignedUrl());
+        await pRetry(() =>
+          uploadFile(file, presignedUrl.uploadUrl, (progressEvent) => {
+            const percent = Math.round(
+              (progressEvent.loaded * 99) / (progressEvent.total || 1)
+            );
+            updateUploadProgress(i, percent);
+          })
+        );
+        const createdDocument = await pRetry(() =>
+          createDocument(
+            caseId,
+            presignedUrl.id,
+            file.name,
+            DocType.EXHIBIT,
+            mainDocumentId
+          )
         );
         updateUploadProgress(i, 100);
         newDocuments.push(createdDocument);
@@ -142,7 +143,10 @@ const ExhibitsPanel: React.FC<ComponentProps> = ({
         {documents
           .filter((doc) => doc.mainDocumentId === mainDocumentId)
           ?.map((doc) => (
-            <div className="flex items-center justify-between border-b" key={doc.id}>
+            <div
+              className="flex items-center justify-between border-b"
+              key={doc.id}
+            >
               <div className="font-bold flex gap-2 items-center cursor-pointer text-sm py-3">
                 <IconPaperclip style={{ width: rem(20), height: rem(20) }} />
                 {doc.title}

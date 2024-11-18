@@ -32,6 +32,7 @@ import DecriptionPanel from "@/components/case/edit/DecriptionPanel";
 import GeneralInformationWithHeader from "@/components/case/edit/GeneralInformationWithHeader";
 import EmptyDropzone from "@/components/case/edit/EmptyDropzone";
 import { getCitations } from "@services/citation.service";
+import pRetry from "p-retry";
 
 // Constants
 const PANEL_CONFIGS = {
@@ -204,19 +205,20 @@ const CaseEditPage = () => {
 
     const uploadPromises = fs.map(async (file, i) => {
       try {
-        const presignedUrl = await getMediaPresignedUrl();
-        const uploadFileResponse = await uploadFile(
-          file,
-          presignedUrl.uploadUrl
+        const presignedUrl = await pRetry(() => getMediaPresignedUrl());
+        const uploadFileResponse = await pRetry(() =>
+          uploadFile(file, presignedUrl.uploadUrl)
         );
         if (!uploadFileResponse) throw new Error("Failed to upload file");
 
-        const createdDocument = await createDocument(
-          caseId,
-          presignedUrl.id,
-          file.name,
-          dockType,
-          mainDocId
+        const createdDocument = await pRetry(() =>
+          createDocument(
+            caseId,
+            presignedUrl.id,
+            file.name,
+            dockType,
+            mainDocId
+          )
         );
         if (!createdDocument) throw new Error("Failed to create document");
 
@@ -286,7 +288,7 @@ const CaseEditPage = () => {
   useEffect(() => {
     if (documents.length > 0) {
       getMDocs().forEach((doc) => {
-        getCitations(doc.id).then((res: any) => {
+        pRetry(() => getCitations(doc.id)).then((res: any) => {
           const citations = res.items as ICitation[];
           setCitations((prev) => [...prev, ...citations]);
         });

@@ -8,14 +8,18 @@ const API_URL =
     : process.env.NEXT_PUBLIC_API_URL_DEV) || "";
 
 export const getCitations = async (documentId: string) => {
-  const response = await axios.get(
-    `${API_URL}/documents/${documentId}/citations`,
-    {
-      headers: {
-        Authorization: `Bearer ${getAccessToken()}`,
-      },
-    }
-  );
-
-  return response.data as ICitation[];
+  try {
+    const response = await axios.get(
+      `${API_URL}/documents/${documentId}/citations`,
+      {
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
+      }
+    );
+    return response.data as ICitation[];
+  } catch (error) {
+    console.error("Error fetching citations:", error);
+    throw error; // Re-throw the error to handle it in the component
+  }
 };

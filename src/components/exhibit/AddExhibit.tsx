@@ -19,6 +19,7 @@ import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
 import { useDataProvider } from "@refinedev/core";
 import { Notifications, notifications } from "@mantine/notifications";
 import FileUploadDropzone from "@/components/documents/FileUploadDropzone";
+import pRetry from "p-retry";
 
 // Types
 interface AddExhibitProps {
@@ -103,16 +104,20 @@ const AddExhibit = ({ cases, setDocuments }: AddExhibitProps) => {
     mainDocument: string
   ): Promise<IDocument | null> => {
     try {
-      const presignedUrl = await getMediaPresignedUrl();
-      const uploadResponse = await uploadFile(file, presignedUrl.uploadUrl);
+      const presignedUrl = await pRetry(() => getMediaPresignedUrl());
+      const uploadResponse = await pRetry(() =>
+        uploadFile(file, presignedUrl.uploadUrl)
+      );
       if (!uploadResponse) throw new Error("File upload failed");
 
-      const document = await createDocument(
-        selectedCaseId as string,
-        presignedUrl.id,
-        file.name,
-        docType,
-        mainDocument
+      const document = await pRetry(() =>
+        createDocument(
+          selectedCaseId as string,
+          presignedUrl.id,
+          file.name,
+          docType,
+          mainDocument
+        )
       );
 
       if (!document) throw new Error("Document creation failed");

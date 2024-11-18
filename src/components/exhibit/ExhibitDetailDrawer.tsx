@@ -1,5 +1,8 @@
+import dynamic from "next/dynamic";
+const PdfViewer = dynamic(() => import("@/components/common/PdfViewer"), {
+  ssr: false,
+});
 import { Drawer, LoadingOverlay } from "@mantine/core";
-import { Viewer, Worker } from "@react-pdf-viewer/core";
 import { IconArrowRight } from "@tabler/icons-react";
 interface ExhibitDetailDrawerProps {
   opened: boolean;
@@ -74,21 +77,8 @@ const ExhibitDetailDrawer = ({
               </div>
             </div>
           </div>
-          <div className="col-span-6 border rounded-xl p-2 relative">
-            {selExh?.mediaUrl && (
-              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                <Viewer
-                  fileUrl={selExh?.mediaUrl}
-                  renderLoader={() => (
-                    <LoadingOverlay
-                      visible={true}
-                      zIndex={1000}
-                      loaderProps={{ color: "black", type: "bars" }}
-                    />
-                  )}
-                />
-              </Worker>
-            )}
+          <div className="col-span-6 border rounded-xl p-2 relative border-4">
+            {selExh?.mediaUrl && <PdfViewer mediaUrl={selExh.mediaUrl} />}
           </div>
         </div>
       </Drawer>
