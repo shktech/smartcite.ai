@@ -48,3 +48,12 @@ export interface IApiKey {
   lastUsedAt: string;
   createdAt: string;
 }
+
+export interface IUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
+

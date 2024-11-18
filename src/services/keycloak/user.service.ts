@@ -48,6 +48,20 @@ export const getUserGroup = async (userId: string, token: string) => {
     throw error;
   }
 };
+export const getUserOrganization = async (userId: string) => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) throw new Error("Token not found.");
+    const getOrganization = await axios.get(
+      `${keycloakUrl}/admin/realms/${realmId}/organizations/members/${userId}/organizations`,
+      getHeaderFromToken(token)
+    );
+    return getOrganization.data;
+  } catch (error) {
+    console.error("Error found:", error);
+    throw error;
+  }
+};
 export const sendResetPasswordEmail = async (userId: string, token: string) => {
   try {
     const sendResetPasswordEmail = await axios.put(
@@ -83,6 +97,48 @@ export const getAllUsers = async (token: string) => {
       getHeaderFromToken(token)
     );
     return getAllUsers.data;
+  } catch (error) {
+    console.error("Error found:", error);
+    throw error;
+  }
+};
+
+export const updatePassword = async (
+  userId: string,
+  email: string,
+  oldPassword: string,
+  newPassword: string
+) => {
+  try {
+    const loginResponse = await axios.post(
+      `${keycloakUrl}/realms/${realmId}/protocol/openid-connect/token`,
+      {
+        grant_type: "password",
+        client_id: clientId,
+        client_secret: clientSecret,
+        scope: "email openid",
+        username: email,
+        password: oldPassword,
+      },
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+    if (!loginResponse) throw new Error("Failed to login");
+    const payload = {
+      type: "password",
+      value: newPassword,
+      temporary: false,
+    };
+    const updatePassword = await axios.put(
+      `${keycloakUrl}/admin/realms/${realmId}/users/${userId}/reset-password`,
+      payload,
+      getHeaderFromToken(loginResponse.data.access_token)
+    );
+    if (!updatePassword) throw new Error("Failed to update password");
+    return "Successfully updated password";
   } catch (error) {
     console.error("Error found:", error);
     throw error;
@@ -219,6 +275,39 @@ export const completeProfile = async (
         licenseNumber: [licenseNumber],
       },
     };
+    const updateUser = await axios.put(
+      `${keycloakUrl}/admin/realms/${realmId}/users/${userId}`,
+      payload,
+      getHeaderFromToken(adminToken.access_token)
+    );
+    if (!updateUser) throw new Error("Failed to update user.");
+    return "Success";
+  } catch (error) {
+    console.error("Error found:", error);
+    throw error;
+  }
+};
+
+export const getUsersOfOrganization = async (orgId: string) => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) throw new Error("Token not found.");
+    const response = await axios.get(
+      `${keycloakUrl}/admin/realms/${realmId}/organizations/${orgId}/members`,
+      getHeaderFromToken(token)
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error found:", error);
+    throw error;
+  }
+};
+
+export const updateUser = async (userId: string, payload: any) => {
+  try {
+    const adminToken = await pRetry(() => getSuperAdminToken());
+    if (!adminToken) throw new Error("Failed to retrieve admin token.");
+
     const updateUser = await axios.put(
       `${keycloakUrl}/admin/realms/${realmId}/users/${userId}`,
       payload,
