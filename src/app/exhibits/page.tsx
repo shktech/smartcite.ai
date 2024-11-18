@@ -109,8 +109,7 @@ export default function DocumentList() {
     const citedInMainDocIds = citations
       .filter(
         (citation) =>
-          citation.destinationDocumentId === exhDocId &&
-          citation.sourceDocumentId !== exhDoc.mainDocumentId
+          citation.destinationDocumentId === exhDocId
       )
       .map((citation) => citation.sourceDocumentId);
     const citedInMainDocs = documents.filter((doc) =>
