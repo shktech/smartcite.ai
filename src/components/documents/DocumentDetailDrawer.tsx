@@ -6,7 +6,6 @@ import {
   Modal,
   Select,
 } from "@mantine/core";
-import { Viewer, Worker } from "@react-pdf-viewer/core";
 import {
   IconArrowRight,
   IconCheck,
@@ -29,6 +28,7 @@ import {
 } from "@/services/admin-file-upload.service";
 import { createDocument } from "@/services/document.service";
 import pRetry from "p-retry";
+import PdfViewer from "@components/common/PdfViewer";
 
 interface DocumentDetailDrawerProps {
   opened: boolean;
@@ -291,7 +291,7 @@ const DocumentDetailDrawer = ({
             Upload document
           </Button>
         </div>
-        <div className="mt-4 grid grid-cols-11 text-xs flex-1 gap-4">
+        <div className="mt-4 grid grid-cols-11 text-xs flex-1 gap-4 pb-2">
           <div className="col-span-5 border rounded-xl relative">
             <LoadingOverlay
               visible={fileLoading}
@@ -348,21 +348,8 @@ const DocumentDetailDrawer = ({
               </div>
             ))}
           </div>
-          <div className="col-span-6 border rounded-xl p-2 relative">
-            {selEDoc?.mediaUrl && (
-              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                <Viewer
-                  fileUrl={selEDoc?.mediaUrl}
-                  renderLoader={() => (
-                    <LoadingOverlay
-                      visible={true}
-                      zIndex={1000}
-                      loaderProps={{ color: "black", type: "bars" }}
-                    />
-                  )}
-                />
-              </Worker>
-            )}
+          <div className="col-span-6 border rounded-xl p-2 pb-4 relative">
+            {selEDoc?.mediaUrl && <PdfViewer mediaUrl={selEDoc.mediaUrl} />}
           </div>
         </div>
       </Drawer>
