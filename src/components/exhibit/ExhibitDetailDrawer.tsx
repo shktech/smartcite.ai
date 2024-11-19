@@ -71,7 +71,10 @@ const ExhibitDetailDrawer = ({
               </div>
               <div className="text-[#292929] mt-4">Cited in</div>
               {selExh?.citedInMainDocuments.map((citedInMainDocument: any) => (
-                <div className="text-[#056cf3] mt-4 underline">
+                <div
+                  className="text-[#056cf3] mt-4 underline"
+                  key={citedInMainDocument.id}
+                >
                   {citedInMainDocument.doc.title}
                 </div>
               ))}

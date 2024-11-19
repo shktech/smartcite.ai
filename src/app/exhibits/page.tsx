@@ -116,7 +116,7 @@ export default function DocumentList() {
         try {
           for (const c of caseData.items) {
             const docs = (await getDocumentsByCaseId(c.id)) as any;
-            setDocuments((prev) => [...prev, ...docs?.items]);
+            setDocuments((prev) => [...prev, ...docs?.items || []]);
           }
         } catch (error) {
           console.error("Error fetching documents:", error);

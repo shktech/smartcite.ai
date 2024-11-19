@@ -1,4 +1,4 @@
-import { IconArrowLeft } from "@tabler/icons-react";
+import { IconArrowLeft, IconChevronDown } from "@tabler/icons-react";
 import { useNavigation, useParsed, useUpdate } from "@refinedev/core";
 import { ICase } from "@/types/types";
 import { FormEvent, useEffect, useState } from "react";
@@ -16,9 +16,11 @@ import {
   Select as MantineSelect,
   MultiSelect,
   LoadingOverlay,
+  Collapse,
 } from "@mantine/core";
 import { getAllUsers } from "@/services/keycloak/user.service";
 import pRetry from "p-retry";
+import { useDisclosure } from "@mantine/hooks";
 
 interface GeneralInformationWithHeaderProps {
   caseData?: ICase;
@@ -36,6 +38,7 @@ const GeneralInformationWithHeader = ({
   const { params } = useParsed();
   const { push } = useNavigation();
   const { mutate: updateMutate } = useUpdate();
+  const [opened, { toggle }] = useDisclosure(false);
 
   const [matterState, setMatterState] = useState(CaseStates[0]);
   const [assignedLawyers, setAssignedLawyers] = useState<string[]>([]);
@@ -122,7 +125,7 @@ const GeneralInformationWithHeader = ({
         >
           <IconArrowLeft color="#292929" size={24} />
         </Link>
-        <div className="text-xl text-[#292929]">Matter Detail</div>
+        <div className="text-xl text-[#292929]">{caseData?.title || "N/A"}</div>
       </div>
       <div className="flex gap-2">
         <Select
@@ -154,66 +157,79 @@ const GeneralInformationWithHeader = ({
 
   const renderForm = () => (
     <div className="bg-white rounded-lg p-4 mt-6">
-      <div className="text-xl text-[#292929]">General Information</div>
-      <div className="mt-3">
-        <div className="grid grid-cols-2 gap-4">
-          <TextInput
-            required
-            label="Title"
-            placeholder="Enter title here"
-            value={form.values.title}
-            onChange={(event) =>
-              form.setFieldValue("title", event.currentTarget.value)
-            }
-            error={form.errors.title}
-            radius="sm"
-            labelProps={{
-              style: { color: "black", marginBottom: "6px" },
-            }}
-          />
-          <TextInput
-            required
-            label="Client"
-            placeholder="Enter client here"
-            value={form.values.client}
-            onChange={(event) =>
-              form.setFieldValue("client", event.currentTarget.value)
-            }
-            error={form.errors.client}
-            radius="sm"
-            labelProps={{
-              style: { color: "black", marginBottom: "6px" },
-            }}
-          />
-          <MantineSelect
-            label="Client Role"
-            placeholder="Client Role"
-            value={clientRole}
-            onChange={(value) => setClientRole(value as string)}
-            required
-            data={["Petitioner", "Respondent"]}
-            styles={{
-              input: { backgroundColor: "white" },
-              label: { color: "black", marginBottom: "6px" },
-            }}
-          />
-          <MultiSelect
-            label="Assigned Lawyer"
-            required
-            placeholder="Assigned Lawyer"
-            data={users.map((user) => ({
-              value: user.id,
-              label: `${user.firstName} ${user.lastName}`,
-            }))}
-            value={assignedLawyers}
-            onChange={setAssignedLawyers}
-            styles={{
-              input: { backgroundColor: "white" },
-              label: { color: "black", marginBottom: "6px" },
-            }}
-          />
-        </div>
+      <div
+        className="text-xl text-[#292929] cursor-pointer flex items-center gap-2 justify-between"
+        onClick={toggle}
+      >
+        <span>General Information</span>
+        <IconChevronDown
+          size={20}
+          className={`transition-transform duration-300 ${
+            opened ? "rotate-180" : ""
+          }`}
+        />
       </div>
+      <Collapse in={opened}>
+        <div className="mt-3">
+          <div className="grid grid-cols-2 gap-4">
+            <TextInput
+              required
+              label="Title"
+              placeholder="Enter title here"
+              value={form.values.title}
+              onChange={(event) =>
+                form.setFieldValue("title", event.currentTarget.value)
+              }
+              error={form.errors.title}
+              radius="sm"
+              labelProps={{
+                style: { color: "black", marginBottom: "6px" },
+              }}
+            />
+            <TextInput
+              required
+              label="Client"
+              placeholder="Enter client here"
+              value={form.values.client}
+              onChange={(event) =>
+                form.setFieldValue("client", event.currentTarget.value)
+              }
+              error={form.errors.client}
+              radius="sm"
+              labelProps={{
+                style: { color: "black", marginBottom: "6px" },
+              }}
+            />
+            <MantineSelect
+              label="Client Role"
+              placeholder="Client Role"
+              value={clientRole}
+              onChange={(value) => setClientRole(value as string)}
+              required
+              data={["Petitioner", "Respondent"]}
+              styles={{
+                input: { backgroundColor: "white" },
+                label: { color: "black", marginBottom: "6px" },
+              }}
+            />
+            <MultiSelect
+              label="Assigned Lawyer"
+              required
+              placeholder="Assigned Lawyer"
+              data={users.map((user) => ({
+                value: user.id,
+                label: `${user.firstName} ${user.lastName}`,
+              }))}
+              value={assignedLawyers}
+              onChange={setAssignedLawyers}
+              styles={{
+                input: { backgroundColor: "white" },
+                label: { color: "black", marginBottom: "6px" },
+              }}
+            />
+          </div>
+        </div>
+      </Collapse>
     </div>
   );
 

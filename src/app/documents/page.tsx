@@ -8,7 +8,7 @@ import { useDelete, useTable } from "@refinedev/core";
 import dayjs from "dayjs";
 import { Layout as BaseLayout } from "@/components/layout";
 import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
-import { IconSearch, IconTrash } from "@tabler/icons-react";
+import { IconDownload, IconSearch, IconTrash } from "@tabler/icons-react";
 import { ICase, IDocument } from "@/types/types";
 import { getFormatedDate } from "@/utils/util.functions";
 import { DocType } from "@/utils/util.constants";
@@ -118,6 +118,14 @@ export default function DocumentList() {
           onClick={(e) => e.stopPropagation()}
         >
           <AddExhibit document={record} setDocuments={setDocuments} />
+          <a
+            href={record.mediaUrl}
+            download
+            target="_blank"
+            className="cursor-pointer hover:text-[#2e2e2e] text-[#c5c5c5]"
+          >
+            <IconDownload size={18} />
+          </a>
           <DeleteConfirmModal
             onDelete={() => handleDeleteDocument(record)}
             trigger={
@@ -160,6 +168,14 @@ export default function DocumentList() {
       key: "action",
       render: (_, record) => (
         <div className="flex gap-2 items-center text-[#c5c5c5]">
+          <a
+            href={record.mediaUrl}
+            download
+            target="_blank"
+            className="cursor-pointer hover:text-[#2e2e2e] text-[#c5c5c5]"
+          >
+            <IconDownload size={18} />
+          </a>
           <DeleteConfirmModal
             onDelete={() => handleDeleteDocument(record)}
             trigger={
