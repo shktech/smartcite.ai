@@ -8,12 +8,14 @@ interface ExhibitDetailDrawerProps {
   opened: boolean;
   close: () => void;
   selExh: any;
+  cases: any[];
 }
 
 const ExhibitDetailDrawer = ({
   opened,
   close,
   selExh,
+  cases,
 }: ExhibitDetailDrawerProps) => {
   return (
     <>
@@ -48,7 +50,9 @@ const ExhibitDetailDrawer = ({
         </div>
         <div className="mt-4 text-[#292929]">
           Case Title:{" "}
-          <span className="text-[#056cf3] underline">{selExh?.title}</span>
+          <span className="text-[#056cf3] underline">
+            {cases.find((c: any) => c.id === selExh?.caseId)?.title}
+          </span>
         </div>
         <div className="mt-4 grid grid-cols-11 text-sm flex-1 gap-4">
           <div className="col-span-5 border rounded-xl relative">
@@ -65,16 +69,12 @@ const ExhibitDetailDrawer = ({
                 disclosed during their partnership strictly confidential and not
                 to share it with any third parties.
               </div>
-              <div className="text-[#056cf3] mt-4 underline">Complaint</div>
-              <div className="text-[#056cf3] mt-4 underline">
-                Motion for Summary Judgement
-              </div>
-              <div className="text-[#056cf3] mt-4 underline">
-                Motion for Dismiss
-              </div>
-              <div className="text-[#056cf3] mt-4 underline">
-                Motion for for Extension of Time
-              </div>
+              <div className="text-[#292929] mt-4">Cited in</div>
+              {selExh?.citedInMainDocuments.map((citedInMainDocument: any) => (
+                <div className="text-[#056cf3] mt-4 underline">
+                  {citedInMainDocument.doc.title}
+                </div>
+              ))}
             </div>
           </div>
           <div className="col-span-6 border rounded-xl p-2 relative border-4">

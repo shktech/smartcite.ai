@@ -5,7 +5,7 @@ import { Input, LoadingOverlay } from "@mantine/core";
 import type { TableColumnType } from "antd";
 import { useTable } from "@refinedev/core";
 import { Layout as BaseLayout } from "@/components/layout";
-import { IconClick, IconSearch } from "@tabler/icons-react";
+import { IconClick, IconEye, IconSearch } from "@tabler/icons-react";
 import { ICase, ICitation, IDocument } from "@/types/types";
 import { DocType } from "@/utils/util.constants";
 import MyTable from "@/components/common/MyTable";
@@ -14,10 +14,9 @@ import AddExhibit from "@/components/exhibit/AddExhibit";
 import ExhibitDetailDrawer from "@/components/exhibit/ExhibitDetailDrawer";
 import { getCitations } from "@services/citation.service";
 import pRetry from "p-retry";
-import dynamic from "next/dynamic";
-const PdfViewer = dynamic(() => import("@/components/common/PdfViewer"), {
-  ssr: false,
-});
+import { getDocumentsByCaseId } from "@services/document.service";
+import PdfViewer from "@components/common/PdfViewer";
+
 // Table Column Definitions
 const getMainColumns = (): TableColumnType<any>[] => [
   {
@@ -29,50 +28,41 @@ const getMainColumns = (): TableColumnType<any>[] => [
     ),
   },
   {
+    title: "No. Main Documents",
+    dataIndex: "noMainDocuments",
+    key: "noMainDocuments",
+    render: (_, record) => <div>{record.main.length}</div>,
+  },
+];
+
+const getMainDocColumns = (): TableColumnType<any>[] => [
+  {
+    title: "#",
+    dataIndex: "",
+    key: "index",
+    width: "10%",
+    render: (_, __, index) => <div className="">{index + 1}</div>,
+  },
+  {
+    title: "Main Document",
+    dataIndex: "title",
+    key: "title",
+    render: (title: string) => (
+      <>
+        <div className="underline text-[#056cf3]">{title}</div>
+      </>
+    ),
+  },
+  {
     title: "No. Exhibits",
     dataIndex: "noExhibits",
     key: "noExhibits",
     render: (_, record) => <div>{record.exhibits.length}</div>,
   },
-];
-
-const getExhibitsColumns = (): TableColumnType<any>[] => [
   {
-    title: "#",
-    dataIndex: "",
-    key: "index",
-    render: (_, __, index) => <div className="pb-9">{index + 1}</div>,
-  },
-  {
-    title: "Exhibit Name-Description",
-    dataIndex: "title",
-    key: "title",
-    width: "50%",
-    render: (title: string) => (
-      <>
-        <div className="underline text-[#056cf3]">{title}</div>
-        <div className="text-[#989898] line-clamp-2 text-xs mt-1">
-          This Non-Disclosure Agreement (NDA) is a binding contract between ABC
-          Corp and XYZ Inc to protect confidential information shared during
-          their collaboration. Both parties agree to keep all proprietary data,
-          trade s
-        </div>
-      </>
-    ),
-  },
-  {
-    title: "Cited in - As",
-    dataIndex: "citedInMainDocuments",
-    key: "citedInMainDocuments",
-    render: (citedInMainDocuments: IDocument[]) => (
-      <div className="h-full">
-        {citedInMainDocuments.map((doc) => (
-          <div key={doc.id} className="underline text-[#056cf3]">
-            {doc.title}
-          </div>
-        ))}
-      </div>
-    ),
+    title: "Citations",
+    dataIndex: "citationsCount",
+    key: "citationsCount",
   },
 ];
 
@@ -84,22 +74,23 @@ export default function DocumentList() {
   const [tableCases, setTableCases] = useState<any[]>([]);
   const [selExh, setSelExh] = useState<any>();
   const [citations, setCitations] = useState<ICitation[]>([]);
+  const [docLoading, setDocLoading] = useState(true);
   // Hooks
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
-
-  const { data: documentData, isLoading: documentLoading } = useTable<any>({
-    syncWithLocation: false,
-  }).tableQueryResult;
+  const [expandedCases, setExpandedCases] = useState<string[]>([]);
+  const [expandedMainDocs, setExpandedMainDocs] = useState<string[]>([]);
 
   const { data: caseData, isLoading: caseLoading } = useTable<any>({
     resource: "cases",
     syncWithLocation: false,
   }).tableQueryResult;
 
-  // Event Handlers
-  const handleRowHover = (record: any) => setSelExh(record);
   const handleExhibitClick = (record: any) => {
+    setSelExh(record);
+  };
+
+  const handleViewDetails = (record: any) => {
     setSelExh(record);
     openDrawer();
   };
@@ -108,70 +99,163 @@ export default function DocumentList() {
     const exhDoc = documents.find((doc) => doc.id === exhDocId);
     if (!exhDoc) return [];
 
-    const citedInMainDocIds = citations
-      .filter(
-        (citation) =>
-          citation.destinationDocumentId === exhDocId
-      )
-      .map((citation) => citation.sourceDocumentId);
-    const citedInMainDocs = documents.filter((doc) =>
-      citedInMainDocIds.includes(doc.id)
-    );
-    return citedInMainDocs;
+    const citedInMainDocInfos = citations
+      .filter((citation) => citation.destinationDocumentId === exhDocId)
+      .map((citation) => ({
+        doc: documents.find((d) => d.id == citation.sourceDocumentId),
+        sourceText: citation.sourceText,
+      }));
+    return citedInMainDocInfos;
   };
 
-  // Data Processing Effects
   useEffect(() => {
-    if (documentData) setDocuments(documentData.items as IDocument[]);
-  }, [documentData]);
-
-  useEffect(() => {
-    if (caseData) setCases(caseData.items as ICase[]);
+    if (caseData) {
+      setCases(caseData.items as ICase[]);
+      const getDocs = async () => {
+        setDocLoading(true);
+        try {
+          for (const c of caseData.items) {
+            const docs = (await getDocumentsByCaseId(c.id)) as any;
+            setDocuments((prev) => [...prev, ...docs?.items]);
+          }
+        } catch (error) {
+          console.error("Error fetching documents:", error);
+          // Optionally add error handling UI feedback here
+        } finally {
+          setDocLoading(false);
+        }
+      };
+      getDocs();
+    }
   }, [caseData]);
 
   const getMDocs = () => documents.filter((doc) => doc.type === DocType.MAIN);
-
+  const [citationLoading, setCitationLoading] = useState(true);
   useEffect(() => {
-    if (documents.length > 0) {
-      getMDocs().forEach((doc) => {
-        pRetry(() => getCitations(doc.id))
-          .then((res: any) => {
-            const citations = res.items as ICitation[];
-            setCitations((prev) => [...prev, ...citations]);
-          })
-          .catch((error) => {
-            console.error("Error fetching citations:", error);
-          });
-      });
+    if (documents.length > 0 && !docLoading) {
+      const fetchCitations = async () => {
+        setCitationLoading(true);
+        const mainDocs = getMDocs();
+        try {
+          for (const doc of mainDocs) {
+            const res = (await pRetry(() => getCitations(doc.id))) as any;
+            const newCitations = (res.items as ICitation[]).filter(
+              (newCitation) =>
+                !citations.some(
+                  (existingCitation) => existingCitation.id === newCitation.id
+                )
+            );
+            if (newCitations.length > 0) {
+              setCitations((prev) => [...prev, ...newCitations]);
+            }
+          }
+          setCitationLoading(false);
+        } catch (error) {
+          console.error("Error fetching citations:", error);
+        }
+      };
+      fetchCitations();
     }
-  }, [documents]);
+  }, [docLoading]);
 
   useEffect(() => {
-    if (!cases || !documents) return;
-
+    if (
+      !cases ||
+      !documents ||
+      !citations ||
+      caseLoading ||
+      citationLoading ||
+      docLoading
+    )
+      return;
     setTableCases(
       cases
         .filter((c) => c.title.toLowerCase().includes(searchKey.toLowerCase()))
         .map((c) => ({
           key: c.id,
-          main: documents.filter(
-            (d) => d.caseId === c.id && d.type === DocType.MAIN
-          ),
-          exhibits: documents
-            .filter((d) => d.caseId === c.id && d.type === DocType.EXHIBIT)
-            .map((exh) => ({
-              ...exh,
-              citedInMainDocuments: getCitedInMainDocuments(exh.id),
+          main: documents
+            .filter((d) => d.caseId === c.id && d.type === DocType.MAIN)
+            .map((m) => ({
+              ...m,
+              key: m.id,
+              exhibits: documents
+                .filter((d) => d.caseId === c.id && d.type === DocType.EXHIBIT)
+                .map((exh) => ({
+                  ...exh,
+                  key: exh.id,
+                  citedInMainDocuments: getCitedInMainDocuments(exh.id),
+                })),
             })),
           ...c,
         }))
     );
-  }, [cases, documents, searchKey]);
+  }, [cases, documents, searchKey, citations]);
 
+  const getExhibitsColumns = (): TableColumnType<any>[] => [
+    {
+      title: "#",
+      dataIndex: "",
+      key: "index",
+      width: "5%",
+      render: (_, __, index) => <div className="pb-9">{index + 1}</div>,
+    },
+    {
+      title: "Exhibit Name-Description",
+      dataIndex: "title",
+      key: "title",
+      width: "35%",
+      render: (title: string) => (
+        <div className="text-xs">
+          <div className="underline text-[#056cf3]">{title}</div>
+          <div className="text-[#989898] line-clamp-2 text-xs mt-1">
+            This Non-Disclosure Agreement (NDA) is a binding contract between
+            ABC Corp and XYZ Inc to protect confidential information shared
+            during their collaboration. Both parties agree to keep all
+            proprietary data, trade s
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Cited in - As",
+      dataIndex: "citedInMainDocuments",
+      key: "citedInMainDocuments",
+      render: (citedInMainDocuments: any[]) => (
+        <div className="h-full">
+          {citedInMainDocuments.map((d, _i) => (
+            <div key={_i} className="grid grid-cols-3 text-xs mb-2">
+              <div className="underline text-[#056cf3] col-span-2">
+                {d.doc.title}
+              </div>
+              <div className="text-[#989898] line-clamp-2 text-xs mt-1 col-span-1">
+                as {d.sourceText}
+              </div>
+            </div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      title: "Actions",
+      dataIndex: "actions",
+      key: "actions",
+      render: (_, record) => (
+        <div
+          className="hover:text-[#056cf3] cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleViewDetails(record);
+          }}
+        >
+          <IconEye size={18} />
+        </div>
+      ),
+    },
+  ];
   return (
     <BaseLayout>
       <LoadingOverlay
-        visible={documentLoading || caseLoading}
+        visible={caseLoading || citationLoading}
         zIndex={1000}
         loaderProps={{ color: "black", type: "bars" }}
       />
@@ -217,16 +301,44 @@ export default function DocumentList() {
               dataSource={tableCases}
               pagination={false}
               expandable={{
+                expandedRowKeys: expandedCases,
+                onExpand: (expanded: boolean, record: any) => {
+                  setExpandedCases(
+                    expanded
+                      ? [...expandedCases, record.key]
+                      : expandedCases.filter((key) => key !== record.key)
+                  );
+                },
                 expandedRowRender: (record: any) => (
-                  <div className="ml-10 my-4 border rounded-lg bg-white pb-4">
+                  <div className="ml-10 my-1 border rounded-lg bg-white pb-4 shadow-sm">
                     <MyTable
-                      columns={getExhibitsColumns()}
-                      dataSource={record.exhibits}
+                      columns={getMainDocColumns()}
+                      dataSource={record.main}
                       pagination={false}
-                      onRow={(record: any) => ({
-                        onClick: () => handleExhibitClick(record),
-                        onMouseEnter: () => handleRowHover(record),
-                      })}
+                      expandable={{
+                        expandedRowKeys: expandedMainDocs,
+                        onExpand: (expanded: boolean, record: any) => {
+                          setExpandedMainDocs(
+                            expanded
+                              ? [...expandedMainDocs, record.key]
+                              : expandedMainDocs.filter(
+                                  (key) => key !== record.key
+                                )
+                          );
+                        },
+                        expandedRowRender: (record: any) => (
+                          <div className="ml-10 my-1 border rounded-lg bg-white pb-4">
+                            <MyTable
+                              columns={getExhibitsColumns()}
+                              dataSource={record.exhibits}
+                              pagination={false}
+                              onRow={(record: any) => ({
+                                onClick: () => handleExhibitClick(record),
+                              })}
+                            />
+                          </div>
+                        ),
+                      }}
                     />
                   </div>
                 ),
@@ -245,18 +357,6 @@ export default function DocumentList() {
                 </div>
               </div>
             ) : (
-              // <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-              //   <Viewer
-              //     fileUrl={selExh?.mediaUrl}
-              //     renderLoader={() => (
-              //       <LoadingOverlay
-              //         visible={true}
-              //         zIndex={1000}
-              //         loaderProps={{ color: "black", type: "bars" }}
-              //       />
-              //     )}
-              //   />
-              // </Worker>
               <PdfViewer mediaUrl={selExh?.mediaUrl} />
             )}
           </div>
@@ -264,6 +364,7 @@ export default function DocumentList() {
       </div>
 
       <ExhibitDetailDrawer
+        cases={cases}
         opened={drawerOpened}
         close={closeDrawer}
         selExh={selExh}
