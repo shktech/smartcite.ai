@@ -29,10 +29,7 @@ import {
 import { createDocument } from "@/services/document.service";
 import pRetry from "p-retry";
 // import PdfViewer from "@components/common/PdfViewer";
-import dynamic from "next/dynamic";
-const PdfViewer = dynamic(() => import("@/components/common/PdfViewer"), {
-  ssr: false,
-});
+import PdfViewer from "@/components/common/PdfViewer";
 
 interface DocumentDetailDrawerProps {
   opened: boolean;
@@ -352,7 +349,7 @@ const DocumentDetailDrawer = ({
               </div>
             ))}
           </div>
-          <div className="col-span-6 border-4 rounded-xl p-2 pb-4 relative shadow-inner">
+          <div className="col-span-6 rounded-xl p-2 pb-4 relative bg-[#f5f5f5] border">
             {selEDoc?.mediaUrl && <PdfViewer mediaUrl={selEDoc.mediaUrl} />}
           </div>
         </div>

@@ -17,6 +17,7 @@ import { useDisclosure } from "@mantine/hooks";
 import DocumentDetailDrawer from "@/components/documents/DocumentDetailDrawer";
 import AddExhibit from "@/components/documents/AddExhibit";
 import AddDocument from "@/components/documents/AddDocument";
+import { getDocumentsByCaseId } from "@services/document.service";
 
 const { RangePicker } = DatePicker;
 
@@ -28,6 +29,7 @@ export default function DocumentList() {
   const [loading, setLoading] = useState<boolean>(false);
   const [selMDoc, setSelMDoc] = useState<any>();
   const [cases, setCases] = useState<ICase[]>([]);
+  const [docLoading, setDocLoading] = useState(true);
   const [dateRange, setDateRange] = useState<[any, any] | null>([
     dayjs().subtract(6, "month"),
     dayjs(),
@@ -38,14 +40,31 @@ export default function DocumentList() {
     useDisclosure(false);
   const { mutate: deleteMutate } = useDelete();
 
-  const { data: documentData, isLoading: documentLoading } = useTable<any>({
-    syncWithLocation: false,
-  }).tableQueryResult;
-
   const { data: caseData, isLoading: caseLoading } = useTable<any>({
     resource: "cases",
     syncWithLocation: false,
   }).tableQueryResult;
+
+  useEffect(() => {
+    if (caseData) {
+      setCases(caseData.items as ICase[]);
+      const getDocs = async () => {
+        setDocLoading(true);
+        try {
+          for (const c of caseData.items) {
+            const docs = (await getDocumentsByCaseId(c.id)) as any;
+            setDocuments((prev) => [...prev, ...(docs?.items || [])]);
+          }
+        } catch (error) {
+          console.error("Error fetching documents:", error);
+          // Optionally add error handling UI feedback here
+        } finally {
+          setDocLoading(false);
+        }
+      };
+      getDocs();
+    }
+  }, [caseData]);
 
   // Handlers
   const handleDeleteDocument = async (doc: IDocument) => {
@@ -189,13 +208,6 @@ export default function DocumentList() {
     },
   ];
 
-  // Effects
-  useEffect(() => {
-    if (documentData) {
-      setDocuments(documentData.items as IDocument[]);
-    }
-  }, [documentData]);
-
   useEffect(() => {
     if (caseData) {
       setCases(caseData.items as ICase[]);
@@ -243,7 +255,7 @@ export default function DocumentList() {
   return (
     <BaseLayout>
       <LoadingOverlay
-        visible={loading || documentLoading || caseLoading}
+        visible={loading || docLoading || caseLoading}
         zIndex={1000}
         loaderProps={{ color: "black", type: "bars" }}
       />

@@ -34,3 +34,7 @@ body {
 .ant-table-cell {
   background-color: white !important;
 }
+
+.rpv-core__inner-page {
+  background-color: #f5f5f5 !important;
+}
