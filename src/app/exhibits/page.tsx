@@ -17,42 +17,7 @@ import pRetry from "p-retry";
 import PdfViewer from "@components/common/PdfViewer";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-
-const getMainDocColumns = (): TableColumnType<any>[] => [
-  {
-    title: "#",
-    dataIndex: "",
-    key: "index",
-    width: "10%",
-    render: (_, __, index) => <div className="">{index + 1}</div>,
-  },
-  {
-    title: "Main Document",
-    dataIndex: "title",
-    key: "title",
-    render: (title: string, record: any) => (
-      <>
-        <Link
-          href={`/documents?caseId=${record.caseId}&documentId=${record.id}`}
-          className="underline text-[#056cf3]"
-        >
-          {title}
-        </Link>
-      </>
-    ),
-  },
-  {
-    title: "No. Exhibits",
-    dataIndex: "noExhibits",
-    key: "noExhibits",
-    render: (_, record) => <div>{record.exhibits.length}</div>,
-  },
-  {
-    title: "Citations",
-    dataIndex: "citationsCount",
-    key: "citationsCount",
-  },
-];
+import CitationsList from "@components/exhibit/CitationsList";
 
 export default function DocumentList() {
   // State Management
@@ -93,12 +58,23 @@ export default function DocumentList() {
     const exhDoc = documents.find((doc) => doc.id === exhDocId);
     if (!exhDoc) return [];
 
-    const citedInMainDocInfos = citations
+    const citationsByDoc = citations
       .filter((citation) => citation.destinationDocumentId === exhDocId)
-      .map((citation) => ({
-        doc: documents.find((d) => d.id == citation.sourceDocumentId),
-        sourceText: citation.sourceText,
-      }));
+      .reduce((acc: { [key: string]: string[] }, citation) => {
+        const sourceDocId = citation.sourceDocumentId;
+        if (!acc[sourceDocId]) {
+          acc[sourceDocId] = [];
+        }
+        acc[sourceDocId].push(citation.sourceText);
+        return acc;
+      }, {});
+
+    const citedInMainDocInfos = Object.entries(citationsByDoc).map(
+      ([sourceDocId, sourceTexts]) => ({
+        doc: documents.find((d) => d.id === sourceDocId),
+        sourceTexts: sourceTexts,
+      })
+    );
     return citedInMainDocInfos;
   };
   useEffect(() => {
@@ -131,7 +107,7 @@ export default function DocumentList() {
   // }, [caseData]);
 
   const getMDocs = () => documents.filter((doc) => doc.type === DocType.MAIN);
-  const [citationLoading, setCitationLoading] = useState(true);
+  const [citationLoading, setCitationLoading] = useState(false);
 
   useEffect(() => {
     if (documentData) {
@@ -194,6 +170,7 @@ export default function DocumentList() {
       enrichedDocs.map((m) => ({
         ...m,
         key: m.id,
+        citedInMainDocuments: getCitedInMainDocuments(m.id),
         exhibits: documents
           .filter((d) => d.mainDocumentId === m.id)
           .map((exh) => ({
@@ -245,6 +222,57 @@ export default function DocumentList() {
   //   docLoading,
   // ]);
 
+  const getMainDocColumns = (): TableColumnType<any>[] => [
+    {
+      title: "#",
+      dataIndex: "",
+      key: "index",
+      width: "10%",
+      render: (_, __, index) => <div className="">{index + 1}</div>,
+    },
+    {
+      title: "Main Document",
+      dataIndex: "title",
+      key: "title",
+      width: "30%",
+      render: (title: string, record: any) => (
+        <>
+          <Link
+            href={`/documents?caseId=${record.caseId}&documentId=${record.id}`}
+            className="underline text-[#056cf3]"
+          >
+            {title}
+          </Link>
+        </>
+      ),
+    },
+    {
+      title: "No. Exhibits",
+      dataIndex: "noExhibits",
+      key: "noExhibits",
+      width: "10%",
+      render: (_, record) => <div>{record.exhibits.length}</div>,
+    },
+    {
+      title: "Cited in - As",
+      dataIndex: "citedInMainDocuments",
+      key: "citedInMainDocuments",
+      render: (citedInMainDocuments: any[]) => {
+        return (
+          <>
+            <CitationsList citations={citedInMainDocuments} />
+          </>
+        );
+      },
+    },
+    {
+      title: "Citations",
+      dataIndex: "citationsCount",
+      key: "citationsCount",
+      width: "10%",
+    },
+  ];
+
   const getExhibitsColumns = (): TableColumnType<any>[] => [
     {
       title: "#",
@@ -275,21 +303,7 @@ export default function DocumentList() {
       dataIndex: "citedInMainDocuments",
       key: "citedInMainDocuments",
       render: (citedInMainDocuments: any[]) => (
-        <div className="h-full">
-          {citedInMainDocuments.map((d, _i) => (
-            <div key={_i} className="grid grid-cols-3 text-xs mb-2">
-              <Link
-                href={`/documents?caseId=${caseId}&documentId=${d.doc.id}`}
-                className="underline text-[#056cf3] col-span-2"
-              >
-                {d.doc.title}
-              </Link>
-              <div className="text-[#989898] line-clamp-2 text-xs mt-1 col-span-1">
-                as {d.sourceText}
-              </div>
-            </div>
-          ))}
-        </div>
+        <CitationsList citations={citedInMainDocuments} />
       ),
     },
     {
@@ -359,7 +373,11 @@ export default function DocumentList() {
 
         {/* Main Content */}
         <div className="grid grid-cols-3 mt-6 gap-4 flex-1">
-          <div className="col-span-2 bg-white rounded-xl pb-10">
+          <div
+            className={`bg-white rounded-xl pb-10 ${
+              documents.length > 0 ? "col-span-2" : "col-span-3"
+            }`}
+          >
             {/* <MyTable
               columns={getMainColumns()}
               dataSource={tableCases}
@@ -438,7 +456,11 @@ export default function DocumentList() {
           </div>
 
           {/* Preview Panel */}
-          <div className="col-span-1 bg-transparent rounded-xl relative">
+          <div
+            className={`bg-transparent rounded-xl relative ${
+              documents.length > 0 ? "col-span-1" : "hidden"
+            }`}
+          >
             {!selExh ? (
               <div className="flex items-center justify-center h-full flex-col gap-2">
                 <IconClick size={40} />

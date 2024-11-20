@@ -38,13 +38,14 @@ interface User {
 export default function CreateCase() {
   const { push } = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
-  const [userLoading, setUserLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(true);
   const { mutate: createMutate } = useCreate();
   const [users, setUsers] = useState<User[]>([]);
   const [matterState, setMatterState] = useState<string>(CaseStates[0]);
   const [assignedLawyers, setAssignedLawyers] = useState<string[]>([]);
   const [clientRole, setClientRole] = useState(ClientRoles[0]);
-  const { data: userData } = useGetIdentity<any>();
+  const { data: userData, isLoading: userLoading } = useGetIdentity<any>();
+  const [assignedLawyerOptions, setAssignedLawyerOptions] = useState<any[]>([]);
   const form = useForm<FormValues>({
     initialValues: {
       title: "",
@@ -57,7 +58,7 @@ export default function CreateCase() {
   });
 
   const fetchUsers = async () => {
-    setUserLoading(true);
+    setUsersLoading(true);
     try {
       const userOrganizations = await getUserOrganization(
         userData?.sub as string
@@ -67,9 +68,22 @@ export default function CreateCase() {
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
-      setUserLoading(false);
+      setUsersLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!userData) return;
+    setAssignedLawyerOptions([{ value: userData?.sub, label: userData?.name }]);
+    if (users.length > 0) {
+      setAssignedLawyerOptions(
+        users.map((user) => ({
+          value: user.id,
+          label: `${user.firstName} ${user.lastName}`,
+        }))
+      );
+    }
+  }, [userData, users]);
 
   useEffect(() => {
     if (!userData) return;
@@ -139,7 +153,7 @@ export default function CreateCase() {
   return (
     <BaseLayout>
       <LoadingOverlay
-        visible={isLoading || userLoading}
+        visible={isLoading || usersLoading || userLoading}
         zIndex={1000}
         loaderProps={{ color: "black", type: "bars" }}
       />
@@ -203,10 +217,7 @@ export default function CreateCase() {
                   label="Assigned Lawyer"
                   required
                   placeholder="Assigned Lawyer"
-                  data={users.map((user) => ({
-                    value: user.id,
-                    label: `${user.firstName} ${user.lastName}`,
-                  }))}
+                  data={assignedLawyerOptions}
                   value={assignedLawyers}
                   onChange={setAssignedLawyers}
                   styles={commonInputStyles}
