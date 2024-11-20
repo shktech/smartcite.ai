@@ -25,7 +25,7 @@ export interface ICitation {
   destinationPageNumber: number | null;
   createdAt: string;
   creationSource: string;
-  sourceText: number;
+  sourceText: string;
   referencedText: string;
 }
 

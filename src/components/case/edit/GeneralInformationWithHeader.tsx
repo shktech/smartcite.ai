@@ -1,5 +1,10 @@
 import { IconArrowLeft, IconChevronDown } from "@tabler/icons-react";
-import { useNavigation, useParsed, useUpdate } from "@refinedev/core";
+import {
+  useGetIdentity,
+  useNavigation,
+  useParsed,
+  useUpdate,
+} from "@refinedev/core";
 import { ICase } from "@/types/types";
 import { FormEvent, useEffect, useState } from "react";
 import {
@@ -18,7 +23,10 @@ import {
   LoadingOverlay,
   Collapse,
 } from "@mantine/core";
-import { getAllUsers } from "@/services/keycloak/user.service";
+import {
+  getUsersOfOrganization,
+  getUserOrganization,
+} from "@/services/keycloak/user.service";
 import pRetry from "p-retry";
 import { useDisclosure } from "@mantine/hooks";
 
@@ -45,7 +53,9 @@ const GeneralInformationWithHeader = ({
   const [clientRole, setClientRole] = useState(ClientRoles[0]);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [userLoading, setUserLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const { data: userData } = useGetIdentity<any>();
+  const [assignedLawyerOptions, setAssignedLawyerOptions] = useState<any[]>([]);
 
   const form = useForm({
     initialValues: {
@@ -55,15 +65,21 @@ const GeneralInformationWithHeader = ({
   });
 
   const fetchUsers = async () => {
-    setUserLoading(true);
+    setUsersLoading(true);
     try {
-      const token = localStorage.getItem("accessToken");
-      const response = await pRetry(() => getAllUsers(token as string));
+      const userOrganizations = await pRetry(
+        () => getUserOrganization(userData?.sub as string),
+        { retries: 3 }
+      );
+      const response = await pRetry(
+        () => getUsersOfOrganization(userOrganizations[0].id),
+        { retries: 3 }
+      );
       setUsers(response);
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
-      setUserLoading(false);
+      setUsersLoading(false);
     }
   };
 
@@ -101,6 +117,19 @@ const GeneralInformationWithHeader = ({
   };
 
   useEffect(() => {
+    if (!userData) return;
+    setAssignedLawyerOptions([{ value: userData?.sub, label: userData?.name }]);
+    if (users.length > 0) {
+      setAssignedLawyerOptions(
+        users.map((user) => ({
+          value: user.id,
+          label: `${user.firstName} ${user.lastName}`,
+        }))
+      );
+    }
+  }, [userData, users]);
+
+  useEffect(() => {
     if (caseData) {
       setMatterState(caseData.state);
       setAssignedLawyers(caseData.assignedLawyers.split(","));
@@ -113,8 +142,9 @@ const GeneralInformationWithHeader = ({
   }, [caseData]);
 
   useEffect(() => {
+    if (!userData) return;
     fetchUsers();
-  }, []);
+  }, [userData]);
 
   const renderHeader = () => (
     <div className="flex justify-between">
@@ -125,7 +155,9 @@ const GeneralInformationWithHeader = ({
         >
           <IconArrowLeft color="#292929" size={24} />
         </Link>
-        <div className="text-xl font-semibold text-[#292929]">{caseData?.title || "N/A"}</div>
+        <div className="text-xl font-semibold text-[#292929]">
+          {caseData?.title || "N/A"}
+        </div>
       </div>
       <div className="flex gap-2">
         <Select
@@ -216,10 +248,7 @@ const GeneralInformationWithHeader = ({
               label="Assigned Lawyer"
               required
               placeholder="Assigned Lawyer"
-              data={users.map((user) => ({
-                value: user.id,
-                label: `${user.firstName} ${user.lastName}`,
-              }))}
+              data={assignedLawyerOptions}
               value={assignedLawyers}
               onChange={setAssignedLawyers}
               styles={{
@@ -236,7 +265,7 @@ const GeneralInformationWithHeader = ({
   return (
     <form onSubmit={handleSubmit} className="relative">
       <LoadingOverlay
-        visible={isLoading || userLoading}
+        visible={isLoading || usersLoading}
         zIndex={1000}
         loaderProps={{ color: "black", type: "bars" }}
       />

@@ -38,6 +38,7 @@ interface DocumentDetailDrawerProps {
   selMDoc: any;
   setSelMDoc: (doc: any) => void;
   setMainDocuments: (docs: any) => void;
+  caseTitle: string;
 }
 
 const DocumentDetailDrawer = ({
@@ -46,6 +47,7 @@ const DocumentDetailDrawer = ({
   selMDoc,
   setSelMDoc,
   setMainDocuments,
+  caseTitle,
 }: DocumentDetailDrawerProps) => {
   const [
     uploadModalOpened,
@@ -269,8 +271,8 @@ const DocumentDetailDrawer = ({
           <Select
             label="Case Title"
             placeholder="Select option"
-            data={[selMDoc?.caseTitle]}
-            value={selMDoc?.caseTitle}
+            data={[caseTitle]}
+            value={caseTitle}
             required
             labelProps={{
               style: {

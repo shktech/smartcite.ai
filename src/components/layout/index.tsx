@@ -62,7 +62,7 @@ export const Layout = ({ children }: PropsWithChildren) => {
     <MantineProvider theme={theme}>
       <div className="flex h-screen">
         <Sidebar />
-        <div className="w-full h-screen flex flex-col pl-[300px]">
+        <div className="w-full h-screen flex flex-col pl-[280px]">
           <div className="flex-1 relative">{children}</div>
         </div>
       </div>

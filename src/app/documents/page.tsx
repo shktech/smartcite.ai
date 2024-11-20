@@ -355,6 +355,7 @@ export default function DocumentList() {
 
       <DocumentDetailDrawer
         opened={drawerOpened}
+        caseTitle={matter?.title || ""}
         close={closeDrawer}
         selMDoc={selMDoc}
         setSelMDoc={setSelMDoc}

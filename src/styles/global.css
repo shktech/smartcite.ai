@@ -12,7 +12,7 @@
 
 
 body {
-  font-family: "Figtree";
+  font-family: "Figtree" !important;
   color: #4b5a63;
   background-color: #eeeff1;
 }
