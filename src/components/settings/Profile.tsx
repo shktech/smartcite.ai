@@ -8,7 +8,6 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useGetIdentity } from "@refinedev/core";
-import { Layout as BaseLayout } from "@/components/layout";
 import { useForm } from "@mantine/form";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -35,11 +34,11 @@ interface PasswordFormValues {
   confirmPassword: string;
 }
 
-export default function ProfilePage() {
+export default function Profile() {
   const [userInfo, setUserInfo] = useState({ email: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
-  const { data: userData } = useGetIdentity<any>();
+  const { data: userData, isLoading: isUserDataLoading } = useGetIdentity<any>();
 
   const form = useForm<FormValues>({
     initialValues: {
@@ -69,10 +68,10 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userData) return;
-      
+
       const token = localStorage.getItem("accessToken") as string;
       const res = await getUserById(userData.sub, token);
-      
+
       setUserInfo(res);
       form.setValues({
         email: res.email,
@@ -196,16 +195,16 @@ export default function ProfilePage() {
   );
 
   return (
-    <BaseLayout>
+    <div>
       <Notifications position="top-right" zIndex={1000} />
-      <div className="p-6">
-        <div className="text-xl text-[#292929] font-semibold pb-6">Profile</div>
+      <div className="mt-2">
+        <div className="text-2xl text-[#292929] font-bold pb-4">Profile</div>
         <form
           onSubmit={handleProfileUpdate}
           className="bg-white px-5 py-5 rounded-lg relative"
         >
           <LoadingOverlay
-            visible={isLoading}
+            visible={isLoading || isUserDataLoading}
             zIndex={1000}
             overlayProps={{ radius: "sm", blur: 2 }}
             loaderProps={{ color: "black", type: "bars" }}
@@ -297,6 +296,6 @@ export default function ProfilePage() {
           </div>
         </form>
       </div>
-    </BaseLayout>
+    </div>
   );
 }

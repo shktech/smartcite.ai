@@ -34,6 +34,7 @@ import EmptyDropzone from "@/components/case/edit/EmptyDropzone";
 import { getCitations } from "@services/citation.service";
 import pRetry from "p-retry";
 import { Dropzone } from "@mantine/dropzone";
+import Link from "next/link";
 
 // Constants
 const PANEL_CONFIGS = {
@@ -393,7 +394,7 @@ const CaseEditPage = () => {
                   <div className="w-10 pl-3">{_i + 1}</div>
                   <div className="flex-1 text-[#0550b3] truncate">
                     <div className="truncate flex items-center gap-2">
-                      <div className="truncate underline">{doc.title}</div>
+                      <Link href={`/documents?documentId=${doc.id}`} className="truncate underline">{doc.title}</Link>
                       <div className="flex-1">{getGeneralStateBadge(doc)}</div>
                     </div>
                     <div className="text-[#bdbdbd] text-sm mt-1 truncate">
@@ -478,8 +479,8 @@ const CaseEditPage = () => {
                     )}`}
                   >
                     <div className="w-20 pl-6">{_i + 1}</div>
-                    <div className="flex-1 text-[#0550b3] truncate underline flex items-center gap-2">
-                      <div className="truncate underline">{doc.title}</div>
+                    <div className="flex-1 text-[#0550b3] truncate flex items-center gap-2">
+                      <Link href={`/exhibits?caseId=${caseId}&documentId=${selMDocId}&exhibitId=${doc.id}`} className="truncate underline">{doc.title}</Link>
                       <div className="flex-1">
                         <div className="w-4 h-4 rounded-full bg-[#4bae4f] flex items-center justify-center text-white">
                           <IconCheck size={10} />
@@ -526,7 +527,7 @@ const CaseEditPage = () => {
                   label="Exhibit List is Empty"
                 />
               ) : (
-                <Dropzone
+                selMDocId && <Dropzone
                   p={0}
                   multiple
                   radius="xl"

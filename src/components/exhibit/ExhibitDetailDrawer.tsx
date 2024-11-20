@@ -4,6 +4,7 @@ const PdfViewer = dynamic(() => import("@/components/common/PdfViewer"), {
 });
 import { Drawer, LoadingOverlay } from "@mantine/core";
 import { IconArrowRight } from "@tabler/icons-react";
+import Link from "next/link";
 interface ExhibitDetailDrawerProps {
   opened: boolean;
   close: () => void;
@@ -50,9 +51,12 @@ const ExhibitDetailDrawer = ({
         </div>
         <div className="mt-4 text-[#292929]">
           Case Title:{" "}
-          <span className="text-[#056cf3] underline">
+          <Link
+            href={`/cases?caseId=${selExh?.caseId}`}
+            className="text-[#056cf3] underline"
+          >
             {cases.find((c: any) => c.id === selExh?.caseId)?.title}
-          </span>
+          </Link>
         </div>
         <div className="mt-4 grid grid-cols-11 text-sm flex-1 gap-4">
           <div className="col-span-5 border rounded-xl relative">
@@ -71,11 +75,17 @@ const ExhibitDetailDrawer = ({
               </div>
               <div className="text-[#292929] mt-4">Cited in</div>
               {selExh?.citedInMainDocuments.map((citedInMainDocument: any) => (
-                <div
-                  className="text-[#056cf3] mt-4 underline"
-                  key={citedInMainDocument.id}
-                >
-                  {citedInMainDocument.doc.title}
+                <div className="flex justify-between" key={citedInMainDocument.id}>
+                  <Link
+                    href={`/documents?documentId=${citedInMainDocument.doc.id}`}
+                    className="text-[#056cf3] mt-4 underline"
+                    key={citedInMainDocument.id}
+                  >
+                    {citedInMainDocument.doc.title}
+                  </Link>
+                  <div className="text-[#989898]">
+                    as {citedInMainDocument.sourceText}
+                  </div>
                 </div>
               ))}
             </div>

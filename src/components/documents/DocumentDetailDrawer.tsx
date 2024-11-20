@@ -30,6 +30,7 @@ import { createDocument } from "@/services/document.service";
 import pRetry from "p-retry";
 // import PdfViewer from "@components/common/PdfViewer";
 import PdfViewer from "@/components/common/PdfViewer";
+import Link from "next/link";
 
 interface DocumentDetailDrawerProps {
   opened: boolean;
@@ -314,7 +315,12 @@ const DocumentDetailDrawer = ({
               >
                 <div className="w-10 pl-6">{_i + 1}</div>
                 <div className="flex-1 text-[#0550b3] truncate underline flex items-center gap-2">
-                  <div className="truncate underline">{doc.title}</div>
+                  <Link
+                    href={`/exhibits?caseId=${selMDoc.caseId}&documentId=${selMDoc.id}&exhibitId=${doc.id}`}
+                    className="truncate underline"
+                  >
+                    {doc.title}
+                  </Link>
                 </div>
                 <div className="w-20" onClick={(e) => e.stopPropagation()}>
                   <DeleteConfirmModal

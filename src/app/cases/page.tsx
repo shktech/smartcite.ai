@@ -52,8 +52,8 @@ export default function BlogPostList() {
       key: "title",
       sorter: (a: ICase, b: ICase) => a.title.localeCompare(b.title),
       sortDirections: ["ascend", "descend"],
-      render: (title: string) => (
-        <div className="underline text-[#056cf3]">{title || 'N/A'}</div>
+      render: (title: string, record: ICase) => (
+        <Link href={`/cases/edit?caseId=${record.id}`} className="underline text-[#056cf3]">{title || 'N/A'}</Link>
       ),
     },
     {

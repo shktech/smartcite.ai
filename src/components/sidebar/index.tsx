@@ -18,7 +18,7 @@ export const Sidebar = () => {
   const selectedKey = pathname.split("/")[1].split("?")[0];
   const menus = menuItems;
   return (
-    <nav className="w-[350px] flex flex-col h-screen bg-white">
+    <nav className="w-[300px] fixed left-0 top-0 flex flex-col h-screen bg-white">
       <div className="p-6 flex items-center text-xl text-black">
         <span className="text-[#394149] font-bold ml-2">SMART</span>
         <span className="text-[#394149]">CITE</span>

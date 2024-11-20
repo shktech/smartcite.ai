@@ -18,11 +18,15 @@ import DocumentDetailDrawer from "@/components/documents/DocumentDetailDrawer";
 import AddExhibit from "@/components/documents/AddExhibit";
 import AddDocument from "@/components/documents/AddDocument";
 import { getDocumentsByCaseId } from "@services/document.service";
+import { useSearchParams } from "next/navigation";
+import Link from "antd/es/typography/Link";
 
 const { RangePicker } = DatePicker;
 
 export default function DocumentList() {
   // State
+  const searchParams = useSearchParams();
+  const documentId = searchParams.get("documentId");
   const [searchKey, setSearchKey] = useState("");
   const [documents, setDocuments] = useState<IDocument[]>([]);
   const [mainDocuments, setMainDocuments] = useState<any[]>([]);
@@ -34,6 +38,7 @@ export default function DocumentList() {
     dayjs().subtract(6, "month"),
     dayjs(),
   ]);
+  const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([]);
 
   // Hooks
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
@@ -174,9 +179,14 @@ export default function DocumentList() {
       title: "Exhibit Name",
       dataIndex: "title",
       key: "title",
-      render: (title: string) => (
+      render: (title: string, record: any) => (
         <>
-          <div className="underline text-black">{title}</div>
+          <Link
+            href={`/exhibits?caseId=${record.caseId}&documentId=${record.mainDocumentId}&exhibitId=${record.id}`}
+            className="!underline text-[#056cf3]"
+          >
+            {title}
+          </Link>
           <div className="text-[#989898] line-clamp-2 text-xs mt-1">
             This Non-Disclosure Agreement (NDA) is a binding contract between
             ABC Corp and XYZ Inc to protect confidential information shared
@@ -257,6 +267,12 @@ export default function DocumentList() {
     setMainDocuments(enrichedDocs);
   }, [documents, cases, dateRange, searchKey]);
 
+  useEffect(() => {
+    if (documentId && mainDocuments.length > 0) {
+      setExpandedRowKeys([documentId]);
+    }
+  }, [documentId, mainDocuments]);
+
   return (
     <BaseLayout>
       <LoadingOverlay
@@ -321,6 +337,10 @@ export default function DocumentList() {
                   />
                 </div>
               ),
+              expandedRowKeys: expandedRowKeys,
+              onExpandedRowsChange: (newExpandedRows: React.Key[]) => {
+                setExpandedRowKeys(newExpandedRows);
+              },
             }}
             onRow={(record: any) => ({
               onClick: () => handleRowClick(record),

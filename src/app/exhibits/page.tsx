@@ -16,6 +16,8 @@ import { getCitations } from "@services/citation.service";
 import pRetry from "p-retry";
 import { getDocumentsByCaseId } from "@services/document.service";
 import PdfViewer from "@components/common/PdfViewer";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 // Table Column Definitions
 const getMainColumns = (): TableColumnType<any>[] => [
@@ -23,8 +25,8 @@ const getMainColumns = (): TableColumnType<any>[] => [
     title: "Case Title",
     dataIndex: "title",
     key: "title",
-    render: (title: string) => (
-      <div className="underline text-[#056cf3]">{title}</div>
+    render: (title: string, record: any) => (
+      <Link href={`/cases/edit?caseId=${record.id}`} className="underline text-[#056cf3]">{title}</Link>
     ),
   },
   {
@@ -47,9 +49,9 @@ const getMainDocColumns = (): TableColumnType<any>[] => [
     title: "Main Document",
     dataIndex: "title",
     key: "title",
-    render: (title: string) => (
+    render: (title: string, record: any) => (
       <>
-        <div className="underline text-[#056cf3]">{title}</div>
+        <Link href={`/documents?documentId=${record.id}`} className="underline text-[#056cf3]">{title}</Link>
       </>
     ),
   },
@@ -68,6 +70,9 @@ const getMainDocColumns = (): TableColumnType<any>[] => [
 
 export default function DocumentList() {
   // State Management
+  const searchParams = useSearchParams();
+  const caseId = searchParams.get('caseId');
+  const documentId = searchParams.get('documentId');
   const [searchKey, setSearchKey] = useState("");
   const [documents, setDocuments] = useState<IDocument[]>([]);
   const [cases, setCases] = useState<ICase[]>([]);
@@ -78,8 +83,8 @@ export default function DocumentList() {
   // Hooks
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
-  const [expandedCases, setExpandedCases] = useState<string[]>([]);
-  const [expandedMainDocs, setExpandedMainDocs] = useState<string[]>([]);
+  const [expandedCases, setExpandedCases] = useState<string[]>([caseId || '']);
+  const [expandedMainDocs, setExpandedMainDocs] = useState<string[]>([documentId || '']);
 
   const { data: caseData, isLoading: caseLoading } = useTable<any>({
     resource: "cases",
@@ -190,9 +195,7 @@ export default function DocumentList() {
         }))
     );
   }, [cases, documents, searchKey, citations, caseLoading, citationLoading, docLoading]);
-  useEffect(() => {
-    console.log(tableCases);
-  }, [tableCases]);
+
   const getExhibitsColumns = (): TableColumnType<any>[] => [
     {
       title: "#",
@@ -226,9 +229,9 @@ export default function DocumentList() {
         <div className="h-full">
           {citedInMainDocuments.map((d, _i) => (
             <div key={_i} className="grid grid-cols-3 text-xs mb-2">
-              <div className="underline text-[#056cf3] col-span-2">
+              <Link href={`/documents?documentId=${d.doc.id}`} className="underline text-[#056cf3] col-span-2">
                 {d.doc.title}
-              </div>
+              </Link>
               <div className="text-[#989898] line-clamp-2 text-xs mt-1 col-span-1">
                 as {d.sourceText}
               </div>
@@ -349,7 +352,7 @@ export default function DocumentList() {
           </div>
 
           {/* Preview Panel */}
-          <div className="col-span-1 bg-white rounded-xl relative">
+          <div className="col-span-1 bg-transparent rounded-xl relative">
             {!selExh ? (
               <div className="flex items-center justify-center h-full flex-col gap-2">
                 <IconClick size={40} />
