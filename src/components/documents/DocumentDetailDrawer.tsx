@@ -349,7 +349,7 @@ const DocumentDetailDrawer = ({
               </div>
             ))}
           </div>
-          <div className="col-span-6 rounded-xl p-2 pb-4 relative bg-[#f5f5f5] border">
+          <div className="col-span-6 rounded-xl p-2 pt-4 pb-4 relative bg-[#eeeff1] border">
             {selEDoc?.mediaUrl && <PdfViewer mediaUrl={selEDoc.mediaUrl} />}
           </div>
         </div>

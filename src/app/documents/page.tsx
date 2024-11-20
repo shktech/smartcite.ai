@@ -52,8 +52,13 @@ export default function DocumentList() {
         setDocLoading(true);
         try {
           for (const c of caseData.items) {
-            const docs = (await getDocumentsByCaseId(c.id)) as any;
-            setDocuments((prev) => [...prev, ...(docs?.items || [])]);
+            const docsData = (await getDocumentsByCaseId(c.id)) as any;
+            const docs = docsData?.items || [];
+            docs.forEach((doc: any) => {
+              if (!documents.find((d) => d.id === doc.id)) {
+                setDocuments((prev) => [...prev, doc]);
+              }
+            });
           }
         } catch (error) {
           console.error("Error fetching documents:", error);

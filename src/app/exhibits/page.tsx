@@ -116,7 +116,7 @@ export default function DocumentList() {
         try {
           for (const c of caseData.items) {
             const docs = (await getDocumentsByCaseId(c.id)) as any;
-            setDocuments((prev) => [...prev, ...docs?.items || []]);
+            setDocuments((prev) => [...prev, ...(docs?.items || [])]);
           }
         } catch (error) {
           console.error("Error fetching documents:", error);
@@ -189,8 +189,10 @@ export default function DocumentList() {
           ...c,
         }))
     );
-  }, [cases, documents, searchKey, citations]);
-
+  }, [cases, documents, searchKey, citations, caseLoading, citationLoading, docLoading]);
+  useEffect(() => {
+    console.log(tableCases);
+  }, [tableCases]);
   const getExhibitsColumns = (): TableColumnType<any>[] => [
     {
       title: "#",
@@ -347,7 +349,7 @@ export default function DocumentList() {
           </div>
 
           {/* Preview Panel */}
-          <div className="col-span-1 bg-white rounded-xl pb-10 relative overflow-hidden border-4">
+          <div className="col-span-1 bg-white rounded-xl relative">
             {!selExh ? (
               <div className="flex items-center justify-center h-full flex-col gap-2">
                 <IconClick size={40} />

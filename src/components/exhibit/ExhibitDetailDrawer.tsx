@@ -80,7 +80,7 @@ const ExhibitDetailDrawer = ({
               ))}
             </div>
           </div>
-          <div className="col-span-6 border rounded-xl p-2 relative border-4">
+          <div className="col-span-6 border border-2 border-[#eeeff1] relative py-6  bg-[#eeeff1] rounded-xl">
             {selExh?.mediaUrl && <PdfViewer mediaUrl={selExh.mediaUrl} />}
           </div>
         </div>

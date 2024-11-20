@@ -33,6 +33,7 @@ import GeneralInformationWithHeader from "@/components/case/edit/GeneralInformat
 import EmptyDropzone from "@/components/case/edit/EmptyDropzone";
 import { getCitations } from "@services/citation.service";
 import pRetry from "p-retry";
+import { Dropzone } from "@mantine/dropzone";
 
 // Constants
 const PANEL_CONFIGS = {
@@ -429,13 +430,36 @@ const CaseEditPage = () => {
                   </div>
                 </div>
               ))}
-              {getMDocs().length == 0 && !uploadingFiles.get(DocType.MAIN) && (
+              {getMDocs().length == 0 && !uploadingFiles.get(DocType.MAIN) ? (
                 <EmptyDropzone
                   handleUploadFile={(files) =>
                     handleUploadFile(files, DocType.MAIN, DocType.MAIN)
                   }
                   label="Main Document List is Empty"
                 />
+              ) : (
+                <Dropzone
+                  p={0}
+                  multiple
+                  radius="xl"
+                  maxSize={30 * 1024 ** 2}
+                  onDrop={(files) =>
+                    handleUploadFile(files, DocType.MAIN, DocType.MAIN)
+                  }
+                  accept={["application/pdf"]}
+                  className="flex-1 rounded-none flex items-center justify-center border-0"
+                >
+                  <div className="flex justify-center items-center cursor-pointer h-full flex-col py-10">
+                    <IconUpload size={40} color="black" />
+                    <div className="text-base text-black mt-3">
+                      Upload Document
+                    </div>
+                    <div className="text-[#7c7c7c] text-center px-4">
+                      Drag your file into this box or click &quot;Upload
+                      Document&quot; to get started
+                    </div>
+                  </div>
+                </Dropzone>
               )}
             </div>
             <div className={` rounded-xl border  ${panelsCss.Exhibit}`}>
@@ -489,19 +513,42 @@ const CaseEditPage = () => {
                   </div>
                 ))}
               {selMDocId &&
-                getEDocs().length == 0 &&
-                !uploadingFiles.get(DocType.EXHIBIT) && (
-                  <EmptyDropzone
-                    handleUploadFile={(files) =>
-                      handleUploadFile(
-                        files,
-                        DocType.EXHIBIT,
-                        selMDocId ?? DocType.EXHIBIT
-                      )
-                    }
-                    label="Exhibit List is Empty"
-                  />
-                )}
+              getEDocs().length == 0 &&
+              !uploadingFiles.get(DocType.EXHIBIT) ? (
+                <EmptyDropzone
+                  handleUploadFile={(files) =>
+                    handleUploadFile(
+                      files,
+                      DocType.EXHIBIT,
+                      selMDocId ?? DocType.EXHIBIT
+                    )
+                  }
+                  label="Exhibit List is Empty"
+                />
+              ) : (
+                <Dropzone
+                  p={0}
+                  multiple
+                  radius="xl"
+                  maxSize={30 * 1024 ** 2}
+                  onDrop={(files) =>
+                    handleUploadFile(files, DocType.MAIN, DocType.MAIN)
+                  }
+                  accept={["application/pdf"]}
+                  className="flex-1 rounded-none flex items-center justify-center border-0"
+                >
+                  <div className="flex justify-center items-center cursor-pointer h-full flex-col py-10">
+                    <IconUpload size={40} color="black" />
+                    <div className="text-base text-black mt-3">
+                      Upload Document
+                    </div>
+                    <div className="text-[#7c7c7c] text-center px-4">
+                      Drag your file into this box or click &quot;Upload
+                      Document&quot; to get started
+                    </div>
+                  </div>
+                </Dropzone>
+              )}
               {!selMDocId && (
                 <div className="flex-1 rounded-none flex items-center justify-center">
                   <div className="flex justify-center items-center h-full flex-col py-10">
