@@ -22,7 +22,7 @@ const DecriptionPanel = ({
         <div className="">Also cited in:</div>
         {citedInMainDocuments.map((doc) => (
           <div key={doc.id}>
-            <Link href={`/documents?documentId=${doc.id}`} className="underline text-[#0550b3]">{doc.title}</Link>
+            <Link href={`/documents?caseId=${doc.caseId}&documentId=${doc.id}`} className="underline text-[#0550b3]">{doc.title}</Link>
           </div>
         ))}
       </div>

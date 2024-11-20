@@ -55,7 +55,7 @@ const ExhibitDetailDrawer = ({
             href={`/cases?caseId=${selExh?.caseId}`}
             className="text-[#056cf3] underline"
           >
-            {cases.find((c: any) => c.id === selExh?.caseId)?.title}
+            {cases[0]?.title}
           </Link>
         </div>
         <div className="mt-4 grid grid-cols-11 text-sm flex-1 gap-4">
@@ -75,15 +75,15 @@ const ExhibitDetailDrawer = ({
               </div>
               <div className="text-[#292929] mt-4">Cited in</div>
               {selExh?.citedInMainDocuments.map((citedInMainDocument: any) => (
-                <div className="flex justify-between" key={citedInMainDocument.id}>
+                <div className="flex justify-between mt-4 gap-4" key={citedInMainDocument.id}>
                   <Link
-                    href={`/documents?documentId=${citedInMainDocument.doc.id}`}
-                    className="text-[#056cf3] mt-4 underline"
+                    href={`/documents?caseId=${citedInMainDocument.doc.caseId}&documentId=${citedInMainDocument.doc.id}`}
+                    className="text-[#056cf3] underline"
                     key={citedInMainDocument.id}
                   >
                     {citedInMainDocument.doc.title}
                   </Link>
-                  <div className="text-[#989898]">
+                  <div className="text-[#989898] truncate line-clamp-1">
                     as {citedInMainDocument.sourceText}
                   </div>
                 </div>

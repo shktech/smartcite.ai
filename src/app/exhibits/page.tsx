@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Input, LoadingOverlay } from "@mantine/core";
 import type { TableColumnType } from "antd";
-import { useTable } from "@refinedev/core";
+import { useNavigation, useOne, useTable } from "@refinedev/core";
 import { Layout as BaseLayout } from "@/components/layout";
 import { IconClick, IconEye, IconSearch } from "@tabler/icons-react";
 import { ICase, ICitation, IDocument } from "@/types/types";
@@ -14,28 +14,9 @@ import AddExhibit from "@/components/exhibit/AddExhibit";
 import ExhibitDetailDrawer from "@/components/exhibit/ExhibitDetailDrawer";
 import { getCitations } from "@services/citation.service";
 import pRetry from "p-retry";
-import { getDocumentsByCaseId } from "@services/document.service";
 import PdfViewer from "@components/common/PdfViewer";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-
-// Table Column Definitions
-const getMainColumns = (): TableColumnType<any>[] => [
-  {
-    title: "Case Title",
-    dataIndex: "title",
-    key: "title",
-    render: (title: string, record: any) => (
-      <Link href={`/cases/edit?caseId=${record.id}`} className="underline text-[#056cf3]">{title}</Link>
-    ),
-  },
-  {
-    title: "No. Main Documents",
-    dataIndex: "noMainDocuments",
-    key: "noMainDocuments",
-    render: (_, record) => <div>{record.main.length}</div>,
-  },
-];
 
 const getMainDocColumns = (): TableColumnType<any>[] => [
   {
@@ -51,7 +32,12 @@ const getMainDocColumns = (): TableColumnType<any>[] => [
     key: "title",
     render: (title: string, record: any) => (
       <>
-        <Link href={`/documents?documentId=${record.id}`} className="underline text-[#056cf3]">{title}</Link>
+        <Link
+          href={`/documents?caseId=${record.caseId}&documentId=${record.id}`}
+          className="underline text-[#056cf3]"
+        >
+          {title}
+        </Link>
       </>
     ),
   },
@@ -70,24 +56,27 @@ const getMainDocColumns = (): TableColumnType<any>[] => [
 
 export default function DocumentList() {
   // State Management
+  const { push } = useNavigation();
   const searchParams = useSearchParams();
-  const caseId = searchParams.get('caseId');
-  const documentId = searchParams.get('documentId');
+  const caseId = searchParams.get("caseId");
+  const documentId = searchParams.get("documentId");
   const [searchKey, setSearchKey] = useState("");
   const [documents, setDocuments] = useState<IDocument[]>([]);
-  const [cases, setCases] = useState<ICase[]>([]);
-  const [tableCases, setTableCases] = useState<any[]>([]);
   const [selExh, setSelExh] = useState<any>();
   const [citations, setCitations] = useState<ICitation[]>([]);
-  const [docLoading, setDocLoading] = useState(true);
-  // Hooks
+  const [mainDocuments, setMainDocuments] = useState<any[]>([]);
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
-  const [expandedCases, setExpandedCases] = useState<string[]>([caseId || '']);
-  const [expandedMainDocs, setExpandedMainDocs] = useState<string[]>([documentId || '']);
-
-  const { data: caseData, isLoading: caseLoading } = useTable<any>({
+  const [expandedMainDocs, setExpandedMainDocs] = useState<string[]>([
+    documentId || "",
+  ]);
+  const { data: caseData, isLoading: caseLoading } = useOne<ICase>({
     resource: "cases",
+    id: caseId || "",
+  });
+  const matter = caseData?.data;
+  const { data: documentData, isLoading: docLoading } = useTable<any>({
+    resource: `cases/${caseId}/documents`,
     syncWithLocation: false,
   }).tableQueryResult;
 
@@ -112,30 +101,44 @@ export default function DocumentList() {
       }));
     return citedInMainDocInfos;
   };
-
   useEffect(() => {
-    if (caseData) {
-      setCases(caseData.items as ICase[]);
-      const getDocs = async () => {
-        setDocLoading(true);
-        try {
-          for (const c of caseData.items) {
-            const docs = (await getDocumentsByCaseId(c.id)) as any;
-            setDocuments((prev) => [...prev, ...(docs?.items || [])]);
-          }
-        } catch (error) {
-          console.error("Error fetching documents:", error);
-          // Optionally add error handling UI feedback here
-        } finally {
-          setDocLoading(false);
-        }
-      };
-      getDocs();
+    console.log(citations);
+  }, [citations]);
+  useEffect(() => {
+    if (!caseId) {
+      push(`/cases`);
     }
-  }, [caseData]);
+  }, [caseId]);
+  // useEffect(() => {
+  //   if (caseData) {
+  //     setCases(caseData.items as ICase[]);
+  //     const getDocs = async () => {
+  //       setDocLoading(true);
+  //       try {
+  //         for (const c of caseData.items) {
+  //           const docs = (await getDocumentsByCaseId(c.id)) as any;
+  //           setDocuments((prev) => [...prev, ...(docs?.items || [])]);
+  //         }
+  //       } catch (error) {
+  //         console.error("Error fetching documents:", error);
+  //         // Optionally add error handling UI feedback here
+  //       } finally {
+  //         setDocLoading(false);
+  //       }
+  //     };
+  //     getDocs();
+  //   }
+  // }, [caseData]);
 
   const getMDocs = () => documents.filter((doc) => doc.type === DocType.MAIN);
   const [citationLoading, setCitationLoading] = useState(true);
+
+  useEffect(() => {
+    if (documentData) {
+      setDocuments(documentData.items as IDocument[]);
+    }
+  }, [documentData]);
+
   useEffect(() => {
     if (documents.length > 0 && !docLoading) {
       const fetchCitations = async () => {
@@ -161,40 +164,86 @@ export default function DocumentList() {
       };
       fetchCitations();
     }
-  }, [docLoading]);
+  }, [documents, docLoading]);
 
   useEffect(() => {
-    if (
-      !cases ||
-      !documents ||
-      !citations ||
-      caseLoading ||
-      citationLoading ||
-      docLoading
-    )
+    if (docLoading || citationLoading) {
       return;
-    setTableCases(
-      cases
-        .filter((c) => c.title.toLowerCase().includes(searchKey.toLowerCase()))
-        .map((c) => ({
-          key: c.id,
-          main: documents
-            .filter((d) => d.caseId === c.id && d.type === DocType.MAIN)
-            .map((m) => ({
-              ...m,
-              key: m.id,
-              exhibits: documents
-                .filter((d) => d.caseId === c.id && d.type === DocType.EXHIBIT)
-                .map((exh) => ({
-                  ...exh,
-                  key: exh.id,
-                  citedInMainDocuments: getCitedInMainDocuments(exh.id),
-                })),
-            })),
-          ...c,
-        }))
+    }
+    let filteredDocs = documents.filter((doc) => doc.type === DocType.MAIN);
+
+    // Search filter
+    if (searchKey) {
+      const searchLower = searchKey.toLowerCase();
+      filteredDocs = filteredDocs.filter(
+        (doc: any) =>
+          doc.title.toLowerCase().includes(searchLower) ||
+          doc.caseTitle?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Enrich documents with additional data
+    const enrichedDocs = filteredDocs.map((doc) => ({
+      key: doc.id,
+      ...doc,
+      noExhibits: documents.filter((d) => d.mainDocumentId === doc.id).length,
+      exhibits: documents.filter((d) => d.mainDocumentId === doc.id),
+    }));
+
+    setMainDocuments(
+      enrichedDocs.map((m) => ({
+        ...m,
+        key: m.id,
+        exhibits: documents
+          .filter((d) => d.mainDocumentId === m.id)
+          .map((exh) => ({
+            ...exh,
+            key: exh.id,
+            citedInMainDocuments: getCitedInMainDocuments(exh.id),
+          })),
+      }))
     );
-  }, [cases, documents, searchKey, citations, caseLoading, citationLoading, docLoading]);
+  }, [documents, searchKey, docLoading, citationLoading]);
+
+  // useEffect(() => {
+  //   if (
+  //     !documents ||
+  //     !citations ||
+  //     caseLoading ||
+  //     citationLoading ||
+  //     docLoading
+  //   )
+  //     return;
+  //   setTableCases(
+  //     cases
+  //       .filter((c) => c.title.toLowerCase().includes(searchKey.toLowerCase()))
+  //       .map((c) => ({
+  //         key: c.id,
+  //         main: documents
+  //           .filter((d) => d.caseId === c.id && d.type === DocType.MAIN)
+  //           .map((m) => ({
+  //             ...m,
+  //             key: m.id,
+  //             exhibits: documents
+  //               .filter((d) => d.caseId === c.id && d.type === DocType.EXHIBIT)
+  //               .map((exh) => ({
+  //                 ...exh,
+  //                 key: exh.id,
+  //                 citedInMainDocuments: getCitedInMainDocuments(exh.id),
+  //               })),
+  //           })),
+  //         ...c,
+  //       }))
+  //   );
+  // }, [
+  //   cases,
+  //   documents,
+  //   searchKey,
+  //   citations,
+  //   caseLoading,
+  //   citationLoading,
+  //   docLoading,
+  // ]);
 
   const getExhibitsColumns = (): TableColumnType<any>[] => [
     {
@@ -229,7 +278,10 @@ export default function DocumentList() {
         <div className="h-full">
           {citedInMainDocuments.map((d, _i) => (
             <div key={_i} className="grid grid-cols-3 text-xs mb-2">
-              <Link href={`/documents?documentId=${d.doc.id}`} className="underline text-[#056cf3] col-span-2">
+              <Link
+                href={`/documents?caseId=${caseId}&documentId=${d.doc.id}`}
+                className="underline text-[#056cf3] col-span-2"
+              >
                 {d.doc.title}
               </Link>
               <div className="text-[#989898] line-clamp-2 text-xs mt-1 col-span-1">
@@ -269,14 +321,21 @@ export default function DocumentList() {
         {/* Header */}
         <div className="flex justify-between">
           <div>
-            <div className="text-xl text-[#292929] font-semibold">
-              Exhibits Library
+            <div className="text-lg text-[#292929]">
+              <span className="text-xl font-semibold mr-2">
+                {matter?.title}
+              </span>
+              /Exhibits
             </div>
             <div className="text-[#7c7c7c] py-2">
               Manage all your exhibits in one place
             </div>
           </div>
-          <AddExhibit cases={tableCases} setDocuments={setDocuments} />
+          <AddExhibit
+            cases={[matter]}
+            setDocuments={setDocuments}
+            mainDocuments={mainDocuments}
+          />
         </div>
 
         {/* Search Bar */}
@@ -301,7 +360,7 @@ export default function DocumentList() {
         {/* Main Content */}
         <div className="grid grid-cols-3 mt-6 gap-4 flex-1">
           <div className="col-span-2 bg-white rounded-xl pb-10">
-            <MyTable
+            {/* <MyTable
               columns={getMainColumns()}
               dataSource={tableCases}
               pagination={false}
@@ -348,6 +407,33 @@ export default function DocumentList() {
                   </div>
                 ),
               }}
+            /> */}
+            <MyTable
+              columns={getMainDocColumns()}
+              dataSource={mainDocuments}
+              pagination={false}
+              expandable={{
+                expandedRowKeys: expandedMainDocs,
+                onExpand: (expanded: boolean, record: any) => {
+                  setExpandedMainDocs(
+                    expanded
+                      ? [...expandedMainDocs, record.key]
+                      : expandedMainDocs.filter((key) => key !== record.key)
+                  );
+                },
+                expandedRowRender: (record: any) => (
+                  <div className="ml-10 my-1 border rounded-lg bg-white pb-4">
+                    <MyTable
+                      columns={getExhibitsColumns()}
+                      dataSource={record.exhibits}
+                      pagination={false}
+                      onRow={(record: any) => ({
+                        onClick: () => handleExhibitClick(record),
+                      })}
+                    />
+                  </div>
+                ),
+              }}
             />
           </div>
 
@@ -369,7 +455,7 @@ export default function DocumentList() {
       </div>
 
       <ExhibitDetailDrawer
-        cases={cases}
+        cases={[matter]}
         opened={drawerOpened}
         close={closeDrawer}
         selExh={selExh}

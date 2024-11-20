@@ -125,7 +125,7 @@ const GeneralInformationWithHeader = ({
         >
           <IconArrowLeft color="#292929" size={24} />
         </Link>
-        <div className="text-xl text-[#292929]">{caseData?.title || "N/A"}</div>
+        <div className="text-xl font-semibold text-[#292929]">{caseData?.title || "N/A"}</div>
       </div>
       <div className="flex gap-2">
         <Select
