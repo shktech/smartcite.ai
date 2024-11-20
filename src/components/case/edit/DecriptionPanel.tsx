@@ -1,4 +1,5 @@
 import { IDocument } from "@/types/types";
+import Link from "next/link";
 
 const DecriptionPanel = ({
   citedInMainDocuments,
@@ -21,7 +22,7 @@ const DecriptionPanel = ({
         <div className="">Also cited in:</div>
         {citedInMainDocuments.map((doc) => (
           <div key={doc.id}>
-            <span className="underline text-[#0550b3]">{doc.title}</span>
+            <Link href={`/documents?caseId=${doc.caseId}&documentId=${doc.id}`} className="underline text-[#0550b3]">{doc.title}</Link>
           </div>
         ))}
       </div>

@@ -3,10 +3,10 @@ import { IconNotes, IconPaperclip, IconScale } from "@tabler/icons-react";
 // src/utils/menuData.ts
 export const menuItems = [
   {
-    key: "matters",
+    key: "cases",
     icon: <IconScale />,
     label: "Matter Management",
-    route: "/cases",
+    route: "/cases/edit",
   },
   {
     key: "documents",

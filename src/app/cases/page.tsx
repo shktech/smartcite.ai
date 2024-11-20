@@ -52,8 +52,8 @@ export default function BlogPostList() {
       key: "title",
       sorter: (a: ICase, b: ICase) => a.title.localeCompare(b.title),
       sortDirections: ["ascend", "descend"],
-      render: (title: string) => (
-        <div className="underline text-[#056cf3]">{title}</div>
+      render: (title: string, record: ICase) => (
+        <Link href={`/cases/edit?caseId=${record.id}`} className="underline text-[#056cf3]">{title || 'N/A'}</Link>
       ),
     },
     {
@@ -73,8 +73,8 @@ export default function BlogPostList() {
       onFilter: (value, record) => record.clientRole === value,
       render: (_: any, record: ICase) => (
         <>
-          <div className="text-sm text-black">{record.client}</div>
-          <div className="text-[#989898] text-xs mt-1">{record.clientRole}</div>
+          <div className="text-sm text-black">{record.client == " " ? 'N/A' : record.client}</div>
+          <div className="text-[#989898] text-xs mt-1">{record.clientRole == " " ? 'N/A' : record.clientRole}</div>
         </>
       ),
     },
@@ -91,7 +91,7 @@ export default function BlogPostList() {
           }}
           className="px-2 py-1 rounded-md font-semibold"
         >
-          {value}
+          {value == " " ? 'N/A' : value}
         </span>
       ),
     },
@@ -120,7 +120,7 @@ export default function BlogPostList() {
             const user = users.find((user) => user.id === id);
             return user ? user.firstName + " " + user.lastName : null;
           })
-          .join(", ");
+          .join(", ") || "N/A";
       },
     },
     {

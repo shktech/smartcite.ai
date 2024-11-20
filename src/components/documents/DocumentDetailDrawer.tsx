@@ -29,10 +29,8 @@ import {
 import { createDocument } from "@/services/document.service";
 import pRetry from "p-retry";
 // import PdfViewer from "@components/common/PdfViewer";
-import dynamic from "next/dynamic";
-const PdfViewer = dynamic(() => import("@/components/common/PdfViewer"), {
-  ssr: false,
-});
+import PdfViewer from "@/components/common/PdfViewer";
+import Link from "next/link";
 
 interface DocumentDetailDrawerProps {
   opened: boolean;
@@ -317,7 +315,12 @@ const DocumentDetailDrawer = ({
               >
                 <div className="w-10 pl-6">{_i + 1}</div>
                 <div className="flex-1 text-[#0550b3] truncate underline flex items-center gap-2">
-                  <div className="truncate underline">{doc.title}</div>
+                  <Link
+                    href={`/exhibits?caseId=${selMDoc.caseId}&documentId=${selMDoc.id}&exhibitId=${doc.id}`}
+                    className="truncate underline"
+                  >
+                    {doc.title}
+                  </Link>
                 </div>
                 <div className="w-20" onClick={(e) => e.stopPropagation()}>
                   <DeleteConfirmModal
@@ -352,7 +355,7 @@ const DocumentDetailDrawer = ({
               </div>
             ))}
           </div>
-          <div className="col-span-6 border-4 rounded-xl p-2 pb-4 relative shadow-inner">
+          <div className="col-span-6 rounded-xl p-2 pt-4 pb-4 relative bg-[#eeeff1] border">
             {selEDoc?.mediaUrl && <PdfViewer mediaUrl={selEDoc.mediaUrl} />}
           </div>
         </div>

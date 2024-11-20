@@ -4,16 +4,19 @@ const PdfViewer = dynamic(() => import("@/components/common/PdfViewer"), {
 });
 import { Drawer, LoadingOverlay } from "@mantine/core";
 import { IconArrowRight } from "@tabler/icons-react";
+import Link from "next/link";
 interface ExhibitDetailDrawerProps {
   opened: boolean;
   close: () => void;
   selExh: any;
+  cases: any[];
 }
 
 const ExhibitDetailDrawer = ({
   opened,
   close,
   selExh,
+  cases,
 }: ExhibitDetailDrawerProps) => {
   return (
     <>
@@ -48,7 +51,12 @@ const ExhibitDetailDrawer = ({
         </div>
         <div className="mt-4 text-[#292929]">
           Case Title:{" "}
-          <span className="text-[#056cf3] underline">{selExh?.title}</span>
+          <Link
+            href={`/cases?caseId=${selExh?.caseId}`}
+            className="text-[#056cf3] underline"
+          >
+            {cases[0]?.title}
+          </Link>
         </div>
         <div className="mt-4 grid grid-cols-11 text-sm flex-1 gap-4">
           <div className="col-span-5 border rounded-xl relative">
@@ -65,19 +73,24 @@ const ExhibitDetailDrawer = ({
                 disclosed during their partnership strictly confidential and not
                 to share it with any third parties.
               </div>
-              <div className="text-[#056cf3] mt-4 underline">Complaint</div>
-              <div className="text-[#056cf3] mt-4 underline">
-                Motion for Summary Judgement
-              </div>
-              <div className="text-[#056cf3] mt-4 underline">
-                Motion for Dismiss
-              </div>
-              <div className="text-[#056cf3] mt-4 underline">
-                Motion for for Extension of Time
-              </div>
+              <div className="text-[#292929] mt-4">Cited in</div>
+              {selExh?.citedInMainDocuments.map((citedInMainDocument: any) => (
+                <div className="flex justify-between mt-4 gap-4" key={citedInMainDocument.id}>
+                  <Link
+                    href={`/documents?caseId=${citedInMainDocument.doc.caseId}&documentId=${citedInMainDocument.doc.id}`}
+                    className="text-[#056cf3] underline"
+                    key={citedInMainDocument.id}
+                  >
+                    {citedInMainDocument.doc.title}
+                  </Link>
+                  <div className="text-[#989898] truncate line-clamp-1">
+                    as {citedInMainDocument.sourceText}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="col-span-6 border rounded-xl p-2 relative border-4">
+          <div className="col-span-6 border border-2 border-[#eeeff1] relative py-6  bg-[#eeeff1] rounded-xl">
             {selExh?.mediaUrl && <PdfViewer mediaUrl={selExh.mediaUrl} />}
           </div>
         </div>

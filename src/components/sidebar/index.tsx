@@ -1,49 +1,60 @@
 "use client";
 
 import { useGetIdentity, useLogout } from "@refinedev/core";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { menuItems } from "@/utils/menuData";
 import Link from "next/link";
-import {
-  IconAntennaBars5,
-  IconLogout,
-  IconSettings,
-} from "@tabler/icons-react";
+import { IconLogout, IconNotes, IconSettings } from "@tabler/icons-react";
 import { Menu } from "@mantine/core";
 
 export const Sidebar = () => {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const caseId = searchParams.get("caseId");
   const { mutate: logout } = useLogout();
   const { data } = useGetIdentity();
   const user = data as any;
   const selectedKey = pathname.split("/")[1].split("?")[0];
   const menus = menuItems;
   return (
-    <nav className="w-[400px] flex flex-col h-screen bg-white">
+    <nav className="w-[300px] fixed left-0 top-0 flex flex-col h-screen bg-white">
       <div className="p-6 flex items-center text-xl text-black">
-        <IconAntennaBars5 size={24} />
         <span className="text-[#394149] font-bold ml-2">SMART</span>
         <span className="text-[#394149]">CITE</span>
       </div>
       <div className="flex flex-col gap-2 w-full flex-1">
-        {menus.map((item) => (
+        {caseId ? (
+          menus.map((item) => (
+            <Link
+              key={item.key}
+              href={item.route + `?caseId=${caseId}`}
+              className={`px-3 py-3 mx-3 no-underline hover:bg-[#f0f0f0] rounded-lg hover:text-[#0c1e29] duration-500 text-md flex items-center gap-2 ${
+                selectedKey === item.key
+                  ? "bg-[#f4f4f4] text-[#292929] font-bold"
+                  : "text-[#7c7c7c]"
+              }`}
+            >
+              {item.icon}
+              {item.label}
+            </Link>
+          ))
+        ) : (
           <Link
-            key={item.key}
-            href={item.route}
+            href='/cases'
             className={`px-3 py-3 mx-3 no-underline hover:bg-[#f0f0f0] rounded-lg hover:text-[#0c1e29] duration-500 text-md flex items-center gap-2 ${
-              selectedKey === item.key
+              selectedKey === "cases"
                 ? "bg-[#f4f4f4] text-[#292929] font-bold"
                 : "text-[#7c7c7c]"
             }`}
           >
-            {item.icon}
-            {item.label}
+            <IconNotes />
+            Matters
           </Link>
-        ))}
+        )}
       </div>
       <div className="">
         <Link
-          href="/settings"
+          href={`/settings`}
           className={`px-3 py-3 mx-3 no-underline hover:bg-[#f0f0f0] rounded-lg hover:text-[#0c1e29] duration-500 text-md flex items-center gap-2 ${
             selectedKey === "settings"
               ? "bg-[#f4f4f4] text-[#292929] font-bold"

@@ -27,13 +27,18 @@ interface AddExhibitProps {
   setDocuments: (
     documents: IDocument[] | ((prev: IDocument[]) => IDocument[])
   ) => void;
+  mainDocuments: any[];
 }
 
 interface UploadStateBadgeProps {
   state: string;
 }
 
-const AddExhibit = ({ cases, setDocuments }: AddExhibitProps) => {
+const AddExhibit = ({
+  cases,
+  setDocuments,
+  mainDocuments,
+}: AddExhibitProps) => {
   // State management
   const [opened, { open, close }] = useDisclosure(false);
   const [files, setFiles] = useState<File[]>([]);
@@ -247,12 +252,10 @@ const AddExhibit = ({ cases, setDocuments }: AddExhibitProps) => {
         onChange={setSelectedMainDocId}
         label="Main Document"
         placeholder="Select option"
-        data={cases
-          .find((c) => c.id === selectedCaseId)
-          ?.main.map((d: any) => ({
-            label: d.title,
-            value: d.id,
-          }))}
+        data={mainDocuments?.map((d: any) => ({
+          label: d.title,
+          value: d.id,
+        }))}
         value={selectedMainDocId}
         labelProps={{
           style: { color: "black", marginBottom: "6px" },

@@ -31,3 +31,13 @@ export const createDocument = async (
 
   return response.data as IDocument;
 };
+
+export const getDocumentsByCaseId = async (caseId: string) => {
+  const accessToken = getAccessToken();
+  const response = await axios.get(`${API_URL}/cases/${caseId}/documents`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  return response.data as IDocument[];
+};

@@ -103,6 +103,22 @@ export const getAllUsers = async (token: string) => {
   }
 };
 
+export const getAllUsersInOrganization = async (
+  token: string,
+  organizationId: string
+) => {
+  try {
+    const getAllUsers = await axios.get(
+      `${keycloakUrl}/admin/realms/${realmId}/organizations/${organizationId}/members`,
+      getHeaderFromToken(token)
+    );
+    return getAllUsers.data;
+  } catch (error) {
+    console.error("Error found:", error);
+    throw error;
+  }
+};
+
 export const updatePassword = async (
   userId: string,
   email: string,

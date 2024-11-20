@@ -4,11 +4,11 @@ import React, { useEffect, useState } from "react";
 import { Input, LoadingOverlay } from "@mantine/core";
 import { DatePicker } from "antd";
 import type { TableColumnType } from "antd";
-import { useDelete, useTable } from "@refinedev/core";
+import { useDelete, useNavigation, useOne, useTable } from "@refinedev/core";
 import dayjs from "dayjs";
 import { Layout as BaseLayout } from "@/components/layout";
 import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
-import { IconSearch, IconTrash } from "@tabler/icons-react";
+import { IconDownload, IconSearch, IconTrash } from "@tabler/icons-react";
 import { ICase, IDocument } from "@/types/types";
 import { getFormatedDate } from "@/utils/util.functions";
 import { DocType } from "@/utils/util.constants";
@@ -17,35 +17,86 @@ import { useDisclosure } from "@mantine/hooks";
 import DocumentDetailDrawer from "@/components/documents/DocumentDetailDrawer";
 import AddExhibit from "@/components/documents/AddExhibit";
 import AddDocument from "@/components/documents/AddDocument";
+import { useSearchParams } from "next/navigation";
+import Link from "antd/es/typography/Link";
 
 const { RangePicker } = DatePicker;
 
 export default function DocumentList() {
   // State
+  const { push } = useNavigation();
+  const searchParams = useSearchParams();
+  const documentId = searchParams.get("documentId");
+  const caseId = searchParams.get("caseId");
   const [searchKey, setSearchKey] = useState("");
   const [documents, setDocuments] = useState<IDocument[]>([]);
   const [mainDocuments, setMainDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selMDoc, setSelMDoc] = useState<any>();
-  const [cases, setCases] = useState<ICase[]>([]);
   const [dateRange, setDateRange] = useState<[any, any] | null>([
     dayjs().subtract(6, "month"),
     dayjs(),
   ]);
+  const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([]);
 
   // Hooks
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
   const { mutate: deleteMutate } = useDelete();
 
-  const { data: documentData, isLoading: documentLoading } = useTable<any>({
+  // const { data: caseData, isLoading: caseLoading } = useTable<any>({
+  //   resource: "cases",
+  //   syncWithLocation: false,
+  // }).tableQueryResult;
+
+  const { data: caseData, isLoading: caseLoading } = useOne<ICase>({
+    resource: "cases",
+    id: caseId || "",
+  });
+
+  const matter = caseData?.data;
+
+  const { data: documentData, isLoading: docLoading } = useTable<any>({
+    resource: `cases/${caseId}/documents`,
     syncWithLocation: false,
   }).tableQueryResult;
 
-  const { data: caseData, isLoading: caseLoading } = useTable<any>({
-    resource: "cases",
-    syncWithLocation: false,
-  }).tableQueryResult;
+  useEffect(() => {
+    if (!caseId) {
+      push(`/cases`);
+    }
+  }, [caseId]);
+
+  useEffect(() => {
+    if (documentData) {
+      setDocuments(documentData.items as IDocument[]);
+    }
+  }, [documentData]);
+  // useEffect(() => {
+  //   if (caseData) {
+  //     setCases(caseData.items as ICase[]);
+  //     const getDocs = async () => {
+  //       setDocLoading(true);
+  //       try {
+  //         for (const c of caseData.items) {
+  //           const docsData = (await getDocumentsByCaseId(c.id)) as any;
+  //           const docs = docsData?.items || [];
+  //           docs.forEach((doc: any) => {
+  //             if (!documents.find((d) => d.id === doc.id)) {
+  //               setDocuments((prev) => [...prev, doc]);
+  //             }
+  //           });
+  //         }
+  //       } catch (error) {
+  //         console.error("Error fetching documents:", error);
+  //         // Optionally add error handling UI feedback here
+  //       } finally {
+  //         setDocLoading(false);
+  //       }
+  //     };
+  //     getDocs();
+  //   }
+  // }, [caseData]);
 
   // Handlers
   const handleDeleteDocument = async (doc: IDocument) => {
@@ -86,13 +137,6 @@ export default function DocumentList() {
       ),
     },
     {
-      title: "Case Title",
-      dataIndex: "caseTitle",
-      key: "caseTitle",
-      sorter: (a: any, b: any) => a.title.localeCompare(b.title),
-      sortDirections: ["ascend", "descend"],
-    },
-    {
       title: "No.Exhibits",
       dataIndex: "noExhibits",
       key: "noExhibits",
@@ -118,6 +162,14 @@ export default function DocumentList() {
           onClick={(e) => e.stopPropagation()}
         >
           <AddExhibit document={record} setDocuments={setDocuments} />
+          <a
+            href={record.mediaUrl}
+            download
+            target="_blank"
+            className="cursor-pointer hover:text-[#2e2e2e] text-[#c5c5c5]"
+          >
+            <IconDownload size={18} />
+          </a>
           <DeleteConfirmModal
             onDelete={() => handleDeleteDocument(record)}
             trigger={
@@ -136,21 +188,20 @@ export default function DocumentList() {
       title: "#",
       dataIndex: "",
       key: "index",
-      render: (_, __, index) => <div className="pb-9">{index + 1}</div>,
+      render: (_, __, index) => <div className="">{index + 1}</div>,
     },
     {
       title: "Exhibit Name",
       dataIndex: "title",
       key: "title",
-      render: (title: string) => (
+      render: (title: string, record: any) => (
         <>
-          <div className="underline text-black">{title}</div>
-          <div className="text-[#989898] line-clamp-2 text-xs mt-1">
-            This Non-Disclosure Agreement (NDA) is a binding contract between
-            ABC Corp and XYZ Inc to protect confidential information shared
-            during their collaboration. Both parties agree to keep all
-            proprietary data, trade s
-          </div>
+          <Link
+            href={`/exhibits?caseId=${record.caseId}&documentId=${record.mainDocumentId}&exhibitId=${record.id}`}
+            className="!underline text-[#056cf3]"
+          >
+            {title}
+          </Link>
         </>
       ),
     },
@@ -160,6 +211,14 @@ export default function DocumentList() {
       key: "action",
       render: (_, record) => (
         <div className="flex gap-2 items-center text-[#c5c5c5]">
+          <a
+            href={record.mediaUrl}
+            download
+            target="_blank"
+            className="cursor-pointer hover:text-[#2e2e2e] text-[#c5c5c5]"
+          >
+            <IconDownload size={18} />
+          </a>
           <DeleteConfirmModal
             onDelete={() => handleDeleteDocument(record)}
             trigger={
@@ -173,22 +232,7 @@ export default function DocumentList() {
     },
   ];
 
-  // Effects
   useEffect(() => {
-    if (documentData) {
-      setDocuments(documentData.items as IDocument[]);
-    }
-  }, [documentData]);
-
-  useEffect(() => {
-    if (caseData) {
-      setCases(caseData.items as ICase[]);
-    }
-  }, [caseData]);
-
-  useEffect(() => {
-    if (!cases) return;
-
     let filteredDocs = documents.filter((doc) => doc.type === DocType.MAIN);
 
     // Date range filter
@@ -216,33 +260,42 @@ export default function DocumentList() {
     const enrichedDocs = filteredDocs.map((doc) => ({
       key: doc.id,
       ...doc,
-      caseTitle: cases.find((c) => c.id === doc.caseId)?.title,
       noExhibits: documents.filter((d) => d.mainDocumentId === doc.id).length,
       exhibits: documents.filter((d) => d.mainDocumentId === doc.id),
     }));
 
     setMainDocuments(enrichedDocs);
-  }, [documents, cases, dateRange, searchKey]);
+  }, [documents, dateRange, searchKey]);
+
+  useEffect(() => {
+    if (documentId && mainDocuments.length > 0) {
+      setExpandedRowKeys([documentId]);
+    }
+  }, [documentId, mainDocuments]);
 
   return (
     <BaseLayout>
       <LoadingOverlay
-        visible={loading || documentLoading || caseLoading}
+        visible={loading || docLoading || caseLoading}
         zIndex={1000}
         loaderProps={{ color: "black", type: "bars" }}
       />
       <div className="p-6">
         <div className="flex justify-between">
           <div>
-            <div className="text-xl text-[#292929] font-semibold">
-              Document Management
+            <div className="text-lg text-[#292929]">
+              <span className="text-xl font-semibold mr-2">{matter?.title}</span>
+              /Documents
             </div>
             <div className="text-[#7c7c7c] py-2">
               Manage all your matter-related documents in one place
             </div>
           </div>
           <div>
-            <AddDocument cases={cases} setDocuments={setDocuments} />
+            <AddDocument
+              cases={[matter as ICase]}
+              setDocuments={setDocuments}
+            />
           </div>
         </div>
 
@@ -288,6 +341,10 @@ export default function DocumentList() {
                   />
                 </div>
               ),
+              expandedRowKeys: expandedRowKeys,
+              onExpandedRowsChange: (newExpandedRows: React.Key[]) => {
+                setExpandedRowKeys(newExpandedRows);
+              },
             }}
             onRow={(record: any) => ({
               onClick: () => handleRowClick(record),

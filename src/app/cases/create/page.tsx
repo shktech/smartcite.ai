@@ -8,12 +8,15 @@ import {
   TextInput,
   LoadingOverlay,
 } from "@mantine/core";
-import { useCreate, useNavigation } from "@refinedev/core";
+import { useCreate, useGetIdentity, useNavigation } from "@refinedev/core";
 import Link from "next/link";
 import { Layout as BaseLayout } from "@/components/layout";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
-import { getAllUsers } from "@/services/keycloak/user.service";
+import {
+  getUsersOfOrganization,
+  getUserOrganization,
+} from "@/services/keycloak/user.service";
 import {
   CaseStates,
   CaseStateTextColor,
@@ -41,7 +44,7 @@ export default function CreateCase() {
   const [matterState, setMatterState] = useState<string>(CaseStates[0]);
   const [assignedLawyers, setAssignedLawyers] = useState<string[]>([]);
   const [clientRole, setClientRole] = useState(ClientRoles[0]);
-
+  const { data: userData } = useGetIdentity<any>();
   const form = useForm<FormValues>({
     initialValues: {
       title: "",
@@ -56,8 +59,10 @@ export default function CreateCase() {
   const fetchUsers = async () => {
     setUserLoading(true);
     try {
-      const token = localStorage.getItem("accessToken");
-      const response = await getAllUsers(token as string);
+      const userOrganizations = await getUserOrganization(
+        userData?.sub as string
+      );
+      const response = await getUsersOfOrganization(userOrganizations[0].id);
       setUsers(response);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -67,8 +72,9 @@ export default function CreateCase() {
   };
 
   useEffect(() => {
+    if (!userData) return;
     fetchUsers();
-  }, []);
+  }, [userData]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
