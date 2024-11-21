@@ -17,6 +17,7 @@ import {
   updateUser,
 } from "@services/keycloak/user.service";
 import { Notifications, notifications } from "@mantine/notifications";
+import pRetry from "p-retry";
 
 interface FormValues {
   email: string;
@@ -38,7 +39,8 @@ export default function Profile() {
   const [userInfo, setUserInfo] = useState({ email: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
-  const { data: userData, isLoading: isUserDataLoading } = useGetIdentity<any>();
+  const { data: userData, isLoading: isUserDataLoading } =
+    useGetIdentity<any>();
 
   const form = useForm<FormValues>({
     initialValues: {
@@ -70,7 +72,7 @@ export default function Profile() {
       if (!userData) return;
 
       const token = localStorage.getItem("accessToken") as string;
-      const res = await getUserById(userData.sub, token);
+      const res = await pRetry(() => getUserById(userData.sub, token));
 
       setUserInfo(res);
       form.setValues({
@@ -106,7 +108,7 @@ export default function Profile() {
           practiceArea: [form.values.practiceArea],
         },
       };
-      await updateUser(userData.sub, payload);
+      await pRetry(() => updateUser(userData.sub, payload));
       notifications.show({
         title: "Profile updated successfully",
         message: "",
@@ -129,11 +131,13 @@ export default function Profile() {
 
     setIsPasswordLoading(true);
     try {
-      await updatePassword(
-        userData.sub,
-        userData.email,
-        passwordForm.values.oldPassword,
-        passwordForm.values.newPassword
+      await pRetry(() =>
+        updatePassword(
+          userData.sub,
+          userData.email,
+          passwordForm.values.oldPassword,
+          passwordForm.values.newPassword
+        )
       );
       notifications.show({
         title: "Password updated successfully",

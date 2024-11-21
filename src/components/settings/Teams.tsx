@@ -11,6 +11,7 @@ import {
   getUsersOfOrganization,
 } from "@services/keycloak/user.service";
 import { LoadingOverlay } from "@mantine/core";
+import pRetry from "p-retry";
 export default function Teams() {
   const [users, setUsers] = useState<IUser[]>([]);
   const { data: userData, isLoading: isUserDataLoading } =
@@ -20,8 +21,12 @@ export default function Teams() {
     if (!userData) return;
     const getOrganizationData = async () => {
       setIsLoading(true);
-      const organizationData = await getUserOrganization(userData.sub);
-      const users = await getUsersOfOrganization(organizationData[0].id);
+      const organizationData = await pRetry(() =>
+        getUserOrganization(userData.sub)
+      );
+      const users = await pRetry(() =>
+        getUsersOfOrganization(organizationData[0].id)
+      );
       setUsers(users);
       setIsLoading(false);
     };

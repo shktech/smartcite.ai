@@ -23,6 +23,7 @@ import {
   ClientRoles,
 } from "@/utils/util.constants";
 import { Select } from "antd";
+import pRetry from "p-retry";
 
 interface FormValues {
   title: string;
@@ -60,10 +61,12 @@ export default function CreateCase() {
   const fetchUsers = async () => {
     setUsersLoading(true);
     try {
-      const userOrganizations = await getUserOrganization(
-        userData?.sub as string
+      const userOrganizations = await pRetry(() =>
+        getUserOrganization(userData?.sub as string)
       );
-      const response = await getUsersOfOrganization(userOrganizations[0].id);
+      const response = await pRetry(() =>
+        getUsersOfOrganization(userOrganizations[0].id)
+      );
       setUsers(response);
     } catch (error) {
       console.error("Error fetching users:", error);
