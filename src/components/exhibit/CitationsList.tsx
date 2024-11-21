@@ -3,10 +3,7 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 
 interface Citation {
-  doc: {
-    id: string;
-    title: string;
-  };
+  doc: any;
   sourceTexts: string[];
 }
 
@@ -29,12 +26,14 @@ export default function CitationsList({ citations }: CitationsListProps) {
   return (
     <div>
       {citations.map((citation, index) => (
-        <div key={index} className="text-sm mb-2 flex justify-between">
+        <div key={index} className="text-xs mb-2 flex justify-between gap-4">
           <Link
-            href={`/documents?documentId=${citation.doc.id}`}
+            href={`/documents?caseId=${citation.doc.caseId}&documentId=${citation.doc.id}`}
             className="flex"
           >
-            <div className="underline text-[#056cf3]">{citation.doc.title}</div>{" "}
+            <div className="underline text-[#056cf3] break-all">
+              {citation.doc.title}
+            </div>{" "}
             <div className="text-[#989898] ml-2">as</div>
           </Link>
           <div className="relative">
@@ -42,12 +41,14 @@ export default function CitationsList({ citations }: CitationsListProps) {
               ref={contentRef}
               className={`text-[#989898] text-sm italic ${
                 opened ? "max-h-[1000px]" : "max-h-[70px]"
-              } overflow-y-hidden transition-[max-height] duration-300 ease-in-out`}
+              } overflow-y-hidden transition-[max-height] duration-300 ease-in-out flex flex-col gap-1 max-w-[150px]`}
               onMouseEnter={() => setHovered(true)}
               onMouseLeave={() => setHovered(false)}
             >
               {citation.sourceTexts.map((text, i) => (
-                <div key={i}>{text}</div>
+                <div key={i} className="break-all">
+                  {text},
+                </div>
               ))}
               {!opened && shouldShowControls && (
                 <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none" />
@@ -55,7 +56,10 @@ export default function CitationsList({ citations }: CitationsListProps) {
               {hovered && shouldShowControls && (
                 <div
                   className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex justify-center items-center border bg-white hover:text-black h-8 w-8 rounded-full hover:border-black duration-300`}
-                  onClick={() => setOpened(!opened)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpened(!opened);
+                  }}
                 >
                   {opened ? <IconEyeOff size={16} /> : <IconEye size={16} />}
                 </div>

@@ -5,12 +5,13 @@ import { useGetIdentity } from "@refinedev/core";
 import { IUser } from "@/types/types";
 import { Table, type TableColumnType } from "antd";
 import DeleteConfirmModal from "@components/common/DeleteBtnWithConfirmModal";
-import { IconTrash } from "@tabler/icons-react";
+import { IconInfoCircle, IconTrash } from "@tabler/icons-react";
 import {
   getUserOrganization,
   getUsersOfOrganization,
 } from "@services/keycloak/user.service";
-import { LoadingOverlay } from "@mantine/core";
+import { Alert, LoadingOverlay } from "@mantine/core";
+import pRetry from "p-retry";
 export default function Teams() {
   const [users, setUsers] = useState<IUser[]>([]);
   const { data: userData, isLoading: isUserDataLoading } =
@@ -20,10 +21,20 @@ export default function Teams() {
     if (!userData) return;
     const getOrganizationData = async () => {
       setIsLoading(true);
-      const organizationData = await getUserOrganization(userData.sub);
-      const users = await getUsersOfOrganization(organizationData[0].id);
-      setUsers(users);
-      setIsLoading(false);
+      try {
+        const organizationData = await pRetry(() =>
+          getUserOrganization(userData.sub)
+        );
+        const users = await pRetry(() =>
+          getUsersOfOrganization(organizationData[0].id)
+        );
+        setUsers(users);
+      } catch (error) {
+        console.error("Failed to fetch organization data:", error);
+        setUsers([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
     getOrganizationData();
   }, [userData]);
@@ -70,6 +81,18 @@ export default function Teams() {
   return (
     <div className="mt-2 relative">
       <div className="text-2xl text-[#292929] font-bold pb-4">Teams</div>
+      {users.length === 0 && (
+        <div className="mb-4">
+          <Alert
+            variant="light"
+            color="yellow"
+            title="You are not a member of any team"
+            icon={<IconInfoCircle />}
+          >
+            Please join a team to continue.
+          </Alert>
+        </div>
+      )}
       <div className="text-xs bg-white rounded-lg relative">
         <LoadingOverlay
           visible={isLoading || isUserDataLoading}

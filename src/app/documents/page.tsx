@@ -268,8 +268,12 @@ export default function DocumentList() {
   }, [documents, dateRange, searchKey]);
 
   useEffect(() => {
-    if (documentId && mainDocuments.length > 0) {
+    if (mainDocuments.length == 0) return;
+    console.log(mainDocuments);
+    if (documentId) {
       setExpandedRowKeys([documentId]);
+    } else {
+      setExpandedRowKeys([mainDocuments[0].id]);
     }
   }, [documentId, mainDocuments]);
 
@@ -284,7 +288,9 @@ export default function DocumentList() {
         <div className="flex justify-between">
           <div>
             <div className="text-lg text-[#292929]">
-              <span className="text-xl font-semibold mr-2">{matter?.title}</span>
+              <span className="text-xl font-semibold mr-2">
+                {matter?.title}
+              </span>
               /Documents
             </div>
             <div className="text-[#7c7c7c] py-2">

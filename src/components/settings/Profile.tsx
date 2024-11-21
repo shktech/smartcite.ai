@@ -17,6 +17,7 @@ import {
   updateUser,
 } from "@services/keycloak/user.service";
 import { Notifications, notifications } from "@mantine/notifications";
+import pRetry from "p-retry";
 
 interface FormValues {
   email: string;
@@ -38,7 +39,8 @@ export default function Profile() {
   const [userInfo, setUserInfo] = useState({ email: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
-  const { data: userData, isLoading: isUserDataLoading } = useGetIdentity<any>();
+  const { data: userData, isLoading: isUserDataLoading } =
+    useGetIdentity<any>();
 
   const form = useForm<FormValues>({
     initialValues: {
@@ -70,7 +72,7 @@ export default function Profile() {
       if (!userData) return;
 
       const token = localStorage.getItem("accessToken") as string;
-      const res = await getUserById(userData.sub, token);
+      const res = await pRetry(() => getUserById(userData.sub, token));
 
       setUserInfo(res);
       form.setValues({
@@ -106,7 +108,7 @@ export default function Profile() {
           practiceArea: [form.values.practiceArea],
         },
       };
-      await updateUser(userData.sub, payload);
+      await pRetry(() => updateUser(userData.sub, payload));
       notifications.show({
         title: "Profile updated successfully",
         message: "",
@@ -129,11 +131,13 @@ export default function Profile() {
 
     setIsPasswordLoading(true);
     try {
-      await updatePassword(
-        userData.sub,
-        userData.email,
-        passwordForm.values.oldPassword,
-        passwordForm.values.newPassword
+      await pRetry(() =>
+        updatePassword(
+          userData.sub,
+          userData.email,
+          passwordForm.values.oldPassword,
+          passwordForm.values.newPassword
+        )
       );
       notifications.show({
         title: "Password updated successfully",
@@ -156,10 +160,11 @@ export default function Profile() {
     label: string,
     name: keyof FormValues,
     placeholder: string,
+    required: boolean = true,
     disabled?: boolean
   ) => (
     <TextInput
-      required
+      required={required}
       label={label}
       placeholder={placeholder}
       value={form.values[name]}
@@ -223,9 +228,7 @@ export default function Profile() {
               {renderFormField("Last Name", "lastName", "Enter last name here")}
             </div>
             <div>
-              <div className="text-black text-sm mb-1">
-                Phone number<span className="text-red-500 ml-1">*</span>
-              </div>
+              <div className="text-black text-sm mb-1">Phone number</div>
               <PhoneInput
                 placeholder="Enter phone number"
                 country={"us"}
@@ -236,25 +239,34 @@ export default function Profile() {
             {renderFormField(
               "Law Firm Name",
               "lawFirmName",
-              "Enter law firm name here"
+              "Enter law firm name here",
+              false
             )}
             {renderFormField(
               "License Number",
               "licenseNumber",
-              "Enter license number here"
+              "Enter license number here",
+              false
             )}
             {renderFormField(
               "Practice Area",
               "practiceArea",
-              "Enter practice area here"
+              "Enter practice area here",
+              false
             )}
-            <Button
-              variant="default"
-              style={{ width: "150px", fontWeight: "normal" }}
-              type="submit"
-            >
-              Update Profile
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                variant="filled"
+                style={{
+                  width: "150px",
+                  fontWeight: "normal",
+                  backgroundColor: "#333333",
+                }}
+                type="submit"
+              >
+                Update Profile
+              </Button>
+            </div>
           </div>
         </form>
         <form
@@ -286,13 +298,19 @@ export default function Profile() {
               "confirmPassword",
               "Enter confirm password here"
             )}
-            <Button
-              variant="default"
-              style={{ width: "150px", fontWeight: "normal" }}
-              type="submit"
-            >
-              Update Password
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                variant="filled"
+                style={{
+                  width: "150px",
+                  fontWeight: "normal",
+                  backgroundColor: "#333333",
+                }}
+                type="submit"
+              >
+                Update Password
+              </Button>
+            </div>
           </div>
         </form>
       </div>
