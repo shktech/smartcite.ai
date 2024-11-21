@@ -62,6 +62,7 @@ const UploadingState = {
 };
 
 const ProcessingStatus = {
+  IN_PROGRESS: "IN_PROGRESS",
   PENDING: "PENDING",
   COMPLETED: "COMPLETED",
   FAILED: "FAILED",
@@ -157,7 +158,11 @@ const CaseEditPage = () => {
 
   const getGeneralStateText = (doc: IDocument) => {
     if (doc.processingStatus === ProcessingStatus.PENDING) {
-      return "Document is currently processing...";
+      return "Document is currently initializing...";
+    }
+
+    if (doc.processingStatus === ProcessingStatus.IN_PROGRESS) {
+      return "Document is currently in progress...";
     }
 
     if (doc.processingStatus === ProcessingStatus.COMPLETED) {
@@ -167,9 +172,25 @@ const CaseEditPage = () => {
       if (
         doc.citationsExtractionStatus === CitationsExtractionStatus.COMPLETED
       ) {
-        return "Citation is successfully extracted";
+        return "Citations are successfully extracted";
       }
       return "Extracting citations...";
+    }
+
+    return "Document processing failed";
+  };
+
+  const getExhibitGeneralStateText = (doc: IDocument) => {
+    if (doc.processingStatus === ProcessingStatus.PENDING) {
+      return "Document is currently initializing...";
+    }
+
+    if (doc.processingStatus === ProcessingStatus.IN_PROGRESS) {
+      return "Document is currently in progress...";
+    }
+
+    if (doc.processingStatus === ProcessingStatus.COMPLETED) {
+      return "Document is successfully processed";
     }
 
     return "Document processing failed";
@@ -394,7 +415,12 @@ const CaseEditPage = () => {
                   <div className="w-10 pl-3">{_i + 1}</div>
                   <div className="flex-1 text-[#0550b3] truncate">
                     <div className="truncate flex items-center gap-2">
-                      <Link href={`/documents?caseId=${caseId}&documentId=${doc.id}`} className="truncate underline">{doc.title}</Link>
+                      <Link
+                        href={`/documents?caseId=${caseId}&documentId=${doc.id}`}
+                        className="truncate underline"
+                      >
+                        {doc.title}
+                      </Link>
                       <div className="flex-1">{getGeneralStateBadge(doc)}</div>
                     </div>
                     <div className="text-[#bdbdbd] text-sm mt-1 truncate">
@@ -479,12 +505,20 @@ const CaseEditPage = () => {
                     )}`}
                   >
                     <div className="w-20 pl-6">{_i + 1}</div>
-                    <div className="flex-1 text-[#0550b3] truncate flex items-center gap-2">
-                      <Link href={`/exhibits?caseId=${caseId}&documentId=${selMDocId}`} className="truncate underline">{doc.title}</Link>
-                      <div className="flex-1">
-                        <div className="w-4 h-4 rounded-full bg-[#4bae4f] flex items-center justify-center text-white">
-                          <IconCheck size={10} />
+                    <div className="flex-1 text-[#0550b3] truncate gap-2">
+                      <div className="truncate flex items-center gap-2">
+                        <Link
+                          href={`/exhibits?caseId=${caseId}&documentId=${selMDocId}`}
+                          className="truncate underline"
+                        >
+                          {doc.title}
+                        </Link>
+                        <div className="flex-1">
+                          {getGeneralStateBadge(doc)}
                         </div>
+                      </div>
+                      <div className="text-[#bdbdbd] text-sm mt-1 truncate">
+                        {getExhibitGeneralStateText(doc)}
                       </div>
                     </div>
                     <div className="w-20" onClick={(e) => e.stopPropagation()}>
@@ -510,6 +544,11 @@ const CaseEditPage = () => {
                           {getUploadingStateBadge(uploadingStates[i])}
                         </div>
                       </div>
+                      <div className="text-[#bdbdbd] text-sm mt-1 truncate">
+                        {uploadingStates[i] === UploadingState.DOING
+                          ? "Document is currently uploading..."
+                          : "Document is successfully uploaded"}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -527,28 +566,30 @@ const CaseEditPage = () => {
                   label="Exhibit List is Empty"
                 />
               ) : (
-                selMDocId && <Dropzone
-                  p={0}
-                  multiple
-                  radius="xl"
-                  maxSize={30 * 1024 ** 2}
-                  onDrop={(files) =>
-                    handleUploadFile(files, DocType.MAIN, DocType.MAIN)
-                  }
-                  accept={["application/pdf"]}
-                  className="flex-1 rounded-none flex items-center justify-center border-0"
-                >
-                  <div className="flex justify-center items-center cursor-pointer h-full flex-col py-10">
-                    <IconUpload size={40} color="black" />
-                    <div className="text-base text-black mt-3">
-                      Upload Document
+                selMDocId && (
+                  <Dropzone
+                    p={0}
+                    multiple
+                    radius="xl"
+                    maxSize={30 * 1024 ** 2}
+                    onDrop={(files) =>
+                      handleUploadFile(files, DocType.EXHIBIT, selMDocId)
+                    }
+                    accept={["application/pdf"]}
+                    className="flex-1 rounded-none flex items-center justify-center border-0"
+                  >
+                    <div className="flex justify-center items-center cursor-pointer h-full flex-col py-10">
+                      <IconUpload size={40} color="black" />
+                      <div className="text-base text-black mt-3">
+                        Upload Document
+                      </div>
+                      <div className="text-[#7c7c7c] text-center px-4">
+                        Drag your file into this box or click &quot;Upload
+                        Document&quot; to get started
+                      </div>
                     </div>
-                    <div className="text-[#7c7c7c] text-center px-4">
-                      Drag your file into this box or click &quot;Upload
-                      Document&quot; to get started
-                    </div>
-                  </div>
-                </Dropzone>
+                  </Dropzone>
+                )
               )}
               {!selMDocId && (
                 <div className="flex-1 rounded-none flex items-center justify-center">

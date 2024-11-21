@@ -66,16 +66,14 @@ const ExhibitDetailDrawer = ({
             <div className="p-4">
               <div className="text-[#056cf3] underline">{selExh?.title}</div>
               <div className="#292929 mt-3 leading-6">
-                This Non-Disclosure Agreement (NDA) is a binding contact between
-                ABC Corp and XYZ Inc to protect confidential information shared
-                during their collaboration. Both parties agree to keep all
-                proprietary data, trade secrets, and sensitive information
-                disclosed during their partnership strictly confidential and not
-                to share it with any third parties.
+                Document summary is being generated...
               </div>
               <div className="text-[#292929] mt-4">Cited in</div>
               {selExh?.citedInMainDocuments.map((citedInMainDocument: any) => (
-                <div className="flex justify-between mt-4 gap-4" key={citedInMainDocument.id}>
+                <div
+                  className="flex justify-between mt-4 gap-4"
+                  key={citedInMainDocument.id}
+                >
                   <Link
                     href={`/documents?caseId=${citedInMainDocument.doc.caseId}&documentId=${citedInMainDocument.doc.id}`}
                     className="text-[#056cf3] underline"

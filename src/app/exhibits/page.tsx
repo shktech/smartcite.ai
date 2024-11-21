@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Input, LoadingOverlay } from "@mantine/core";
-import type { TableColumnType } from "antd";
+import { type TableColumnType } from "antd";
 import { useNavigation, useOne, useTable } from "@refinedev/core";
 import { Layout as BaseLayout } from "@/components/layout";
 import { IconClick, IconEye, IconSearch } from "@tabler/icons-react";
@@ -30,11 +30,10 @@ export default function DocumentList() {
   const [selExh, setSelExh] = useState<any>();
   const [citations, setCitations] = useState<ICitation[]>([]);
   const [mainDocuments, setMainDocuments] = useState<any[]>([]);
+  const [selDoc, setSelDoc] = useState<any>();
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
-  const [expandedMainDocs, setExpandedMainDocs] = useState<string[]>([
-    documentId || "",
-  ]);
+  const [expandedMainDocs, setExpandedMainDocs] = useState<string[]>([]);
   const { data: caseData, isLoading: caseLoading } = useOne<ICase>({
     resource: "cases",
     id: caseId || "",
@@ -44,9 +43,9 @@ export default function DocumentList() {
     resource: `cases/${caseId}/documents`,
     syncWithLocation: false,
   }).tableQueryResult;
-
-  const handleExhibitClick = (record: any) => {
-    setSelExh(record);
+  
+  const handleDocumentClick = (record: any) => {
+    setSelDoc(record);
   };
 
   const handleViewDetails = (record: any) => {
@@ -182,6 +181,16 @@ export default function DocumentList() {
     );
   }, [documents, searchKey, docLoading, citationLoading]);
 
+  useEffect(() => {
+    if (mainDocuments.length == 0) return;
+    if (documentId) {
+      setExpandedMainDocs([documentId]);
+    } else {
+      setExpandedMainDocs([mainDocuments[0].id]);
+      setSelExh(mainDocuments[0].exhibits[0]);
+    }
+  }, [documentId, mainDocuments]);
+
   // useEffect(() => {
   //   if (
   //     !documents ||
@@ -227,19 +236,21 @@ export default function DocumentList() {
       title: "#",
       dataIndex: "",
       key: "index",
-      width: "10%",
+      width: "5%",
       render: (_, __, index) => <div className="">{index + 1}</div>,
     },
     {
       title: "Main Document",
       dataIndex: "title",
       key: "title",
-      width: "30%",
+      width: "25%",
       render: (title: string, record: any) => (
         <>
           <Link
             href={`/documents?caseId=${record.caseId}&documentId=${record.id}`}
-            className="underline text-[#056cf3]"
+            className={`underline text-[#056cf3] break-all border-l-4 pl-2 py-2 ${
+              selDoc?.id === record.id ? "border-l-[#056cf3]" : ""
+            }`}
           >
             {title}
           </Link>
@@ -286,14 +297,15 @@ export default function DocumentList() {
       dataIndex: "title",
       key: "title",
       width: "35%",
-      render: (title: string) => (
-        <div className="text-xs">
+      render: (title: string, record: any) => (
+        <div
+          className={`text-xs border-l-4 pl-2 ${
+            selDoc?.id === record.id ? "border-l-[#056cf3]" : ""
+          }`}
+        >
           <div className="underline text-[#056cf3]">{title}</div>
-          <div className="text-[#989898] line-clamp-2 text-xs mt-1">
-            This Non-Disclosure Agreement (NDA) is a binding contract between
-            ABC Corp and XYZ Inc to protect confidential information shared
-            during their collaboration. Both parties agree to keep all
-            proprietary data, trade s
+          <div className="text-[#989898] line-clamp-2 text-xs mt-1 break-all">
+            Document summary is being generated...
           </div>
         </div>
       ),
@@ -430,6 +442,9 @@ export default function DocumentList() {
               columns={getMainDocColumns()}
               dataSource={mainDocuments}
               pagination={false}
+              onRow={(record: any) => ({
+                onClick: () => handleDocumentClick(record),
+              })}
               expandable={{
                 expandedRowKeys: expandedMainDocs,
                 onExpand: (expanded: boolean, record: any) => {
@@ -446,7 +461,7 @@ export default function DocumentList() {
                       dataSource={record.exhibits}
                       pagination={false}
                       onRow={(record: any) => ({
-                        onClick: () => handleExhibitClick(record),
+                        onClick: () => handleDocumentClick(record),
                       })}
                     />
                   </div>
@@ -470,7 +485,7 @@ export default function DocumentList() {
                 </div>
               </div>
             ) : (
-              <PdfViewer mediaUrl={selExh?.mediaUrl} />
+              <PdfViewer mediaUrl={selDoc?.mediaUrl} />
             )}
           </div>
         </div>

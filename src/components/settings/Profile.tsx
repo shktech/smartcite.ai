@@ -160,10 +160,11 @@ export default function Profile() {
     label: string,
     name: keyof FormValues,
     placeholder: string,
+    required: boolean = true,
     disabled?: boolean
   ) => (
     <TextInput
-      required
+      required={required}
       label={label}
       placeholder={placeholder}
       value={form.values[name]}
@@ -227,9 +228,7 @@ export default function Profile() {
               {renderFormField("Last Name", "lastName", "Enter last name here")}
             </div>
             <div>
-              <div className="text-black text-sm mb-1">
-                Phone number<span className="text-red-500 ml-1">*</span>
-              </div>
+              <div className="text-black text-sm mb-1">Phone number</div>
               <PhoneInput
                 placeholder="Enter phone number"
                 country={"us"}
@@ -240,25 +239,34 @@ export default function Profile() {
             {renderFormField(
               "Law Firm Name",
               "lawFirmName",
-              "Enter law firm name here"
+              "Enter law firm name here",
+              false
             )}
             {renderFormField(
               "License Number",
               "licenseNumber",
-              "Enter license number here"
+              "Enter license number here",
+              false
             )}
             {renderFormField(
               "Practice Area",
               "practiceArea",
-              "Enter practice area here"
+              "Enter practice area here",
+              false
             )}
-            <Button
-              variant="default"
-              style={{ width: "150px", fontWeight: "normal" }}
-              type="submit"
-            >
-              Update Profile
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                variant="filled"
+                style={{
+                  width: "150px",
+                  fontWeight: "normal",
+                  backgroundColor: "#333333",
+                }}
+                type="submit"
+              >
+                Update Profile
+              </Button>
+            </div>
           </div>
         </form>
         <form
@@ -290,13 +298,19 @@ export default function Profile() {
               "confirmPassword",
               "Enter confirm password here"
             )}
-            <Button
-              variant="default"
-              style={{ width: "150px", fontWeight: "normal" }}
-              type="submit"
-            >
-              Update Password
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                variant="filled"
+                style={{
+                  width: "150px",
+                  fontWeight: "normal",
+                  backgroundColor: "#333333",
+                }}
+                type="submit"
+              >
+                Update Password
+              </Button>
+            </div>
           </div>
         </form>
       </div>
