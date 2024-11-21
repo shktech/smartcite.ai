@@ -105,7 +105,7 @@ export default function Page() {
       const adminToken = await pRetry(() => getSuperAdminToken());
       if (!adminToken) throw new Error("Failed to retrieve admin token.");
       const role = localStorage.getItem("signupRole");
-      const group = role === RoleOptiosn.INDIVIDUAL ? Group.USER : Group.ADMIN;
+      const group = role === RoleOptiosn.ORGANIZATION ? Group.ADMIN : Group.USER;
       const createdUserId = await pRetry(() =>
         registerUser(
           form.values.email,
