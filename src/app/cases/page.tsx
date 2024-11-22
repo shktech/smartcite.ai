@@ -53,7 +53,12 @@ export default function BlogPostList() {
       sorter: (a: ICase, b: ICase) => a.title.localeCompare(b.title),
       sortDirections: ["ascend", "descend"],
       render: (title: string, record: ICase) => (
-        <Link href={`/cases/edit?caseId=${record.id}`} className="underline text-[#056cf3]">{title || 'N/A'}</Link>
+        <Link
+          href={`/cases/edit?caseId=${record.id}`}
+          className="underline text-[#056cf3]"
+        >
+          {title || "N/A"}
+        </Link>
       ),
     },
     {
@@ -73,8 +78,12 @@ export default function BlogPostList() {
       onFilter: (value, record) => record.clientRole === value,
       render: (_: any, record: ICase) => (
         <>
-          <div className="text-sm text-black">{record.client == " " ? 'N/A' : record.client}</div>
-          <div className="text-[#989898] text-xs mt-1">{record.clientRole == " " ? 'N/A' : record.clientRole}</div>
+          <div className="text-sm text-black">
+            {record.client == " " ? "N/A" : record.client}
+          </div>
+          <div className="text-[#989898] text-xs mt-1">
+            {record.clientRole == " " ? "N/A" : record.clientRole}
+          </div>
         </>
       ),
     },
@@ -91,7 +100,7 @@ export default function BlogPostList() {
           }}
           className="px-2 py-1 rounded-md font-semibold"
         >
-          {value == " " ? 'N/A' : value}
+          {value == " " ? "N/A" : value}
         </span>
       ),
     },
@@ -114,13 +123,15 @@ export default function BlogPostList() {
       onFilter: (value, record) =>
         record.assignedLawyers.includes(value as string),
       render: (value) => {
-        return value
-          .split(",")
-          .map((id: string) => {
-            const user = users.find((user) => user.id === id);
-            return user ? user.firstName + " " + user.lastName : null;
-          })
-          .join(", ") || "N/A";
+        return (
+          value
+            .split(",")
+            .map((id: string) => {
+              const user = users.find((user) => user.id === id);
+              return user ? user.firstName + " " + user.lastName : null;
+            })
+            .join(", ") || "N/A"
+        );
       },
     },
     {
@@ -164,7 +175,12 @@ export default function BlogPostList() {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem("accessToken");
-        const response = await pRetry(() => getAllUsers(token as string));
+        const response = await pRetry(() => getAllUsers(token as string), {
+          retries: 5, // Retry 5 times before failing
+          factor: 2, // Exponential backoff factor
+          minTimeout: 1000, // Minimum timeout of 1 second between retries
+          maxTimeout: 5000, // Maximum timeout of 5 seconds between retries
+        });
         setUsers(response);
         setUserLoading(false);
       } catch (error) {

@@ -288,7 +288,7 @@ const AddExhibit = ({
       <div className="text-[#7c7c7c] pb-4">
         Upload an exhibit for the document{" "}
         <span className="text-[#292929]">
-          &apos;Motion for Extension of Time&apos;
+          &apos;{mainDocuments.find((d) => d.id === selectedMainDocId)?.title}&apos;
         </span>
       </div>
       <FileUploadDropzone handleFileChange={setFiles} />
