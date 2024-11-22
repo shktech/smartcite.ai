@@ -111,6 +111,15 @@ const CaseEditPage = () => {
     resource: `cases/${caseId}/documents`,
     hasPagination: false,
   });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetchDocuments();
+    }, 5000); // Poll every 5 seconds
+
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, [refetchDocuments]);
+
   const { mutate: createMutate } = useCreate();
   const { mutate: deleteMutate } = useDelete();
 
