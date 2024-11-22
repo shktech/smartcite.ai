@@ -18,6 +18,7 @@ import {
 } from "@services/keycloak/user.service";
 import { Notifications, notifications } from "@mantine/notifications";
 import pRetry from "p-retry";
+import { SettingLayout } from "@/components/settings/SettingLayout";
 
 interface FormValues {
   email: string;
@@ -35,7 +36,7 @@ interface PasswordFormValues {
   confirmPassword: string;
 }
 
-export default function Profile() {
+export default function ProfilePage() {
   const [userInfo, setUserInfo] = useState({ email: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
@@ -79,10 +80,10 @@ export default function Profile() {
         email: res.email,
         firstName: res.firstName,
         lastName: res.lastName,
-        phone: res?.attributes?.phoneNumber[0] || "",
-        lawFirmName: res?.attributes?.lawFirmName[0] || "",
-        licenseNumber: res?.attributes?.licenseNumber[0] || "",
-        practiceArea: res?.attributes?.practiceArea[0] || "",
+        phone: res?.attributes?.phoneNumber?.[0] || "",
+        lawFirmName: res?.attributes?.lawFirmName?.[0] || "",
+        licenseNumber: res?.attributes?.licenseNumber?.[0] || "",
+        practiceArea: res?.attributes?.practiceArea?.[0] || "",
       });
     };
 
@@ -200,120 +201,126 @@ export default function Profile() {
   );
 
   return (
-    <div>
-      <Notifications position="top-right" zIndex={1000} />
-      <div className="mt-2">
-        <div className="text-2xl text-[#292929] font-bold pb-4">Profile</div>
-        <form
-          onSubmit={handleProfileUpdate}
-          className="bg-white px-5 py-5 rounded-lg relative"
-        >
-          <LoadingOverlay
-            visible={isLoading || isUserDataLoading}
-            zIndex={1000}
-            overlayProps={{ radius: "sm", blur: 2 }}
-            loaderProps={{ color: "black", type: "bars" }}
-          />
-          <div className="text-xl font-semibold text-[#292929] pb-4">
-            General Information
-          </div>
-          <div className="flex flex-col gap-4">
-            {renderFormField("Email", "email", "Enter email here", true)}
-            <div className="grid grid-cols-2 gap-4">
+    <SettingLayout>
+      <div>
+        <Notifications position="top-right" zIndex={1000} />
+        <div className="mt-2">
+          <div className="text-2xl text-[#292929] font-bold pb-4">Profile</div>
+          <form
+            onSubmit={handleProfileUpdate}
+            className="bg-white px-5 py-5 rounded-lg relative"
+          >
+            <LoadingOverlay
+              visible={isLoading || isUserDataLoading}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+              loaderProps={{ color: "black", type: "bars" }}
+            />
+            <div className="text-xl font-semibold text-[#292929] pb-4">
+              General Information
+            </div>
+            <div className="flex flex-col gap-4">
+              {renderFormField("Email", "email", "Enter email here", true)}
+              <div className="grid grid-cols-2 gap-4">
+                {renderFormField(
+                  "First Name",
+                  "firstName",
+                  "Enter first name here"
+                )}
+                {renderFormField(
+                  "Last Name",
+                  "lastName",
+                  "Enter last name here"
+                )}
+              </div>
+              <div>
+                <div className="text-black text-sm mb-1">Phone number</div>
+                <PhoneInput
+                  placeholder="Enter phone number"
+                  country={"us"}
+                  value={form.values.phone}
+                  onChange={(phone) => form.setFieldValue("phone", phone)}
+                />
+              </div>
               {renderFormField(
-                "First Name",
-                "firstName",
-                "Enter first name here"
+                "Law Firm Name",
+                "lawFirmName",
+                "Enter law firm name here",
+                false
               )}
-              {renderFormField("Last Name", "lastName", "Enter last name here")}
+              {renderFormField(
+                "License Number",
+                "licenseNumber",
+                "Enter license number here",
+                false
+              )}
+              {renderFormField(
+                "Practice Area",
+                "practiceArea",
+                "Enter practice area here",
+                false
+              )}
+              <div className="flex justify-end">
+                <Button
+                  variant="filled"
+                  style={{
+                    width: "150px",
+                    fontWeight: "normal",
+                    backgroundColor: "#333333",
+                  }}
+                  type="submit"
+                >
+                  Update Profile
+                </Button>
+              </div>
             </div>
-            <div>
-              <div className="text-black text-sm mb-1">Phone number</div>
-              <PhoneInput
-                placeholder="Enter phone number"
-                country={"us"}
-                value={form.values.phone}
-                onChange={(phone) => form.setFieldValue("phone", phone)}
-              />
+          </form>
+          <form
+            onSubmit={handlePasswordUpdate}
+            className="bg-white px-5 py-5 rounded-lg mt-6 relative"
+          >
+            <LoadingOverlay
+              visible={isPasswordLoading}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+              loaderProps={{ color: "black", type: "bars" }}
+            />
+            <div className="text-xl font-semibold text-[#292929] pb-4">
+              Change Password
             </div>
-            {renderFormField(
-              "Law Firm Name",
-              "lawFirmName",
-              "Enter law firm name here",
-              false
-            )}
-            {renderFormField(
-              "License Number",
-              "licenseNumber",
-              "Enter license number here",
-              false
-            )}
-            {renderFormField(
-              "Practice Area",
-              "practiceArea",
-              "Enter practice area here",
-              false
-            )}
-            <div className="flex justify-end">
-              <Button
-                variant="filled"
-                style={{
-                  width: "150px",
-                  fontWeight: "normal",
-                  backgroundColor: "#333333",
-                }}
-                type="submit"
-              >
-                Update Profile
-              </Button>
+            <div className="flex flex-col gap-4">
+              {renderPasswordFormField(
+                "Old Password",
+                "oldPassword",
+                "Enter old password here"
+              )}
+              {renderPasswordFormField(
+                "New Password",
+                "newPassword",
+                "Enter new password here"
+              )}
+              {renderPasswordFormField(
+                "Confirm Password",
+                "confirmPassword",
+                "Enter confirm password here"
+              )}
+              <div className="flex justify-end">
+                <Button
+                  variant="filled"
+                  style={{
+                    width: "150px",
+                    fontWeight: "normal",
+                    backgroundColor: "#333333",
+                  }}
+                  type="submit"
+                >
+                  Update Password
+                </Button>
+              </div>
             </div>
-          </div>
-        </form>
-        <form
-          onSubmit={handlePasswordUpdate}
-          className="bg-white px-5 py-5 rounded-lg mt-6 relative"
-        >
-          <LoadingOverlay
-            visible={isPasswordLoading}
-            zIndex={1000}
-            overlayProps={{ radius: "sm", blur: 2 }}
-            loaderProps={{ color: "black", type: "bars" }}
-          />
-          <div className="text-xl font-semibold text-[#292929] pb-4">
-            Change Password
-          </div>
-          <div className="flex flex-col gap-4">
-            {renderPasswordFormField(
-              "Old Password",
-              "oldPassword",
-              "Enter old password here"
-            )}
-            {renderPasswordFormField(
-              "New Password",
-              "newPassword",
-              "Enter new password here"
-            )}
-            {renderPasswordFormField(
-              "Confirm Password",
-              "confirmPassword",
-              "Enter confirm password here"
-            )}
-            <div className="flex justify-end">
-              <Button
-                variant="filled"
-                style={{
-                  width: "150px",
-                  fontWeight: "normal",
-                  backgroundColor: "#333333",
-                }}
-                type="submit"
-              >
-                Update Password
-              </Button>
-            </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </div>
+    </SettingLayout>
   );
 }
