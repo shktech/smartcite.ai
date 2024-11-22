@@ -12,6 +12,11 @@ export const Group = {
   USER: "UserGroup",
 };
 
+export const Roles = {
+  ADMIN: "admin",
+  USER: "user",
+};
+
 export const CaseStates = ["Opened", "In Progress", "Closed"];
 
 export const ClientRoles = ["Petitioner", "Respondent"];

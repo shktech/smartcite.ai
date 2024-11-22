@@ -36,6 +36,43 @@ export const getHeaderFromToken = (token: string) => {
   return header;
 };
 
+export const addGroupToUser = async (
+  userId: string,
+  groupId: string,
+  token: string
+) => {
+  try {
+    const addGroupToUser = await axios.put(
+      `${keycloakUrl}/admin/realms/${realmId}/users/${userId}/groups/${groupId}`,
+      {},
+      getHeaderFromToken(token)
+    );
+    console.log("addGroupToUser", addGroupToUser);
+    return "Successfully added group to user";
+  } catch (error) {
+    console.error("Error found:", error);
+    throw error;
+  }
+};
+
+export const removeGroupFromUser = async (
+  userId: string,
+  groupId: string,
+  token: string
+) => {
+  try {
+    const removeGroupFromUser = await axios.delete(
+      `${keycloakUrl}/admin/realms/${realmId}/users/${userId}/groups/${groupId}`,
+      getHeaderFromToken(token)
+    );
+    console.log("removeGroupFromUser", removeGroupFromUser);
+    return "Successfully removed group from user";
+  } catch (error) {
+    console.error("Error found:", error);
+    throw error;
+  }
+};
+
 export const getUserGroup = async (userId: string, token: string) => {
   try {
     const getGroups = await axios.get(

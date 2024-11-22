@@ -8,6 +8,7 @@ import { Table, type TableColumnType } from "antd";
 import DeleteConfirmModal from "@components/common/DeleteBtnWithConfirmModal";
 import { IconTrash } from "@tabler/icons-react";
 import { getFormatedDate } from "@utils/util.functions";
+import { SettingLayout } from "@/components/settings/SettingLayout";
 
 export default function ApiKey() {
   const { mutate: createMutate } = useCreate();
@@ -125,63 +126,65 @@ export default function ApiKey() {
     },
   ];
   return (
-    <div className="mt-2">
-      <div className="text-2xl text-[#292929] font-bold pb-4">API Keys</div>
-      <form onSubmit={handleSubmit} className="bg-white px-5 py-5 rounded-lg">
-        <div className="flex flex-col gap-4">
-          <Input.Wrapper description="Name">
-            <Input
-              name="name"
-              value={newApiKey.name}
-              onChange={handleInputChange}
-              required
-            />
-          </Input.Wrapper>
-          <Button
-            variant="default"
-            style={{ width: "150px", fontWeight: "normal" }}
-            type="submit"
-          >
-            Create API Key
-          </Button>
+    <SettingLayout>
+      <div className="mt-2">
+        <div className="text-2xl text-[#292929] font-bold pb-4">API Keys</div>
+        <form onSubmit={handleSubmit} className="bg-white px-5 py-5 rounded-lg">
+          <div className="flex flex-col gap-4">
+            <Input.Wrapper description="Name">
+              <Input
+                name="name"
+                value={newApiKey.name}
+                onChange={handleInputChange}
+                required
+              />
+            </Input.Wrapper>
+            <Button
+              variant="default"
+              style={{ width: "150px", fontWeight: "normal" }}
+              type="submit"
+            >
+              Create API Key
+            </Button>
+          </div>
+        </form>
+        <div className="mt-6 text-xs bg-white rounded-lg relative">
+          <LoadingOverlay
+            visible={isApikeyLoading || isLoading}
+            zIndex={1000}
+            loaderProps={{ color: "black", type: "bars" }}
+          />
+          <Table<IApiKey>
+            columns={columns}
+            dataSource={apiKeys}
+            components={{
+              header: {
+                cell: (props: any) => (
+                  <th
+                    {...props}
+                    style={{
+                      color: "#989898", // Optional
+                      padding: "12px 16px", // Adjust these values as needed
+                      fontWeight: "semibold",
+                    }}
+                  />
+                ),
+              },
+              body: {
+                cell: (props: any) => (
+                  <td
+                    {...props}
+                    style={{
+                      padding: "6px 16px", // Adjust these values as needed
+                      color: "#7c7c7c",
+                    }}
+                  />
+                ),
+              },
+            }}
+          />
         </div>
-      </form>
-      <div className="mt-6 text-xs bg-white rounded-lg relative">
-        <LoadingOverlay
-          visible={isApikeyLoading || isLoading}
-          zIndex={1000}
-          loaderProps={{ color: "black", type: "bars" }}
-        />
-        <Table<IApiKey>
-          columns={columns}
-          dataSource={apiKeys}
-          components={{
-            header: {
-              cell: (props: any) => (
-                <th
-                  {...props}
-                  style={{
-                    color: "#989898", // Optional
-                    padding: "12px 16px", // Adjust these values as needed
-                    fontWeight: "semibold",
-                  }}
-                />
-              ),
-            },
-            body: {
-              cell: (props: any) => (
-                <td
-                  {...props}
-                  style={{
-                    padding: "6px 16px", // Adjust these values as needed
-                    color: "#7c7c7c",
-                  }}
-                />
-              ),
-            },
-          }}
-        />
       </div>
-    </div>
+    </SettingLayout>
   );
 }

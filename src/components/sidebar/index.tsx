@@ -54,7 +54,7 @@ export const Sidebar = () => {
       </div>
       <div className="">
         <Link
-          href={`/settings`}
+          href={`/settings/profile`}
           className={`px-3 py-3 mx-3 no-underline hover:bg-[#f0f0f0] rounded-lg hover:text-[#0c1e29] duration-500 text-md flex items-center gap-2 ${
             selectedKey === "settings"
               ? "bg-[#f4f4f4] text-[#292929] font-bold"

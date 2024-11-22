@@ -18,8 +18,10 @@ const clientSecret = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_SECRET;
 const getCurrentUser = () => {
   const accessToken = localStorage.getItem("accessToken");
   if (accessToken) {
-    const user = jwt.decode(accessToken as string);
-    return user;
+    const user = jwt.decode(accessToken as string) as any;
+    const keycloakClicnetId = clientId as string;
+    const roles = user?.resource_access?.[keycloakClicnetId]?.roles;
+    return { ...user, roles: roles || [] };
   }
   return null;
 };
