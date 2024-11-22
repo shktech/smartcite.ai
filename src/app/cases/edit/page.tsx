@@ -111,6 +111,15 @@ const CaseEditPage = () => {
     resource: `cases/${caseId}/documents`,
     hasPagination: false,
   });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetchDocuments();
+    }, 5000); // Poll every 5 seconds
+
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, [refetchDocuments]);
+
   const { mutate: createMutate } = useCreate();
   const { mutate: deleteMutate } = useDelete();
 
@@ -178,6 +187,17 @@ const CaseEditPage = () => {
     }
 
     return "Document processing failed";
+  };
+
+  const getExhibitGeneralStateBadge = (doc: IDocument) => {
+    if (doc.processingStatus == ProcessingStatus.COMPLETED) {
+      return (
+        <div className="w-4 h-4 rounded-full bg-[#4bae4f] flex items-center justify-center text-white">
+          <IconCheck size={10} />
+        </div>
+      );
+    }
+    return <Loader color="orange" size={14} />;
   };
 
   const getExhibitGeneralStateText = (doc: IDocument) => {
@@ -514,7 +534,7 @@ const CaseEditPage = () => {
                           {doc.title}
                         </Link>
                         <div className="flex-1">
-                          {getGeneralStateBadge(doc)}
+                          {getExhibitGeneralStateBadge(doc)}
                         </div>
                       </div>
                       <div className="text-[#bdbdbd] text-sm mt-1 truncate">

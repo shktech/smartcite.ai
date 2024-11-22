@@ -43,7 +43,7 @@ export default function DocumentList() {
     resource: `cases/${caseId}/documents`,
     syncWithLocation: false,
   }).tableQueryResult;
-  
+
   const handleDocumentClick = (record: any) => {
     setSelDoc(record);
   };
@@ -76,9 +76,6 @@ export default function DocumentList() {
     );
     return citedInMainDocInfos;
   };
-  useEffect(() => {
-    console.log(citations);
-  }, [citations]);
   useEffect(() => {
     if (!caseId) {
       push(`/cases`);
@@ -187,9 +184,15 @@ export default function DocumentList() {
       setExpandedMainDocs([documentId]);
     } else {
       setExpandedMainDocs([mainDocuments[0].id]);
-      setSelExh(mainDocuments[0].exhibits[0]);
+      setSelDoc(mainDocuments[0].exhibits[0]);
     }
   }, [documentId, mainDocuments]);
+
+  useEffect(() => {
+    if (selDoc) {
+      console.log(selDoc.mediaUrl);
+    }
+  }, [selDoc]);
 
   // useEffect(() => {
   //   if (
@@ -245,16 +248,18 @@ export default function DocumentList() {
       key: "title",
       width: "25%",
       render: (title: string, record: any) => (
-        <>
+        <div
+          className={`border-l-4 pl-2 py-2 ${
+            selDoc?.id === record.id ? "border-l-[#056cf3]" : ""
+          }`}
+        >
           <Link
             href={`/documents?caseId=${record.caseId}&documentId=${record.id}`}
-            className={`underline text-[#056cf3] break-all border-l-4 pl-2 py-2 ${
-              selDoc?.id === record.id ? "border-l-[#056cf3]" : ""
-            }`}
+            className={`underline text-[#056cf3] break-all  `}
           >
             {title}
           </Link>
-        </>
+        </div>
       ),
     },
     {
@@ -476,12 +481,12 @@ export default function DocumentList() {
               documents.length > 0 ? "col-span-1" : "hidden"
             }`}
           >
-            {!selExh ? (
+            {!selDoc ? (
               <div className="flex items-center justify-center h-full flex-col gap-2">
                 <IconClick size={40} />
-                <div className="text-[#292929] mt-4">Exhibit Preview</div>
+                <div className="text-[#292929] mt-4">Document Preview</div>
                 <div className="text-[#989898]">
-                  Hover over an Exhibit to see a PDF Preview
+                  Click on an Document to see a PDF Preview
                 </div>
               </div>
             ) : (
