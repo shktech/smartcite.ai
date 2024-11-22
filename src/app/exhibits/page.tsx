@@ -14,10 +14,13 @@ import AddExhibit from "@/components/exhibit/AddExhibit";
 import ExhibitDetailDrawer from "@/components/exhibit/ExhibitDetailDrawer";
 import { getCitations } from "@services/citation.service";
 import pRetry from "p-retry";
-import PdfViewer from "@components/common/PdfViewer";
+// import PdfViewer from "@components/common/PdfViewer";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import CitationsList from "@components/exhibit/CitationsList";
+import dynamic from "next/dynamic";
+
+const PdfViewer = dynamic(() => import("@components/common/PdfViewer"), { ssr: false });
 
 export default function DocumentList() {
   // State Management
