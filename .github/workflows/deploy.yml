@@ -1,11 +1,12 @@
-name: Deploy Next.js App
+name: Deploy Pre-built Next.js App to Vercel
+
 on:
   push:
     branches:
-      - test
+      - main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -13,11 +14,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Setup Node.js
+      # Step 2: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18  # Change to your Node.js version
+          node-version: 18  # Specify the Node.js version
           cache: 'npm'
 
       # Step 3: Install dependencies
@@ -25,15 +26,15 @@ jobs:
         run: npm install
 
       # Step 4: Build the app
-      - name: Build Next.js app
-        run: npm run build
+      - name: Build Next.js app for Vercel prebuilt
+        run: npx vercel build
 
-      # Step 5: Deploy to Vercel (Optional)
+      # Step 5: Deploy prebuilt `.vercel/output` directory to Vercel
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25.2.0
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ vars.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ vars.VERCEL_PROJECT_ID }} 
+          vercel-project-id: ${{ vars.VERCEL_PROJECT_ID }}
           working-directory: ./
           vercel-args: '--prod --prebuilt'
