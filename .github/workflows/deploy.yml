@@ -3,7 +3,7 @@ name: Deploy Pre-built Next.js App to Vercel
 on:
   push:
     branches:
-      - main
+      - test
 
 jobs:
   build-and-deploy:
