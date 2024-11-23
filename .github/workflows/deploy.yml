@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Vercel Configuration
+        run: vercel pull --environment=production --yes
+
       # Step 4: Build the app
       - name: Build Next.js app for Vercel prebuilt
         run: npx vercel build
