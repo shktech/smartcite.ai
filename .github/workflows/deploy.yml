@@ -37,7 +37,7 @@ jobs:
 
       # Step 4: Build the app
       - name: Build Next.js app for Vercel prebuilt
-        run: npx vercel build
+        run: npx vercel build --environment=production
         env:
             VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
             VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
