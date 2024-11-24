@@ -8,7 +8,6 @@ import {
 } from "@/services/keycloak/user.service";
 import { Notifications, notifications } from "@mantine/notifications";
 import { useState } from "react";
-import pRetry from "p-retry";
 
 export default function AuthenticationForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -17,9 +16,10 @@ export default function AuthenticationForm() {
   const resendEmail = async () => {
     try {
       setIsLoading(true);
-      const adminToken = await pRetry(() => getSuperAdminToken());
-      const sendEmail = await pRetry(() =>
-        sendResetPasswordEmail(userid, adminToken.access_token)
+      const adminToken = await getSuperAdminToken();
+      const sendEmail = await sendResetPasswordEmail(
+        userid,
+        adminToken.access_token
       );
       if (!sendEmail) throw new Error("Error found");
       notifications.show({

@@ -13,7 +13,6 @@ import { useDisclosure } from "@mantine/hooks";
 import AddExhibit from "@/components/exhibit/AddExhibit";
 import ExhibitDetailDrawer from "@/components/exhibit/ExhibitDetailDrawer";
 import { getCitations } from "@services/citation.service";
-import pRetry from "p-retry";
 import PdfViewer from "@components/common/PdfViewer";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -118,7 +117,7 @@ export default function DocumentList() {
         const mainDocs = getMDocs();
         try {
           for (const doc of mainDocs) {
-            const res = (await pRetry(() => getCitations(doc.id))) as any;
+            const res = (await getCitations(doc.id)) as any;
             const newCitations = (res.items as ICitation[]).filter(
               (newCitation) =>
                 !citations.some(

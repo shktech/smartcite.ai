@@ -12,7 +12,6 @@ import { getSuperAdminToken } from "@/services/keycloak/user.service";
 import { getOrganizationById } from "@/services/keycloak/organization.service";
 import { useSearchParams } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
-import pRetry from "p-retry";
 
 export default function AuthenticationForm() {
   const { mutate: login } = useLogin();
@@ -46,9 +45,10 @@ export default function AuthenticationForm() {
 
     const getOrg = async (organizationId: string) => {
       try {
-        const adminToken = await pRetry(() => getSuperAdminToken());
-        const orgData = await pRetry(() =>
-          getOrganizationById(organizationId, adminToken.access_token)
+        const adminToken = await getSuperAdminToken();
+        const orgData = await getOrganizationById(
+          organizationId,
+          adminToken.access_token
         );
         setOrgData(orgData);
       } catch (error) {

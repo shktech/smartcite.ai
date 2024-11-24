@@ -17,7 +17,6 @@ import {
   updateUser,
 } from "@services/keycloak/user.service";
 import { Notifications, notifications } from "@mantine/notifications";
-import pRetry from "p-retry";
 import { SettingLayout } from "@/components/settings/SettingLayout";
 
 interface FormValues {
@@ -73,7 +72,7 @@ export default function ProfilePage() {
       if (!userData) return;
 
       const token = localStorage.getItem("accessToken") as string;
-      const res = await pRetry(() => getUserById(userData.sub, token));
+      const res = await getUserById(userData.sub, token);
 
       setUserInfo(res);
       form.setValues({
@@ -109,7 +108,7 @@ export default function ProfilePage() {
           practiceArea: [form.values.practiceArea],
         },
       };
-      await pRetry(() => updateUser(userData.sub, payload));
+      await updateUser(userData.sub, payload);
       notifications.show({
         title: "Profile updated successfully",
         message: "",
@@ -132,13 +131,11 @@ export default function ProfilePage() {
 
     setIsPasswordLoading(true);
     try {
-      await pRetry(() =>
-        updatePassword(
-          userData.sub,
-          userData.email,
-          passwordForm.values.oldPassword,
-          passwordForm.values.newPassword
-        )
+      await updatePassword(
+        userData.sub,
+        userData.email,
+        passwordForm.values.oldPassword,
+        passwordForm.values.newPassword
       );
       notifications.show({
         title: "Password updated successfully",

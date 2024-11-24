@@ -15,7 +15,7 @@ import {
 } from "@/services/keycloak/user.service";
 import { IconX } from "@tabler/icons-react";
 import { Notifications, notifications } from "@mantine/notifications";
-import pRetry from "p-retry";
+
 interface PageProps {
   userId: string;
 }
@@ -45,25 +45,27 @@ export const CompleteTeamProfile = ({ userId }: PageProps) => {
     try {
       setIsLoading(true);
 
-      const adminToken = await pRetry(() => getSuperAdminToken());
+      const adminToken = await getSuperAdminToken();
       if (!adminToken) throw new Error("Failed to retrieve admin token.");
-      const createdOrgId = await pRetry(() =>
-        createOrganization(
-          form.values.teamName,
-          form.values.numberOfTeamMembers,
-          form.values.adminName,
-          form.values.phone,
-          adminToken?.access_token
-        )
+      const createdOrgId = await createOrganization(
+        form.values.teamName,
+        form.values.numberOfTeamMembers,
+        form.values.adminName,
+        form.values.phone,
+        adminToken?.access_token
       );
       if (!createdOrgId) throw new Error("Failed to create an organization.");
-      const adduserToOrg = await pRetry(() =>
-        addUserToOrganization(userId, createdOrgId, adminToken?.access_token)
+      const adduserToOrg = await addUserToOrganization(
+        userId,
+        createdOrgId,
+        adminToken?.access_token
       );
       if (!adduserToOrg) throw new Error("Failed to add user to organization.");
       for (const email of inviteEmails) {
-        const sendInvite = await pRetry(() =>
-          sendInviteEmail(email, createdOrgId, adminToken?.access_token)
+        const sendInvite = await sendInviteEmail(
+          email,
+          createdOrgId,
+          adminToken?.access_token
         );
         if (!sendInvite) throw new Error("Failed to send invite email.");
       }

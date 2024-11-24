@@ -11,7 +11,6 @@ import {
 } from "@/services/keycloak/user.service";
 import { Notifications, notifications } from "@mantine/notifications";
 import Link from "next/link";
-import pRetry from "p-retry";
 
 export default function Page() {
   const { push } = useNavigation();
@@ -34,15 +33,11 @@ export default function Page() {
 
     try {
       setIsLoading(true);
-      const adminToken = await pRetry(() => getSuperAdminToken());
+      const adminToken = await getSuperAdminToken();
       if (!adminToken) throw new Error("Failed to retrieve admin token.");
-      const user = await pRetry(() =>
-        getUserByEmail(form.values.email, adminToken.access_token)
-      );
+      const user = await getUserByEmail(form.values.email, adminToken.access_token);
       if (!user) throw new Error("Failed to get user by email.");
-      const sendResetPassword = await pRetry(() =>
-        sendResetPasswordEmail(user.id, adminToken.access_token)
-      );
+      const sendResetPassword = await sendResetPasswordEmail(user.id, adminToken.access_token);
       if (!sendResetPassword) throw new Error("Failed to send reset password.");
       setIsLoading(false);
       push(`/auth/forgot-password/verify-email?userid=${user.id}`);

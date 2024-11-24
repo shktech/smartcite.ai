@@ -15,7 +15,6 @@ import {
 } from "@/services/keycloak/user.service";
 import { IconX } from "@tabler/icons-react";
 import { Notifications, notifications } from "@mantine/notifications";
-import pRetry from "p-retry";
 import { getAllGroups } from "@services/keycloak/group.service";
 import { Group } from "@utils/util.constants";
 
@@ -54,22 +53,18 @@ export const CreateOrganization = ({
   });
 
   const handleGroupOperations = async (adminToken: any) => {
-    const groups = await pRetry(() => getAllGroups(adminToken?.access_token));
+    const groups = await getAllGroups(adminToken?.access_token);
     if (!groups) throw new Error("Failed to retrieve groups.");
 
     const adminGroupId = groups.find((group: any) => group.name === Group.ADMIN)?.id;
     const userGroupId = groups.find((group: any) => group.name === Group.USER)?.id;
 
-    const makeUserAdmin = await pRetry(() =>
-      addGroupToUser(userId, adminGroupId, adminToken?.access_token)
-    );
+    const makeUserAdmin = await addGroupToUser(userId, adminGroupId, adminToken?.access_token);
     if (makeUserAdmin !== "Successfully added group to user") {
       throw new Error("Failed to make user admin.");
     }
 
-    const removeUserUser = await pRetry(() =>
-      removeGroupFromUser(userId, userGroupId, adminToken?.access_token)
-    );
+    const removeUserUser = await removeGroupFromUser(userId, userGroupId, adminToken?.access_token);
     if (removeUserUser !== "Successfully removed group from user") {
       throw new Error("Failed to remove user admin.");
     }
@@ -78,20 +73,16 @@ export const CreateOrganization = ({
   const handleOrganizationCreation = async (adminToken: any) => {
     const { teamName, numberOfTeamMembers, adminName, phone } = form.values;
     
-    const createdOrgId = await pRetry(() =>
-      createOrganization(
-        teamName,
-        numberOfTeamMembers,
-        adminName,
-        phone,
-        adminToken?.access_token
-      )
+    const createdOrgId = await createOrganization(
+      teamName,
+      numberOfTeamMembers,
+      adminName,
+      phone,
+      adminToken?.access_token
     );
     if (!createdOrgId) throw new Error("Failed to create an organization.");
 
-    const addUserToOrg = await pRetry(() =>
-      addUserToOrganization(userId, createdOrgId, adminToken?.access_token)
-    );
+    const addUserToOrg = await addUserToOrganization(userId, createdOrgId, adminToken?.access_token);
     if (!addUserToOrg) throw new Error("Failed to add user to organization.");
 
     return createdOrgId;
@@ -99,9 +90,7 @@ export const CreateOrganization = ({
 
   const handleInviteEmails = async (orgId: string, adminToken: any) => {
     for (const email of inviteEmails) {
-      const sendInvite = await pRetry(() =>
-        sendInviteEmail(email, orgId, adminToken?.access_token)
-      );
+      const sendInvite = await sendInviteEmail(email, orgId, adminToken?.access_token);
       if (!sendInvite) throw new Error("Failed to send invite email.");
     }
   };
@@ -113,7 +102,7 @@ export const CreateOrganization = ({
     try {
       setIsLoading(true);
 
-      const adminToken = await pRetry(() => getSuperAdminToken());
+      const adminToken = await getSuperAdminToken();
       if (!adminToken) throw new Error("Failed to retrieve admin token.");
 
       await handleGroupOperations(adminToken);

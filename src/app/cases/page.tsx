@@ -18,7 +18,6 @@ import {
   CaseStateTextColor,
 } from "@/utils/util.constants";
 import { getAllUsers } from "@/services/keycloak/user.service";
-import pRetry from "p-retry";
 const { RangePicker } = DatePicker;
 export default function BlogPostList() {
   const { mutate: deleteMutate } = useDelete();
@@ -175,12 +174,7 @@ export default function BlogPostList() {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem("accessToken");
-        const response = await pRetry(() => getAllUsers(token as string), {
-          retries: 5, // Retry 5 times before failing
-          factor: 2, // Exponential backoff factor
-          minTimeout: 1000, // Minimum timeout of 1 second between retries
-          maxTimeout: 5000, // Maximum timeout of 5 seconds between retries
-        });
+        const response = await getAllUsers(token as string);
         setUsers(response);
         setUserLoading(false);
       } catch (error) {

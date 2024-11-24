@@ -11,7 +11,6 @@ import {
   verifyEmail,
 } from "@/services/keycloak/user.service";
 import { jwtDecode } from "jwt-decode";
-import pRetry from "p-retry";
 
 export default function Page() {
   const searchParams = useSearchParams();
@@ -25,8 +24,8 @@ export default function Page() {
       try {
         const token = await validateInviteToken(key);
         setTokenData(token);
-        const adminToken = await pRetry(() => getSuperAdminToken());
-        await pRetry(() => verifyEmail(token.sub, adminToken.access_token));
+        const adminToken = await getSuperAdminToken();
+        await verifyEmail(token.sub, adminToken.access_token);
         setIsLoading(false);
       } catch (error) {
         console.log(error);

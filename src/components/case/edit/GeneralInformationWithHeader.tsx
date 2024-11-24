@@ -27,7 +27,6 @@ import {
   getUsersOfOrganization,
   getUserOrganization,
 } from "@/services/keycloak/user.service";
-import pRetry from "p-retry";
 import { useDisclosure } from "@mantine/hooks";
 
 interface GeneralInformationWithHeaderProps {
@@ -67,14 +66,10 @@ const GeneralInformationWithHeader = ({
   const fetchUsers = async () => {
     setUsersLoading(true);
     try {
-      const userOrganizations = await pRetry(
-        () => getUserOrganization(userData?.sub as string),
-        { retries: 3 }
+      const userOrganizations = await getUserOrganization(
+        userData?.sub as string
       );
-      const response = await pRetry(
-        () => getUsersOfOrganization(userOrganizations[0].id),
-        { retries: 3 }
-      );
+      const response = await getUsersOfOrganization(userOrganizations[0].id);
       setUsers(response);
     } catch (error) {
       console.error("Error fetching users:", error);

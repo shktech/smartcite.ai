@@ -9,7 +9,6 @@ import "react-phone-input-2/lib/style.css";
 import { useSearchParams } from "next/navigation";
 import { completeProfile } from "@/services/keycloak/user.service";
 import { Notifications, notifications } from "@mantine/notifications";
-import pRetry from "p-retry";
 interface PageProps {
   userId: string;
 }
@@ -36,14 +35,12 @@ export const CompleteProfile = ({ userId }: PageProps) => {
     }
     try {
       setIsLoading(true);
-      const updateUser = await pRetry(() =>
-        completeProfile(
-          userId,
-          form.values.phone,
-          form.values.practiceArea,
-          form.values.lawFirmName,
-          form.values.lawFirmName
-        )
+      const updateUser = await completeProfile(
+        userId,
+        form.values.phone,
+        form.values.practiceArea,
+        form.values.lawFirmName,
+        form.values.lawFirmName
       );
       if (!updateUser) throw new Error("Failed to update user.");
       setIsLoading(false);
