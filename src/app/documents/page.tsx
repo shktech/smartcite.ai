@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Input, LoadingOverlay } from "@mantine/core";
-import { DatePicker } from "antd";
+import { DatePicker, notification } from "antd";
 import type { TableColumnType } from "antd";
 import { useDelete, useNavigation, useOne, useTable } from "@refinedev/core";
 import dayjs from "dayjs";
@@ -56,9 +56,21 @@ export default function DocumentList() {
 
   const matter = caseData?.data;
 
-  const { data: documentData, isLoading: docLoading } = useTable<any>({
+  const {
+    data: documentData,
+    isLoading: docLoading,
+    error: docError,
+  } = useTable<any>({
     resource: `cases/${caseId}/documents`,
     syncWithLocation: false,
+    queryOptions: {
+      onError: (error) => {
+        notification.error({
+          message: "Error",
+          description: "Failed to fetch data. Please try again later.",
+        });
+      },
+    },
   }).tableQueryResult;
 
   useEffect(() => {
@@ -108,11 +120,18 @@ export default function DocumentList() {
       },
       {
         onError: (error) => {
-          console.log(error);
           setLoading(false);
+          notification.error({
+            message: "Error",
+            description: "Failed to delete document. Please try again later.",
+          });
         },
         onSuccess: () => {
           setDocuments(documents.filter((d) => d.id !== doc.id));
+          notification.success({
+            message: "Success",
+            description: "Document deleted successfully.",
+          });
           setLoading(false);
         },
       }
@@ -288,10 +307,15 @@ export default function DocumentList() {
         <div className="flex justify-between">
           <div>
             <div className="text-lg text-[#292929]">
-              <span className="text-xl font-semibold mr-2">
-                {matter?.title}
-              </span>
-              /Documents
+              {matter && (
+                <>
+                  <span className="text-xl font-semibold mr-2">
+                    {matter?.title}
+                  </span>
+                  /
+                </>
+              )}
+              Documents
             </div>
             <div className="text-[#7c7c7c] py-2">
               Manage all your matter-related documents in one place

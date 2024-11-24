@@ -18,7 +18,7 @@ import { ICase, IDocument } from "@/types/types";
 import { DocType, UploadingState } from "@/utils/util.constants";
 import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
 import { useDataProvider } from "@refinedev/core";
-import { Notifications, notifications } from "@mantine/notifications";
+import { notification } from "antd";
 
 // Types
 interface AddDocumentProps {
@@ -70,9 +70,9 @@ const AddDocument: React.FC<AddDocumentProps> = ({ cases, setDocuments }) => {
   };
 
   const handleFinish = () => {
-    notifications.show({
-      title: "Document Added",
-      message: "Document has been added successfully",
+    notification.success({
+      message: "Documents Added",
+      description: "Documents have been added successfully",
     });
     handleCloseModal();
   };
@@ -154,8 +154,16 @@ const AddDocument: React.FC<AddDocumentProps> = ({ cases, setDocuments }) => {
         meta: { skipAutoRefresh: true },
       });
       setupldEFiles((prev) => prev.filter((d) => d.id !== doc.id));
+      notification.success({
+        message: "Success",
+        description: "Document deleted successfully.",
+      });
     } catch (error) {
       console.error("Delete failed:", error);
+      notification.error({
+        message: "Error",
+        description: "Failed to delete document. Please try again later.",
+      });
     } finally {
       setLoading(false);
     }
@@ -255,10 +263,7 @@ const AddDocument: React.FC<AddDocumentProps> = ({ cases, setDocuments }) => {
   const StepTwo = () => (
     <>
       <div className="text-[#7c7c7c] pb-4">
-        Upload an exhibit for the document{" "}
-        <span className="text-[#292929]">
-          &apos;Motion for Extension of Time&apos;
-        </span>
+        Upload an exhibit for the document
       </div>
       <FileUploadDropzone handleFileChange={setFiles} />
       <FileList />
@@ -358,7 +363,6 @@ const AddDocument: React.FC<AddDocumentProps> = ({ cases, setDocuments }) => {
       <Button variant="" color="dark.6" onClick={open}>
         + Add document
       </Button>
-      <Notifications position="top-right" zIndex={1000} />
       <Modal
         opened={opened}
         onClose={handleCloseModal}
