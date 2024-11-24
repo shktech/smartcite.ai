@@ -14,9 +14,10 @@ import {
   sendInviteEmail,
 } from "@/services/keycloak/user.service";
 import { IconX } from "@tabler/icons-react";
-import { Notifications, notifications } from "@mantine/notifications";
+import { Notifications } from "@mantine/notifications";
 import { getAllGroups } from "@services/keycloak/group.service";
 import { Group } from "@utils/util.constants";
+import { notification } from "antd";
 
 interface PageProps {
   userId: string;
@@ -50,29 +51,53 @@ export const CreateOrganization = ({
       phone: "",
       inviteEmail: "",
     },
+    validate: {
+      teamName: (value) => (value.length > 0 ? null : "Team name is required."),
+      adminName: (value) =>
+        value.length > 0 ? null : "Admin name is required.",
+      inviteEmail: (value) =>
+        /^\S+@\S+$/.test(value) ? null : "Please enter a valid email address.",
+    },
   });
 
   const handleGroupOperations = async (adminToken: any) => {
-    const groups = await getAllGroups(adminToken?.access_token);
-    if (!groups) throw new Error("Failed to retrieve groups.");
+    try {
+      const groups = await getAllGroups(adminToken?.access_token);
+      if (!groups) throw new Error("Failed to retrieve groups.");
 
-    const adminGroupId = groups.find((group: any) => group.name === Group.ADMIN)?.id;
-    const userGroupId = groups.find((group: any) => group.name === Group.USER)?.id;
+      const adminGroupId = groups.find(
+        (group: any) => group.name === Group.ADMIN
+      )?.id;
+      const userGroupId = groups.find(
+        (group: any) => group.name === Group.USER
+      )?.id;
 
-    const makeUserAdmin = await addGroupToUser(userId, adminGroupId, adminToken?.access_token);
-    if (makeUserAdmin !== "Successfully added group to user") {
-      throw new Error("Failed to make user admin.");
-    }
+      const makeUserAdmin = await addGroupToUser(
+        userId,
+        adminGroupId,
+        adminToken?.access_token
+      );
 
-    const removeUserUser = await removeGroupFromUser(userId, userGroupId, adminToken?.access_token);
-    if (removeUserUser !== "Successfully removed group from user") {
-      throw new Error("Failed to remove user admin.");
+      if (makeUserAdmin !== "Successfully added group to user") {
+        throw new Error("Failed to make user admin.");
+      }
+
+      const removeUserUser = await removeGroupFromUser(
+        userId,
+        userGroupId,
+        adminToken?.access_token
+      );
+      if (removeUserUser !== "Successfully removed group from user") {
+        throw new Error("Failed to remove user admin.");
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
   const handleOrganizationCreation = async (adminToken: any) => {
     const { teamName, numberOfTeamMembers, adminName, phone } = form.values;
-    
+
     const createdOrgId = await createOrganization(
       teamName,
       numberOfTeamMembers,
@@ -82,7 +107,11 @@ export const CreateOrganization = ({
     );
     if (!createdOrgId) throw new Error("Failed to create an organization.");
 
-    const addUserToOrg = await addUserToOrganization(userId, createdOrgId, adminToken?.access_token);
+    const addUserToOrg = await addUserToOrganization(
+      userId,
+      createdOrgId,
+      adminToken?.access_token
+    );
     if (!addUserToOrg) throw new Error("Failed to add user to organization.");
 
     return createdOrgId;
@@ -90,14 +119,17 @@ export const CreateOrganization = ({
 
   const handleInviteEmails = async (orgId: string, adminToken: any) => {
     for (const email of inviteEmails) {
-      const sendInvite = await sendInviteEmail(email, orgId, adminToken?.access_token);
+      const sendInvite = await sendInviteEmail(
+        email,
+        orgId,
+        adminToken?.access_token
+      );
       if (!sendInvite) throw new Error("Failed to send invite email.");
     }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (form.validate().hasErrors) return;
 
     try {
       setIsLoading(true);
@@ -108,16 +140,22 @@ export const CreateOrganization = ({
       await handleGroupOperations(adminToken);
       const orgId = await handleOrganizationCreation(adminToken);
       await handleInviteEmails(orgId, adminToken);
-
+      notification.success({
+        message: "Success",
+        description: "Emails sent successfully.",
+      });
+      notification.success({
+        message: "Success",
+        description: "Organization created successfully.",
+      });
       setOrganizationId(orgId);
       setIsAdmin(true);
       getOrganizationData();
     } catch (err) {
       console.error(err);
-      notifications.show({
-        title: "Failed to complete your profile",
-        message: "",
-        color: "red",
+      notification.error({
+        message: "Error",
+        description: "Failed to create organization. Please try again later.",
       });
     } finally {
       setIsLoading(false);
@@ -127,6 +165,7 @@ export const CreateOrganization = ({
   const handleEnterEmail = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
+      if (form.validate().hasErrors) return;
       const newEmail = event.currentTarget.value.trim();
       if (newEmail) {
         setInviteEmails([...inviteEmails, newEmail]);

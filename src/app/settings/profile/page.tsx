@@ -16,8 +16,9 @@ import {
   updatePassword,
   updateUser,
 } from "@services/keycloak/user.service";
-import { Notifications, notifications } from "@mantine/notifications";
 import { SettingLayout } from "@/components/settings/SettingLayout";
+import { getAccessToken } from "@services/auth.service";
+import { notification } from "antd";
 
 interface FormValues {
   email: string;
@@ -70,20 +71,25 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userData) return;
-
-      const token = localStorage.getItem("accessToken") as string;
-      const res = await getUserById(userData.sub, token);
-
-      setUserInfo(res);
-      form.setValues({
-        email: res.email,
-        firstName: res.firstName,
-        lastName: res.lastName,
-        phone: res?.attributes?.phoneNumber?.[0] || "",
-        lawFirmName: res?.attributes?.lawFirmName?.[0] || "",
-        licenseNumber: res?.attributes?.licenseNumber?.[0] || "",
-        practiceArea: res?.attributes?.practiceArea?.[0] || "",
-      });
+      try {
+        const token = await getAccessToken();
+        const res = await getUserById(userData.sub, token || "");
+        setUserInfo(res);
+        form.setValues({
+          email: res.email,
+          firstName: res.firstName,
+          lastName: res.lastName,
+          phone: res?.attributes?.phoneNumber?.[0] || "",
+          lawFirmName: res?.attributes?.lawFirmName?.[0] || "",
+          licenseNumber: res?.attributes?.licenseNumber?.[0] || "",
+          practiceArea: res?.attributes?.practiceArea?.[0] || "",
+        });
+      } catch (error) {
+        notification.error({
+          message: "Error",
+          description: "Failed to fetch user data. Please try again later.",
+        });
+      }
     };
 
     fetchUserData();
@@ -108,17 +114,16 @@ export default function ProfilePage() {
           practiceArea: [form.values.practiceArea],
         },
       };
+
       await updateUser(userData.sub, payload);
-      notifications.show({
-        title: "Profile updated successfully",
-        message: "",
-        color: "green",
+      notification.success({
+        message: "Success",
+        description: "Profile updated successfully.",
       });
     } catch (error) {
-      notifications.show({
-        title: "Failed to update profile",
-        message: "",
-        color: "red",
+      notification.error({
+        message: "Error",
+        description: "Failed to update profile. Please try again later.",
       });
     } finally {
       setIsLoading(false);
@@ -137,17 +142,15 @@ export default function ProfilePage() {
         passwordForm.values.oldPassword,
         passwordForm.values.newPassword
       );
-      notifications.show({
-        title: "Password updated successfully",
-        message: "",
-        color: "green",
+      notification.success({
+        message: "Success",
+        description: "Password updated successfully.",
       });
       passwordForm.reset();
     } catch (error) {
-      notifications.show({
-        title: "Failed to update password",
-        message: "Old password is incorrect",
-        color: "red",
+      notification.error({
+        message: "Error",
+        description: "Old password is incorrect.",
       });
     } finally {
       setIsPasswordLoading(false);
@@ -200,7 +203,6 @@ export default function ProfilePage() {
   return (
     <SettingLayout>
       <div>
-        <Notifications position="top-right" zIndex={1000} />
         <div className="mt-2">
           <div className="text-2xl text-[#292929] font-bold pb-4">Profile</div>
           <form

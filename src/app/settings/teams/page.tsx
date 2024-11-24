@@ -47,7 +47,10 @@ export default function TeamsPage() {
     initialValues: {
       inviteEmail: "",
     },
-    validate: {},
+    validate: {
+      inviteEmail: (value) =>
+        /^\S+@\S+$/.test(value) ? null : "Please enter a valid email address.",
+    },
   });
 
   const tableColumns: TableColumnType<IUser>[] = [
@@ -78,16 +81,23 @@ export default function TeamsPage() {
     setState((prev) => ({ ...prev, isLoading: true }));
     try {
       const organizationData = await getUserOrganization(userData.sub);
-      const users = await getUsersOfOrganization(organizationData[0].id);
+      if (organizationData[0]?.id) {
+        const users = await getUsersOfOrganization(organizationData[0].id);
 
-      setState((prev) => ({
-        ...prev,
-        organizationData: organizationData[0],
-        organizationId: organizationData[0].id,
-        users,
-      }));
+        setState((prev) => ({
+          ...prev,
+          organizationData: organizationData[0],
+          organizationId: organizationData[0].id,
+          users,
+        }));
+      }
     } catch (error) {
       console.error("Failed to fetch organization data:", error);
+      notification.error({
+        message: "Error",
+        description:
+          "Failed to fetch organization data. Please try again later.",
+      });
       setState((prev) => ({
         ...prev,
         organizationId: null,
@@ -99,11 +109,13 @@ export default function TeamsPage() {
   };
 
   const handleEnterEmail = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (form.validate().hasErrors) return;
     if (event.key === "Enter") {
       event.preventDefault();
+      console.log(event);
       setState((prev) => ({
         ...prev,
-        inviteEmails: [...prev.inviteEmails, event.currentTarget.value],
+        inviteEmails: [...prev.inviteEmails, form.values.inviteEmail],
       }));
       form.setFieldValue("inviteEmail", "");
     }
