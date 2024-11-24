@@ -17,8 +17,8 @@ import { IDocument } from "@/types/types";
 import { DocType, UploadingState } from "@/utils/util.constants";
 import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
 import { useDataProvider } from "@refinedev/core";
-import { Notifications, notifications } from "@mantine/notifications";
 import FileUploadDropzone from "@/components/documents/FileUploadDropzone";
+import { notification } from "antd";
 
 // Types
 interface AddExhibitProps {
@@ -78,9 +78,9 @@ const AddExhibit = ({
   };
 
   const handleFinish = () => {
-    notifications.show({
-      title: "Document Added",
-      message: "Document has been added successfully",
+    notification.success({
+      message: "Document Added",
+      description: "Document has been added successfully",
     });
     handleModalClose();
   };
@@ -165,8 +165,16 @@ const AddExhibit = ({
         meta: { skipAutoRefresh: true },
       });
       setUploadedExhibitFiles((prev) => prev.filter((d) => d.id !== doc.id));
+      notification.success({
+        message: "Success",
+        description: "Document deleted successfully",
+      });
     } catch (error) {
       console.error("Document deletion failed:", error);
+      notification.error({
+        message: "Error",
+        description: "Failed to delete document. Please try again later.",
+      });
     } finally {
       setLoading(false);
     }
@@ -283,7 +291,8 @@ const AddExhibit = ({
       <div className="text-[#7c7c7c] pb-4">
         Upload an exhibit for the document{" "}
         <span className="text-[#292929]">
-          &apos;{mainDocuments.find((d) => d.id === selectedMainDocId)?.title}&apos;
+          &apos;{mainDocuments.find((d) => d.id === selectedMainDocId)?.title}
+          &apos;
         </span>
       </div>
       <FileUploadDropzone handleFileChange={setFiles} />
@@ -386,7 +395,6 @@ const AddExhibit = ({
       <Button variant="" color="dark.6" onClick={open}>
         + Add Exhibit
       </Button>
-      <Notifications position="top-right" zIndex={1000} />
       <Modal
         opened={opened}
         onClose={handleModalClose}
