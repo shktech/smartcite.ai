@@ -225,7 +225,7 @@ export default function BlogPostList() {
         id: caseId,
       },
       {
-        onError: (error) => {
+        onError: () => {
           setLoading2(false);
           notification.error({
             message: "Error",

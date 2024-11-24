@@ -42,7 +42,7 @@ export default function DocumentList() {
     resource: `cases/${caseId}/documents`,
     syncWithLocation: false,
     queryOptions: {
-      onError: (error) => {
+      onError: () => {
         notification.error({
           message: "Error",
           description: "Failed to fetch data. Please try again later.",

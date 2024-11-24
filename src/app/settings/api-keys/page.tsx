@@ -19,7 +19,7 @@ export default function ApiKey() {
     hasPagination: false,
     resource: "api-keys",
     queryOptions: {
-      onError: (error) => {
+      onError: () => {
         notification.error({
           message: "Error",
           description: "Failed to fetch API keys. Please try again later.",
@@ -45,7 +45,7 @@ export default function ApiKey() {
         },
       },
       {
-        onError: (error) => {
+        onError: () => {
           setIsLoading(false);
           notification.error({
             message: "Error",
@@ -79,7 +79,7 @@ export default function ApiKey() {
         id: apiKeyId,
       },
       {
-        onError: (error) => {
+        onError: () => {
           setIsLoading(false);
           notification.error({
             message: "Error",

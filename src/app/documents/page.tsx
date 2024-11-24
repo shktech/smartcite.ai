@@ -59,12 +59,11 @@ export default function DocumentList() {
   const {
     data: documentData,
     isLoading: docLoading,
-    error: docError,
   } = useTable<any>({
     resource: `cases/${caseId}/documents`,
     syncWithLocation: false,
     queryOptions: {
-      onError: (error) => {
+      onError: () => {
         notification.error({
           message: "Error",
           description: "Failed to fetch data. Please try again later.",
@@ -119,7 +118,7 @@ export default function DocumentList() {
         id: doc.id,
       },
       {
-        onError: (error) => {
+        onError: () => {
           setLoading(false);
           notification.error({
             message: "Error",
