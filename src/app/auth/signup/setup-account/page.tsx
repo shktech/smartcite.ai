@@ -19,7 +19,7 @@ import {
 } from "@/services/keycloak/user.service";
 import { getOrganizationById } from "@/services/keycloak/organization.service";
 import { jwtDecode } from "jwt-decode";
-import { Notifications, notifications } from "@mantine/notifications";
+import { notification } from "antd";
 
 export default function Page() {
   const { push } = useNavigation();
@@ -127,14 +127,17 @@ export default function Page() {
       const sendEmail = await sendVerifyEmail(createdUserId, adminToken.access_token);
       if (!sendEmail) throw new Error("Failed to send verify email.");
       setIsLoading(false);
+      notification.success({
+        message: "Success",
+        description: "Successfully sent a verify email",
+      });
       push(`/auth/signup/verify-email?userid=${createdUserId}`);
     } catch (error: any) {
       setIsLoading(false);
       console.log("Error found", error.response.data.errorMessage);
-      notifications.show({
-        title: "Fail to create an account",
-        message: error.response.data.errorMessage,
-        color: "red",
+      notification.error({
+        message: "Error",
+        description: error.response.data.errorMessage,
       });
     }
     // handleNextStep();
@@ -146,7 +149,6 @@ export default function Page() {
     <div className="h-screen w-full flex items-center justify-center bg-[#fafafa]">
       <GeneralSignupLayout title="Setup Your Account" step={2}>
         <div className="relative">
-          <Notifications position="top-right" zIndex={1000} />
           <LoadingOverlay
             visible={isLoading}
             zIndex={1000}

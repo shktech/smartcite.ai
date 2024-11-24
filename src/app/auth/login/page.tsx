@@ -11,7 +11,7 @@ import { useLogin } from "@refinedev/core";
 import Link from "next/link";
 import { useForm } from "@mantine/form";
 import { FormEvent } from "react";
-import { notifications, Notifications } from "@mantine/notifications";
+import { notification } from "antd";
 // import { IconAntennaBars5 } from "@tabler/icons-react";
 
 export default function AuthenticationForm() {
@@ -38,11 +38,10 @@ export default function AuthenticationForm() {
       { email: form.values.email, password: form.values.password },
       {
         onError: (error) => {
-          console.log(error)
-          notifications.show({
-            title: "Fail to login",
-            message: "Email or Password is incorrect",
-            color: "red",
+          console.log(error);
+          notification.error({
+            message: "Error",
+            description: "Email or Password is incorrect",
           });
         },
       }
@@ -52,7 +51,6 @@ export default function AuthenticationForm() {
   return (
     <MantineProvider>
       <div className="h-screen w-full flex items-center justify-center bg-[#fafafa]">
-        <Notifications position="top-right" zIndex={1000} />
         <div className="w-[500px] flex flex-col p-8 bg-white rounded-lg shadow-2xl relative">
           <LoadingOverlay
             visible={isLoginLoading}

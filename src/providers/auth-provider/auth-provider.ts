@@ -9,6 +9,7 @@ import { Group, RoleOptiosn } from "@/utils/util.constants";
 import axios from "axios";
 import jwt from "jsonwebtoken";
 import { jwtDecode } from "jwt-decode";
+import { notification } from "antd";
 const keycloakUrl = process.env.NEXT_PUBLIC_KEYCLOAK_URL;
 const realmId = process.env.NEXT_PUBLIC_KEYCLOAK_REALM_ID;
 const clientId = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID;
@@ -56,6 +57,10 @@ export const authProvider: AuthProvider = {
     if (response.status === 200) {
       localStorage.setItem("accessToken", response.data.access_token);
       localStorage.setItem("refreshToken", response.data.refresh_token);
+      notification.success({
+        message: "Success",
+        description: "Logged in successfully.",
+      });
       return {
         success: true,
         redirectTo: "/cases",
@@ -69,7 +74,10 @@ export const authProvider: AuthProvider = {
   logout: async () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
-
+    notification.success({
+      message: "Success",
+      description: "Logged out successfully.",
+    });
     return {
       success: true,
       redirectTo: "/auth/login",

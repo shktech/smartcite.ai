@@ -8,7 +8,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { useSearchParams } from "next/navigation";
 import { completeProfile } from "@/services/keycloak/user.service";
-import { Notifications, notifications } from "@mantine/notifications";
+import { notification } from "antd";
 interface PageProps {
   userId: string;
 }
@@ -48,10 +48,9 @@ export const CompleteProfile = ({ userId }: PageProps) => {
     } catch (err) {
       setIsLoading(false);
       console.log(err);
-      notifications.show({
-        title: "Fail to complete your profile",
-        message: "",
-        color: "red",
+      notification.error({
+        message: "Error",
+        description: "Failed to complete your profile. Please try again later.",
       });
     }
   };
@@ -63,7 +62,6 @@ export const CompleteProfile = ({ userId }: PageProps) => {
         overlayProps={{ radius: "sm", blur: 2 }}
         loaderProps={{ color: "pink", type: "bars" }}
       />
-      <Notifications position="top-right" zIndex={1000} />
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col gap-4 mt-6">
           <div>

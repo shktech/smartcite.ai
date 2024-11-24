@@ -14,7 +14,6 @@ import {
   sendInviteEmail,
 } from "@/services/keycloak/user.service";
 import { IconX } from "@tabler/icons-react";
-import { Notifications } from "@mantine/notifications";
 import { getAllGroups } from "@services/keycloak/group.service";
 import { Group } from "@utils/util.constants";
 import { notification } from "antd";
@@ -186,7 +185,6 @@ export const CreateOrganization = ({
         overlayProps={{ radius: "sm", blur: 2 }}
         loaderProps={{ color: "pink", type: "bars" }}
       />
-      <Notifications position="top-right" zIndex={1000} />
       <div className="text-2xl text-[#292929] font-bold pb-4">
         Create Organization
       </div>
