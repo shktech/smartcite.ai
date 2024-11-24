@@ -32,7 +32,7 @@ import {
   ClientRoles,
   DocType,
 } from "@/utils/util.constants";
-import { Select } from "antd";
+import { notification, Select } from "antd";
 import { IDocument } from "@/types/types";
 import {
   uploadFile,
@@ -185,7 +185,6 @@ export default function CreateCase() {
           doc.type,
           doc.type
         );
-
         if (!createdMainDocument)
           throw new Error("Failed to create main document");
 
@@ -203,11 +202,18 @@ export default function CreateCase() {
             throw new Error("Failed to create exhibit document");
         }
       }
-
+      notification.success({
+        message: "Success",
+        description: "Case created successfully",
+      });
       push("/cases");
     } catch (error) {
       console.error(error);
-      push("/cases");
+      notification.error({
+        message: "Error",
+        description: "Failed to create case",
+      });
+      // push("/cases");
     } finally {
       setIsLoading(false);
     }
@@ -228,7 +234,10 @@ export default function CreateCase() {
     const uploadPromises = fs.map(async (file, i) => {
       try {
         const presignedUrl = await getMediaPresignedUrl();
-        const uploadFileResponse = await uploadFile(file, presignedUrl.uploadUrl);
+        const uploadFileResponse = await uploadFile(
+          file,
+          presignedUrl.uploadUrl
+        );
 
         if (!uploadFileResponse) throw new Error("Failed to upload file");
 
@@ -247,7 +256,10 @@ export default function CreateCase() {
         );
         newDocuments.push(createdDocument);
       } catch (error: any) {
-        alert("Failed to upload file: " + error.message);
+        notification.error({
+          message: "Error",
+          description: "Failed to upload file",
+        });
         setUploadingStates((prev) =>
           prev.map((p, _i) => (_i === i ? UploadingState.FAIL : p))
         );
@@ -284,11 +296,17 @@ export default function CreateCase() {
     const fetchUsers = async () => {
       setUsersLoading(true);
       try {
-        const userOrganizations = await getUserOrganization(userData?.sub as string);
+        const userOrganizations = await getUserOrganization(
+          userData?.sub as string
+        );
         const response = await getUsersOfOrganization(userOrganizations[0].id);
         setUsers(response);
       } catch (error) {
         console.error("Error fetching users:", error);
+        notification.error({
+          message: "Error",
+          description: "Failed to fetch data",
+        });
       } finally {
         setUsersLoading(false);
       }

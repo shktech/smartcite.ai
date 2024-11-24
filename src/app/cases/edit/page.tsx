@@ -34,6 +34,7 @@ import EmptyDropzone from "@/components/case/edit/EmptyDropzone";
 import { getCitations } from "@services/citation.service";
 import { Dropzone } from "@mantine/dropzone";
 import Link from "next/link";
+import { notification } from "antd";
 
 // Constants
 const PANEL_CONFIGS = {
@@ -268,7 +269,10 @@ const CaseEditPage = () => {
         );
         newDocuments.push(createdDocument);
       } catch (error: any) {
-        alert("Failed to upload file: " + error.message);
+        notification.error({
+          message: "Error",
+          description: "Failed to upload file",
+        });
         setUploadingStates((prev) =>
           prev.map((p, _i) => (_i === i ? UploadingState.FAIL : p))
         );

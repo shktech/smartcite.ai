@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Button, Input, LoadingOverlay } from "@mantine/core";
-import { DatePicker, Table } from "antd";
+import { DatePicker, notification, Table } from "antd";
 import type { TableColumnType } from "antd";
 import { useDelete, useTable } from "@refinedev/core";
 import Link from "next/link";
@@ -227,11 +227,17 @@ export default function BlogPostList() {
       {
         onError: (error) => {
           setLoading2(false);
-          console.log(error);
+          notification.error({
+            message: "Error",
+            description: "Failed to delete case",
+          });
         },
         onSuccess: () => {
           setLoading2(false);
-          console.log("success");
+          notification.success({
+            message: "Success",
+            description: "Case deleted successfully",
+          });
         },
       }
     );
