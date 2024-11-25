@@ -13,7 +13,6 @@ import { useDisclosure } from "@mantine/hooks";
 import AddExhibit from "@/components/exhibit/AddExhibit";
 import ExhibitDetailDrawer from "@/components/exhibit/ExhibitDetailDrawer";
 import { getCitations } from "@services/citation.service";
-import pRetry from "p-retry";
 // import PdfViewer from "@components/common/PdfViewer";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
