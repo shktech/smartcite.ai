@@ -27,7 +27,6 @@ import {
   getUsersOfOrganization,
   getUserOrganization,
 } from "@/services/keycloak/user.service";
-import pRetry from "p-retry";
 import { useDisclosure } from "@mantine/hooks";
 
 interface GeneralInformationWithHeaderProps {
@@ -62,19 +61,25 @@ const GeneralInformationWithHeader = ({
       title: "",
       client: "",
     },
+    validate: {
+      title: (value) => {
+        if (!value) return "Title is required";
+        if (!value.match(/^[A-Za-z][A-Za-z0-9/ ]*$/)) {
+          return "Title must start with a letter and can only contain letters, numbers, spaces, and forward slashes";
+        }
+        return null;
+      },
+      client: (value) => (!value ? "Client is required" : null),
+    },
   });
 
   const fetchUsers = async () => {
     setUsersLoading(true);
     try {
-      const userOrganizations = await pRetry(
-        () => getUserOrganization(userData?.sub as string),
-        { retries: 3 }
+      const userOrganizations = await getUserOrganization(
+        userData?.sub as string
       );
-      const response = await pRetry(
-        () => getUsersOfOrganization(userOrganizations[0].id),
-        { retries: 3 }
-      );
+      const response = await getUsersOfOrganization(userOrganizations[0].id);
       setUsers(response);
     } catch (error) {
       console.error("Error fetching users:", error);

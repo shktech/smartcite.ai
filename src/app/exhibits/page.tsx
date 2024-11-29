@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Input, LoadingOverlay } from "@mantine/core";
-import { type TableColumnType } from "antd";
+import { notification, type TableColumnType } from "antd";
 import { useNavigation, useOne, useTable } from "@refinedev/core";
 import { Layout as BaseLayout } from "@/components/layout";
 import { IconClick, IconEye, IconSearch } from "@tabler/icons-react";
@@ -13,7 +13,6 @@ import { useDisclosure } from "@mantine/hooks";
 import AddExhibit from "@/components/exhibit/AddExhibit";
 import ExhibitDetailDrawer from "@/components/exhibit/ExhibitDetailDrawer";
 import { getCitations } from "@services/citation.service";
-import pRetry from "p-retry";
 // import PdfViewer from "@components/common/PdfViewer";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -45,6 +44,14 @@ export default function DocumentList() {
   const { data: documentData, isLoading: docLoading } = useTable<any>({
     resource: `cases/${caseId}/documents`,
     syncWithLocation: false,
+    queryOptions: {
+      onError: () => {
+        notification.error({
+          message: "Error",
+          description: "Failed to fetch data. Please try again later.",
+        });
+      },
+    },
   }).tableQueryResult;
 
   const handleDocumentClick = (record: any) => {
@@ -121,7 +128,7 @@ export default function DocumentList() {
         const mainDocs = getMDocs();
         try {
           for (const doc of mainDocs) {
-            const res = (await pRetry(() => getCitations(doc.id))) as any;
+            const res = (await getCitations(doc.id)) as any;
             const newCitations = (res.items as ICitation[]).filter(
               (newCitation) =>
                 !citations.some(
@@ -134,6 +141,11 @@ export default function DocumentList() {
           }
           setCitationLoading(false);
         } catch (error) {
+          setCitationLoading(false);
+          notification.error({
+            message: "Error",
+            description: "Failed to fetch citations. Please try again later.",
+          });
           console.error("Error fetching citations:", error);
         }
       };
@@ -356,10 +368,14 @@ export default function DocumentList() {
         <div className="flex justify-between">
           <div>
             <div className="text-lg text-[#292929]">
-              <span className="text-xl font-semibold mr-2">
-                {matter?.title}
-              </span>
-              /Exhibits
+              {matter && (
+                <>
+                  <span className="text-xl font-semibold mr-2">
+                    {matter?.title}/
+                  </span>
+                </>
+              )}
+              Exhibits
             </div>
             <div className="text-[#7c7c7c] py-2">
               Manage all your exhibits in one place

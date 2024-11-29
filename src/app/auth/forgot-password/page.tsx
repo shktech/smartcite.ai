@@ -9,9 +9,8 @@ import {
   getUserByEmail,
   sendResetPasswordEmail,
 } from "@/services/keycloak/user.service";
-import { Notifications, notifications } from "@mantine/notifications";
 import Link from "next/link";
-import pRetry from "p-retry";
+import { notification } from "antd";
 
 export default function Page() {
   const { push } = useNavigation();
@@ -34,24 +33,23 @@ export default function Page() {
 
     try {
       setIsLoading(true);
-      const adminToken = await pRetry(() => getSuperAdminToken());
+      const adminToken = await getSuperAdminToken();
       if (!adminToken) throw new Error("Failed to retrieve admin token.");
-      const user = await pRetry(() =>
-        getUserByEmail(form.values.email, adminToken.access_token)
-      );
+      const user = await getUserByEmail(form.values.email, adminToken.access_token);
       if (!user) throw new Error("Failed to get user by email.");
-      const sendResetPassword = await pRetry(() =>
-        sendResetPasswordEmail(user.id, adminToken.access_token)
-      );
+      const sendResetPassword = await sendResetPasswordEmail(user.id, adminToken.access_token);
       if (!sendResetPassword) throw new Error("Failed to send reset password.");
       setIsLoading(false);
+      notification.success({
+        message: "Success",
+        description: "Successfully sent a reset password email",
+      });
       push(`/auth/forgot-password/verify-email?userid=${user.id}`);
     } catch (error) {
       setIsLoading(false);
-      notifications.show({
-        title: "Fail to send a verify email",
-        message: "",
-        color: "red",
+      notification.error({
+        message: "Error",
+        description: "Failed to send a verify email. Please try again later.",
       });
       console.log(error);
     }
@@ -61,7 +59,6 @@ export default function Page() {
     <div className="h-screen w-full flex items-center justify-center bg-[#fafafa]">
       <div className="h-screen w-full flex items-center justify-center bg-[#fafafa]">
         <div className="w-[500px] flex flex-col p-6 bg-white rounded-lg shadow-lg relative">
-          <Notifications position="top-right" zIndex={1000} />
           <LoadingOverlay
             visible={isLoading}
             zIndex={1000}

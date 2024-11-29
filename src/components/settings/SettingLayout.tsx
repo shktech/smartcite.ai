@@ -39,8 +39,10 @@ export const SettingLayout = ({ children }: PropsWithChildren) => {
               <Link
                 key={item.label}
                 href={`/settings/${item.url}`}
-                className={`text-base text-[#292929] cursor-pointer hover:bg-[#e9e9e9] px-4 py-2.5 rounded-lg duration-500 ${
-                  page === item.url ? "font-semibold" : ""
+                className={`text-base text-[#292929] cursor-pointer border-b-2 hover:border-[#292929] px-4 py-2.5 duration-100 ${
+                  page === item.url
+                    ? "font-semibold border-[#292929]"
+                    : "border-transparent"
                 }`}
               >
                 {item.label}

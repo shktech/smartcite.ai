@@ -27,7 +27,6 @@ import {
   getMediaPresignedUrl,
 } from "@/services/admin-file-upload.service";
 import { createDocument } from "@/services/document.service";
-import pRetry from "p-retry";
 // import PdfViewer from "@components/common/PdfViewer";
 import PdfViewer from "@/components/common/PdfViewer";
 import Link from "next/link";
@@ -113,20 +112,16 @@ const DocumentDetailDrawer = ({
 
   const handleUploadDocument = async (file: File, index: number) => {
     try {
-      const presignedUrl = await pRetry(() => getMediaPresignedUrl());
-      const uploadFileResponse = await pRetry(() =>
-        uploadFile(file, presignedUrl.uploadUrl)
-      );
+      const presignedUrl = await getMediaPresignedUrl();
+      const uploadFileResponse = await uploadFile(file, presignedUrl.uploadUrl);
       if (!uploadFileResponse) throw new Error("Failed to upload file");
 
-      const createdDocument = await pRetry(() =>
-        createDocument(
-          selMDoc.caseId,
-          presignedUrl.id,
-          file.name,
-          DocType.EXHIBIT,
-          selMDoc.id
-        )
+      const createdDocument = await createDocument(
+        selMDoc.caseId,
+        presignedUrl.id,
+        file.name,
+        DocType.EXHIBIT,
+        selMDoc.id
       );
       if (!createdDocument) throw new Error("Failed to create document");
 

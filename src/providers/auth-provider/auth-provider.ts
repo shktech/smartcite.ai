@@ -9,7 +9,7 @@ import { Group, RoleOptiosn } from "@/utils/util.constants";
 import axios from "axios";
 import jwt from "jsonwebtoken";
 import { jwtDecode } from "jwt-decode";
-import pRetry from "p-retry";
+import { notification } from "antd";
 const keycloakUrl = process.env.NEXT_PUBLIC_KEYCLOAK_URL;
 const realmId = process.env.NEXT_PUBLIC_KEYCLOAK_REALM_ID;
 const clientId = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID;
@@ -47,18 +47,20 @@ export const authProvider: AuthProvider = {
 
     const userId = jwt.decode(response.data.access_token)?.sub as string;
     if (organizationId) {
-      await pRetry(() =>
-        addUserToOrganization(
-          userId,
-          organizationId,
-          response.data.access_token
-        )
+      await addUserToOrganization(
+        userId,
+        organizationId,
+        response.data.access_token
       );
     }
 
     if (response.status === 200) {
       localStorage.setItem("accessToken", response.data.access_token);
       localStorage.setItem("refreshToken", response.data.refresh_token);
+      notification.success({
+        message: "Success",
+        description: "Logged in successfully.",
+      });
       return {
         success: true,
         redirectTo: "/cases",
@@ -72,7 +74,10 @@ export const authProvider: AuthProvider = {
   logout: async () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
-
+    notification.success({
+      message: "Success",
+      description: "Logged out successfully.",
+    });
     return {
       success: true,
       redirectTo: "/auth/login",
@@ -110,10 +115,8 @@ export const authProvider: AuthProvider = {
       const tokenType = decodedTokenData.typ;
       const userId = decodedTokenData.sub;
       if (tokenType == "verify-email") {
-        const token = await pRetry(() => getSuperAdminToken());
-        const userGroups = await pRetry(() =>
-          getUserGroup(userId, token.access_token)
-        );
+        const token = await getSuperAdminToken();
+        const userGroups = await getUserGroup(userId, token.access_token);
         const role = userGroups.find((group: any) => group.name == Group.ADMIN)
           ? RoleOptiosn.ORGANIZATION
           : RoleOptiosn.INDIVIDUAL;

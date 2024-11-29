@@ -14,21 +14,25 @@ export const createCase = async (
   assignedLawyers: string,
   state: string
 ) => {
-  const response = await axios.post(
-    `${API_URL}/cases`,
-    {
-      title: title,
-      client: client,
-      clientRole: clientRole,
-      assignedLawyers: assignedLawyers,
-      state: state,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${getAccessToken()}`,
+  try {
+    const response = await axios.post(
+      `${API_URL}/cases`,
+      {
+        title: title,
+        client: client,
+        clientRole: clientRole,
+        assignedLawyers: assignedLawyers,
+        state: state,
       },
-    }
-  );
+      {
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
+      }
+    );
 
-  return response.data as IDocument;
+    return response.data as IDocument;
+  } catch (error) {
+    throw new Error("Failed to create case");
+  }
 };

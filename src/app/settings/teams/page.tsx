@@ -11,7 +11,6 @@ import {
   sendInviteEmail,
 } from "@services/keycloak/user.service";
 import { Button, LoadingOverlay, TextInput } from "@mantine/core";
-import pRetry from "p-retry";
 import { useForm } from "@mantine/form";
 import { getAccessToken } from "@services/auth.service";
 import { Roles } from "@utils/util.constants";
@@ -41,13 +40,17 @@ export default function TeamsPage() {
     isLoading: true,
   });
 
-  const { data: userData, isLoading: isUserDataLoading } = useGetIdentity<any>();
+  const { data: userData, isLoading: isUserDataLoading } =
+    useGetIdentity<any>();
 
   const form = useForm({
     initialValues: {
       inviteEmail: "",
     },
-    validate: {},
+    validate: {
+      inviteEmail: (value) =>
+        /^\S+@\S+$/.test(value) ? null : "Please enter a valid email address.",
+    },
   });
 
   const tableColumns: TableColumnType<IUser>[] = [
@@ -75,54 +78,59 @@ export default function TeamsPage() {
   ];
 
   const getOrganizationData = async () => {
-    setState(prev => ({ ...prev, isLoading: true }));
+    setState((prev) => ({ ...prev, isLoading: true }));
     try {
-      const organizationData = await pRetry(() =>
-        getUserOrganization(userData.sub)
-      );
-      const users = await pRetry(() =>
-        getUsersOfOrganization(organizationData[0].id)
-      );
-      
-      setState(prev => ({
-        ...prev,
-        organizationData: organizationData[0],
-        organizationId: organizationData[0].id,
-        users
-      }));
+      const organizationData = await getUserOrganization(userData.sub);
+      if (organizationData[0]?.id) {
+        const users = await getUsersOfOrganization(organizationData[0].id);
+
+        setState((prev) => ({
+          ...prev,
+          organizationData: organizationData[0],
+          organizationId: organizationData[0].id,
+          users,
+        }));
+      }
     } catch (error) {
       console.error("Failed to fetch organization data:", error);
-      setState(prev => ({
+      notification.error({
+        message: "Error",
+        description:
+          "Failed to fetch organization data. Please try again later.",
+      });
+      setState((prev) => ({
         ...prev,
         organizationId: null,
-        users: []
+        users: [],
       }));
     } finally {
-      setState(prev => ({ ...prev, isLoading: false }));
+      setState((prev) => ({ ...prev, isLoading: false }));
     }
   };
 
   const handleEnterEmail = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (form.validate().hasErrors) return;
     if (event.key === "Enter") {
       event.preventDefault();
-      setState(prev => ({
+      console.log(event);
+      setState((prev) => ({
         ...prev,
-        inviteEmails: [...prev.inviteEmails, event.currentTarget.value]
+        inviteEmails: [...prev.inviteEmails, form.values.inviteEmail],
       }));
       form.setFieldValue("inviteEmail", "");
     }
   };
 
   const handleInviteUsers = async () => {
-    setState(prev => ({ ...prev, isInviteLoading: true }));
+    setState((prev) => ({ ...prev, isInviteLoading: true }));
     try {
       const token = await getAccessToken();
       await Promise.all(
-        state.inviteEmails.map(email =>
-          pRetry(() => sendInviteEmail(email, state.organizationId as string, token || ""))
+        state.inviteEmails.map((email) =>
+          sendInviteEmail(email, state.organizationId as string, token || "")
         )
       );
-      setState(prev => ({ ...prev, inviteEmails: [] }));
+      setState((prev) => ({ ...prev, inviteEmails: [] }));
       notification.success({
         message: "Success",
         description: "Invite emails sent successfully.",
@@ -133,28 +141,26 @@ export default function TeamsPage() {
         description: "Failed to send invite emails.",
       });
     } finally {
-      setState(prev => ({ ...prev, isInviteLoading: false }));
+      setState((prev) => ({ ...prev, isInviteLoading: false }));
     }
   };
 
   const handleLeaveTeam = async () => {
     try {
       const token = await getAccessToken();
-      const leaveOrg = await pRetry(() =>
-        leaveOrganization(
-          state.organizationId as string,
-          userData?.sub as string,
-          token || ""
-        )
+      const leaveOrg = await leaveOrganization(
+        state.organizationId as string,
+        userData?.sub as string,
+        token || ""
       );
       if (leaveOrg !== "Success") throw new Error("Failed to leave team.");
-      
-      setState(prev => ({
+
+      setState((prev) => ({
         ...prev,
         isAdmin: false,
-        organizationId: null
+        organizationId: null,
       }));
-      
+
       notification.success({
         message: "Success",
         description: "You have successfully left the team.",
@@ -170,7 +176,10 @@ export default function TeamsPage() {
 
   useEffect(() => {
     if (!userData) return;
-    setState(prev => ({ ...prev, isAdmin: userData.roles.includes(Roles.ADMIN) }));
+    setState((prev) => ({
+      ...prev,
+      isAdmin: userData.roles.includes(Roles.ADMIN),
+    }));
     getOrganizationData();
   }, [userData]);
 
@@ -210,8 +219,10 @@ export default function TeamsPage() {
         {!state.organizationId && (
           <CreateOrganization
             userId={userData?.sub as string}
-            setOrganizationId={(id) => setState(prev => ({ ...prev, organizationId: id }))}
-            setIsAdmin={(isAdmin) => setState(prev => ({ ...prev, isAdmin }))}
+            setOrganizationId={(id) =>
+              setState((prev) => ({ ...prev, organizationId: id }))
+            }
+            setIsAdmin={(isAdmin) => setState((prev) => ({ ...prev, isAdmin }))}
             getOrganizationData={getOrganizationData}
           />
         )}
@@ -243,9 +254,11 @@ export default function TeamsPage() {
                     <div
                       className="cursor-pointer bg-[#f1f1f1]"
                       onClick={() => {
-                        setState(prev => ({
+                        setState((prev) => ({
                           ...prev,
-                          inviteEmails: prev.inviteEmails.filter((_, i) => i !== index)
+                          inviteEmails: prev.inviteEmails.filter(
+                            (_, i) => i !== index
+                          ),
                         }));
                       }}
                     >

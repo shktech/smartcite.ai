@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Button, Input, LoadingOverlay } from "@mantine/core";
-import { DatePicker, Table } from "antd";
+import { DatePicker, notification, Table } from "antd";
 import type { TableColumnType } from "antd";
 import { useDelete, useTable } from "@refinedev/core";
 import Link from "next/link";
@@ -18,7 +18,6 @@ import {
   CaseStateTextColor,
 } from "@/utils/util.constants";
 import { getAllUsers } from "@/services/keycloak/user.service";
-import pRetry from "p-retry";
 const { RangePicker } = DatePicker;
 export default function BlogPostList() {
   const { mutate: deleteMutate } = useDelete();
@@ -175,12 +174,7 @@ export default function BlogPostList() {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem("accessToken");
-        const response = await pRetry(() => getAllUsers(token as string), {
-          retries: 5, // Retry 5 times before failing
-          factor: 2, // Exponential backoff factor
-          minTimeout: 1000, // Minimum timeout of 1 second between retries
-          maxTimeout: 5000, // Maximum timeout of 5 seconds between retries
-        });
+        const response = await getAllUsers(token as string);
         setUsers(response);
         setUserLoading(false);
       } catch (error) {
@@ -231,13 +225,19 @@ export default function BlogPostList() {
         id: caseId,
       },
       {
-        onError: (error) => {
+        onError: () => {
           setLoading2(false);
-          console.log(error);
+          notification.error({
+            message: "Error",
+            description: "Failed to delete case",
+          });
         },
         onSuccess: () => {
           setLoading2(false);
-          console.log("success");
+          notification.success({
+            message: "Success",
+            description: "Case deleted successfully",
+          });
         },
       }
     );

@@ -19,8 +19,7 @@ import {
 } from "@/services/keycloak/user.service";
 import { getOrganizationById } from "@/services/keycloak/organization.service";
 import { jwtDecode } from "jwt-decode";
-import { Notifications, notifications } from "@mantine/notifications";
-import pRetry from "p-retry";
+import { notification } from "antd";
 
 export default function Page() {
   const { push } = useNavigation();
@@ -61,9 +60,10 @@ export default function Page() {
 
     const getOrg = async (organizationId: string) => {
       try {
-        const adminToken = await pRetry(() => getSuperAdminToken());
-        const orgData = await pRetry(() =>
-          getOrganizationById(organizationId, adminToken.access_token)
+        const adminToken = await getSuperAdminToken();
+        const orgData = await getOrganizationById(
+          organizationId,
+          adminToken.access_token
         );
         setOrgData(orgData);
         setIsLoading(false);
@@ -102,45 +102,42 @@ export default function Page() {
     }
     try {
       setIsLoading(true);
-      const adminToken = await pRetry(() => getSuperAdminToken());
+      const adminToken = await getSuperAdminToken();
       if (!adminToken) throw new Error("Failed to retrieve admin token.");
       const role = localStorage.getItem("signupRole");
       const group = role === RoleOptiosn.ORGANIZATION ? Group.ADMIN : Group.USER;
-      const createdUserId = await pRetry(() =>
-        registerUser(
-          form.values.email,
-          form.values.firstName,
-          form.values.lastName,
-          form.values.password,
-          group,
-          adminToken.access_token
-        )
+      const createdUserId = await registerUser(
+        form.values.email,
+        form.values.firstName,
+        form.values.lastName,
+        form.values.password,
+        group,
+        adminToken.access_token
       );
 
       if (!createdUserId) throw new Error("Failed to create a user.");
       if (orgData.id) {
-        await pRetry(() =>
-          addUserToOrganization(
-            createdUserId,
-            orgData.id,
-            adminToken.access_token
-          )
+        await addUserToOrganization(
+          createdUserId,
+          orgData.id,
+          adminToken.access_token
         );
       }
 
-      const sendEmail = await pRetry(() =>
-        sendVerifyEmail(createdUserId, adminToken.access_token)
-      );
+      const sendEmail = await sendVerifyEmail(createdUserId, adminToken.access_token);
       if (!sendEmail) throw new Error("Failed to send verify email.");
       setIsLoading(false);
+      notification.success({
+        message: "Success",
+        description: "Successfully sent a verify email",
+      });
       push(`/auth/signup/verify-email?userid=${createdUserId}`);
     } catch (error: any) {
       setIsLoading(false);
       console.log("Error found", error.response.data.errorMessage);
-      notifications.show({
-        title: "Fail to create an account",
-        message: error.response.data.errorMessage,
-        color: "red",
+      notification.error({
+        message: "Error",
+        description: error.response.data.errorMessage,
       });
     }
     // handleNextStep();
@@ -152,7 +149,6 @@ export default function Page() {
     <div className="h-screen w-full flex items-center justify-center bg-[#fafafa]">
       <GeneralSignupLayout title="Setup Your Account" step={2}>
         <div className="relative">
-          <Notifications position="top-right" zIndex={1000} />
           <LoadingOverlay
             visible={isLoading}
             zIndex={1000}

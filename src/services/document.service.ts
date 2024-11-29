@@ -14,30 +14,40 @@ export const createDocument = async (
   type: string,
   mainDocumentId: string
 ) => {
-  const response = await axios.post(
-    `${API_URL}/cases/${caseId}/documents`,
-    {
-      title: title,
-      mediaId: mediaId,
-      mainDocumentId: mainDocumentId,
-      type: type,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${getAccessToken()}`,
+  try {
+    const response = await axios.post(
+      `${API_URL}/cases/${caseId}/documents`,
+      {
+        title: title,
+        mediaId: mediaId,
+        mainDocumentId: mainDocumentId,
+        type: type,
       },
-    }
-  );
+      {
+        headers: {
+          Authorization: `Bearer ${getAccessToken()}`,
+        },
+      }
+    );
 
-  return response.data as IDocument;
+    return response.data as IDocument;
+  } catch (error) {
+    console.log(error);
+    throw new Error("Failed to create document");
+  }
 };
 
 export const getDocumentsByCaseId = async (caseId: string) => {
-  const accessToken = getAccessToken();
-  const response = await axios.get(`${API_URL}/cases/${caseId}/documents`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-  return response.data as IDocument[];
+  try {
+    const accessToken = getAccessToken();
+    const response = await axios.get(`${API_URL}/cases/${caseId}/documents`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return response.data as IDocument[];
+  } catch (error) {
+    console.log(error);
+    throw new Error("Failed to get documents");
+  }
 };

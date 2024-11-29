@@ -17,9 +17,8 @@ import { IDocument } from "@/types/types";
 import { DocType, UploadingState } from "@/utils/util.constants";
 import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
 import { useDataProvider } from "@refinedev/core";
-import { Notifications, notifications } from "@mantine/notifications";
 import FileUploadDropzone from "@/components/documents/FileUploadDropzone";
-import pRetry from "p-retry";
+import { notification } from "antd";
 
 // Types
 interface AddExhibitProps {
@@ -79,9 +78,9 @@ const AddExhibit = ({
   };
 
   const handleFinish = () => {
-    notifications.show({
-      title: "Document Added",
-      message: "Document has been added successfully",
+    notification.success({
+      message: "Document Added",
+      description: "Document has been added successfully",
     });
     handleModalClose();
   };
@@ -109,20 +108,16 @@ const AddExhibit = ({
     mainDocument: string
   ): Promise<IDocument | null> => {
     try {
-      const presignedUrl = await pRetry(() => getMediaPresignedUrl());
-      const uploadResponse = await pRetry(() =>
-        uploadFile(file, presignedUrl.uploadUrl)
-      );
+      const presignedUrl = await getMediaPresignedUrl();
+      const uploadResponse = await uploadFile(file, presignedUrl.uploadUrl);
       if (!uploadResponse) throw new Error("File upload failed");
 
-      const document = await pRetry(() =>
-        createDocument(
-          selectedCaseId as string,
-          presignedUrl.id,
-          file.name,
-          docType,
-          mainDocument
-        )
+      const document = await createDocument(
+        selectedCaseId as string,
+        presignedUrl.id,
+        file.name,
+        docType,
+        mainDocument
       );
 
       if (!document) throw new Error("Document creation failed");
@@ -170,8 +165,16 @@ const AddExhibit = ({
         meta: { skipAutoRefresh: true },
       });
       setUploadedExhibitFiles((prev) => prev.filter((d) => d.id !== doc.id));
+      notification.success({
+        message: "Success",
+        description: "Document deleted successfully",
+      });
     } catch (error) {
       console.error("Document deletion failed:", error);
+      notification.error({
+        message: "Error",
+        description: "Failed to delete document. Please try again later.",
+      });
     } finally {
       setLoading(false);
     }
@@ -288,7 +291,8 @@ const AddExhibit = ({
       <div className="text-[#7c7c7c] pb-4">
         Upload an exhibit for the document{" "}
         <span className="text-[#292929]">
-          &apos;{mainDocuments.find((d) => d.id === selectedMainDocId)?.title}&apos;
+          &apos;{mainDocuments.find((d) => d.id === selectedMainDocId)?.title}
+          &apos;
         </span>
       </div>
       <FileUploadDropzone handleFileChange={setFiles} />
@@ -391,7 +395,6 @@ const AddExhibit = ({
       <Button variant="" color="dark.6" onClick={open}>
         + Add Exhibit
       </Button>
-      <Notifications position="top-right" zIndex={1000} />
       <Modal
         opened={opened}
         onClose={handleModalClose}

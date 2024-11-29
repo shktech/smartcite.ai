@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Button, Input, LoadingOverlay } from "@mantine/core";
 import { useCreate, useDelete, useTable } from "@refinedev/core";
 import { IApiKey } from "@/types/types";
-import { Table, type TableColumnType } from "antd";
+import { notification, Table, type TableColumnType } from "antd";
 import DeleteConfirmModal from "@components/common/DeleteBtnWithConfirmModal";
 import { IconTrash } from "@tabler/icons-react";
 import { getFormatedDate } from "@utils/util.functions";
@@ -18,6 +18,14 @@ export default function ApiKey() {
   } = useTable<any>({
     hasPagination: false,
     resource: "api-keys",
+    queryOptions: {
+      onError: () => {
+        notification.error({
+          message: "Error",
+          description: "Failed to fetch API keys. Please try again later.",
+        });
+      },
+    },
   });
   const [newApiKey, setNewApiKey] = useState({ name: "" });
   const [apiKeys, setApiKeys] = useState<IApiKey[]>([]);
@@ -37,14 +45,21 @@ export default function ApiKey() {
         },
       },
       {
-        onError: (error) => {
+        onError: () => {
           setIsLoading(false);
-          console.log(error);
+          notification.error({
+            message: "Error",
+            description: "Failed to create API key. Please try again later.",
+          });
         },
         onSuccess: (res) => {
           setIsLoading(false);
           setApiKeys([...apiKeys, res.data as IApiKey]);
           setNewApiKey({ name: "" });
+          notification.success({
+            message: "Success",
+            description: "API key created successfully.",
+          });
         },
       }
     );
@@ -64,14 +79,21 @@ export default function ApiKey() {
         id: apiKeyId,
       },
       {
-        onError: (error) => {
-          console.log(error);
+        onError: () => {
           setIsLoading(false);
+          notification.error({
+            message: "Error",
+            description: "Failed to delete API key. Please try again later.",
+          });
         },
         onSuccess: () => {
           setIsLoading(false);
           const updatedApiKeys = apiKeys.filter((c) => c.id !== apiKeyId);
           setApiKeys(updatedApiKeys);
+          notification.success({
+            message: "Success",
+            description: "API key deleted successfully.",
+          });
         },
       }
     );

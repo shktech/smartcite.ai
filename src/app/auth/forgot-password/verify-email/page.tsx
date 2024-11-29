@@ -6,9 +6,8 @@ import {
   getSuperAdminToken,
   sendResetPasswordEmail,
 } from "@/services/keycloak/user.service";
-import { Notifications, notifications } from "@mantine/notifications";
 import { useState } from "react";
-import pRetry from "p-retry";
+import { notification } from "antd";
 
 export default function AuthenticationForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -17,31 +16,30 @@ export default function AuthenticationForm() {
   const resendEmail = async () => {
     try {
       setIsLoading(true);
-      const adminToken = await pRetry(() => getSuperAdminToken());
-      const sendEmail = await pRetry(() =>
-        sendResetPasswordEmail(userid, adminToken.access_token)
+      const adminToken = await getSuperAdminToken();
+      const sendEmail = await sendResetPasswordEmail(
+        userid,
+        adminToken.access_token
       );
       if (!sendEmail) throw new Error("Error found");
-      notifications.show({
-        title: "Successfully sent a reset password email",
-        message: "",
-        color: "green",
+      notification.success({
+        message: "Success",
+        description: "Successfully sent a reset password email",
       });
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
       console.log("Error found", error);
-      notifications.show({
-        title: "Fail to send a reset password email",
-        message: "",
-        color: "red",
+      notification.error({
+        message: "Error",
+        description:
+          "Failed to send a reset password email. Please try again later.",
       });
       return "Error found";
     }
   };
   return (
     <div className="h-screen w-full flex items-center justify-center bg-[#fafafa] relative">
-      <Notifications position="top-right" zIndex={1000} />
       <LoadingOverlay
         visible={isLoading}
         zIndex={1000}
