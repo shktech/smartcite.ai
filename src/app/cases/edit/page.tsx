@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Button, LoadingOverlay, Menu, Loader } from "@mantine/core";
+import { Button, LoadingOverlay, Loader } from "@mantine/core";
 import {
   useCreate,
   useDelete,
@@ -285,8 +285,6 @@ const CaseEditPage = () => {
     setDocuments([...documents, ...newDocuments]);
     setUploadingFiles(new Map());
   };
-
-  const handleMenuItemClick = () => fileInputRef.current?.click();
 
   const handleDeleteDocument = async (doc: IDocument) => {
     setLoading(true);

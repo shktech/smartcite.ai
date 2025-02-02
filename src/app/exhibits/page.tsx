@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { Input, LoadingOverlay } from "@mantine/core";
 import { notification, TableColumnType, List } from "antd";
 import {
-  GetListResponse,
   useNavigation,
   useOne,
   useTable,
@@ -15,10 +14,8 @@ import { ICase, ICitation, ICitationMap, IDocument } from "@/types/types";
 import { DocType } from "@/utils/util.constants";
 import MyTable from "@/components/common/MyTable";
 import { useDisclosure } from "@mantine/hooks";
-import AddExhibit from "@/components/exhibit/AddExhibit";
 import ExhibitDetailDrawer from "@/components/exhibit/ExhibitDetailDrawer";
 import { getCitations } from "@services/citation.service";
-// import PdfViewer from "@components/common/PdfViewer";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
@@ -30,16 +27,11 @@ export default function DocumentList() {
   const { push } = useNavigation();
   const searchParams = useSearchParams();
   const caseId = searchParams.get("caseId");
-  const documentId = searchParams.get("documentId");
   const [searchKey, setSearchKey] = useState("");
   const [documents, setDocuments] = useState<IDocument[]>([]);
-  // const [selExh, setSelExh] = useState<IDocument>();
   const [citations, setCitations] = useState<ICitation[]>([]);
-  // const [selCitedDoc, setSelCitedDoc] = useState<IDocument>();
-  // const [selCitingDoc, setSelCitedDoc] = useState<IDocument>();
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
-  // const [expandedMainDocs, setExpandedMainDocs] = useState<string[]>([]);
   const [citationMap, setCitationMaps] = useState<ICitationMap[]>([]);
   const [selCitationMap, setSelCitationMap] = useState<ICitationMap>();
   const { data: caseData, isLoading: caseLoading } = useOne<ICase>({
@@ -59,16 +51,6 @@ export default function DocumentList() {
       },
     },
   }).tableQueryResult;
-
-  // const handleDocumentClick = (record: any) => {
-  //   setSelDoc(record.citedDocument);
-  //   setSelExh(record.citedDocument);
-  // };
-
-  // const handleViewDetails = (record: any) => {
-  //   setSelExh(record);
-  //   openDrawer();
-  // };
 
   const mapDocumentsById = (docs: IDocument[]): Record<string, IDocument> => {
     const docMap: Record<string, IDocument> = {};
@@ -234,10 +216,10 @@ export default function DocumentList() {
     },
     {
       title: "Action",
-      render: (value, record: ICitationMap) => (
+      render: (_value, record: ICitationMap) => (
         <IconEye
           className={"cursor-pointer hover:text-[#2e2e2e]"}
-          onClick={(event) => {
+          onClick={() => {
             onActionClick(record, true);
           }}
         />
@@ -280,14 +262,8 @@ export default function DocumentList() {
               Manage all your exhibits in one place
             </div>
           </div>
-          {/* <AddExhibit
-            cases={[matter]}
-            setDocuments={setDocuments}
-            mainDocuments={mainDocuments}
-          /> */}
         </div>
 
-        {/* Search Bar */}
         <div className="flex justify-between items-center mt-4">
           <div className="flex gap-2">
             <Input

@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
-import { ActionIcon, Button, LoadingOverlay, Tooltip } from "@mantine/core";
-import { searchPlugin, FlagKeyword } from "@react-pdf-viewer/search";
+import { useEffect, useState } from "react";
+import { ActionIcon, LoadingOverlay, Tooltip } from "@mantine/core";
+import { searchPlugin } from "@react-pdf-viewer/search";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/search/lib/styles/index.css";
 import { IconArrowLeft, IconArrowRight } from "@tabler/icons-react";

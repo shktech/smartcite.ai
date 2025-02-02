@@ -3,7 +3,7 @@ import { IconArrowRight } from "@tabler/icons-react";
 import Link from "antd/es/typography/Link";
 import { ICase, ICitationMap, IDocument } from "@/types/types";
 import MyTable from "@components/common/MyTable";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { List, TableColumnType } from "antd";
 import PdfViewer from "@components/common/PdfViewer";
 import React from "react";
@@ -128,7 +128,7 @@ const ExhibitDetailDrawer = ({
               </div>
             </div>
           </div>
-          <div className="col-span-6 border border-2 border-[#eeeff1] relative py-6  bg-[#eeeff1] rounded-xl">
+          <div className="col-span-6 border border-[#eeeff1] relative py-6  bg-[#eeeff1] rounded-xl">
             {selectedCitation && (
               <PdfViewer mediaUrl={selectedCitation?.document.mediaUrl} highlightWords={selectedCitation?.citedAs} />
             )}

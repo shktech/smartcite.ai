@@ -2,10 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { Input, LoadingOverlay } from "@mantine/core";
-import { DatePicker, notification } from "antd";
+import { notification } from "antd";
 import type { TableColumnType } from "antd";
 import { useDelete, useNavigation, useOne, useTable } from "@refinedev/core";
-import dayjs from "dayjs";
 import { Layout as BaseLayout } from "@/components/layout";
 import DeleteConfirmModal from "@/components/common/DeleteBtnWithConfirmModal";
 import { IconDownload, IconSearch, IconTrash } from "@tabler/icons-react";
@@ -20,8 +19,6 @@ import AddDocument from "@/components/documents/AddDocument";
 import { useSearchParams } from "next/navigation";
 import Link from "antd/es/typography/Link";
 
-const { RangePicker } = DatePicker;
-
 export default function DocumentList() {
   // State
   const { push } = useNavigation();
@@ -33,10 +30,6 @@ export default function DocumentList() {
   const [mainDocuments, setMainDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selMDoc, setSelMDoc] = useState<any>();
-  const [dateRange, setDateRange] = useState<[any, any] | null>([
-    dayjs().subtract(6, "month"),
-    dayjs(),
-  ]);
   const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([]);
 
   // Hooks
@@ -242,7 +235,7 @@ export default function DocumentList() {
     }));
 
     setMainDocuments(enrichedDocs);
-  }, [documents, dateRange, searchKey]);
+  }, [documents, searchKey]);
 
   useEffect(() => {
     if (mainDocuments.length == 0) return;
