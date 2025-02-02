@@ -57,3 +57,7 @@ export interface IUser {
   phone: string;
 }
 
+export interface ICitationMap {
+  citedDocument: IDocument;
+  citingDocuments: { document: IDocument; citedAs: string[] }[];
+}

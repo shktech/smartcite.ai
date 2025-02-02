@@ -31,6 +31,7 @@ import { useDisclosure } from "@mantine/hooks";
 
 interface GeneralInformationWithHeaderProps {
   caseData?: ICase;
+  hideHeader?: boolean;
 }
 
 interface User {
@@ -41,6 +42,7 @@ interface User {
 
 const GeneralInformationWithHeader = ({
   caseData,
+  hideHeader,
 }: GeneralInformationWithHeaderProps) => {
   const { params } = useParsed();
   const { push } = useNavigation();
@@ -148,6 +150,7 @@ const GeneralInformationWithHeader = ({
 
   useEffect(() => {
     if (!userData) return;
+    console.log(userData);
     fetchUsers();
   }, [userData]);
 
@@ -161,7 +164,7 @@ const GeneralInformationWithHeader = ({
           <IconArrowLeft color="#292929" size={24} />
         </Link>
         <div className="text-xl font-semibold text-[#292929]">
-          {caseData?.title || "N/A"}
+          {`Documents and Exhibits in ${caseData?.title}`}
         </div>
       </div>
       <div className="flex gap-2">
@@ -275,7 +278,7 @@ const GeneralInformationWithHeader = ({
         loaderProps={{ color: "black", type: "bars" }}
       />
       {renderHeader()}
-      {renderForm()}
+      {!hideHeader && renderForm()}
     </form>
   );
 };

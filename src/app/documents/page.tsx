@@ -44,11 +44,6 @@ export default function DocumentList() {
     useDisclosure(false);
   const { mutate: deleteMutate } = useDelete();
 
-  // const { data: caseData, isLoading: caseLoading } = useTable<any>({
-  //   resource: "cases",
-  //   syncWithLocation: false,
-  // }).tableQueryResult;
-
   const { data: caseData, isLoading: caseLoading } = useOne<ICase>({
     resource: "cases",
     id: caseId || "",
@@ -83,31 +78,6 @@ export default function DocumentList() {
       setDocuments(documentData.items as IDocument[]);
     }
   }, [documentData]);
-  // useEffect(() => {
-  //   if (caseData) {
-  //     setCases(caseData.items as ICase[]);
-  //     const getDocs = async () => {
-  //       setDocLoading(true);
-  //       try {
-  //         for (const c of caseData.items) {
-  //           const docsData = (await getDocumentsByCaseId(c.id)) as any;
-  //           const docs = docsData?.items || [];
-  //           docs.forEach((doc: any) => {
-  //             if (!documents.find((d) => d.id === doc.id)) {
-  //               setDocuments((prev) => [...prev, doc]);
-  //             }
-  //           });
-  //         }
-  //       } catch (error) {
-  //         console.error("Error fetching documents:", error);
-  //         // Optionally add error handling UI feedback here
-  //       } finally {
-  //         setDocLoading(false);
-  //       }
-  //     };
-  //     getDocs();
-  //   }
-  // }, [caseData]);
 
   // Handlers
   const handleDeleteDocument = async (doc: IDocument) => {
@@ -253,17 +223,6 @@ export default function DocumentList() {
   useEffect(() => {
     let filteredDocs = documents.filter((doc) => doc.type === DocType.MAIN);
 
-    // Date range filter
-    if (dateRange?.[0] && dateRange?.[1]) {
-      filteredDocs = filteredDocs.filter((doc) => {
-        const docDate = dayjs(doc.createdAt);
-        return (
-          docDate.isAfter(dateRange[0]) &&
-          docDate.isBefore(dateRange[1].add(1, "day"))
-        );
-      });
-    }
-
     // Search filter
     if (searchKey) {
       const searchLower = searchKey.toLowerCase();
@@ -287,7 +246,6 @@ export default function DocumentList() {
 
   useEffect(() => {
     if (mainDocuments.length == 0) return;
-    console.log(mainDocuments);
     if (documentId) {
       setExpandedRowKeys([documentId]);
     } else {
@@ -342,15 +300,6 @@ export default function DocumentList() {
                   borderRadius: "6px",
                 },
               }}
-            />
-            <RangePicker
-              style={{
-                border: "none",
-                backgroundColor: "#fff",
-                borderRadius: "6px",
-              }}
-              value={dateRange}
-              onChange={(dates) => setDateRange(dates)}
             />
           </div>
         </div>

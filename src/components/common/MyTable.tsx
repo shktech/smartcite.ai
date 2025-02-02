@@ -26,12 +26,12 @@ const MyTable = ({ columns, dataSource, ...props }: any) => {
               {...props}
               style={{
                 color: "#7c7c7c",
-                verticalAlign: "top"
+                verticalAlign: "middle"
               }}
             />
           ),
           row: (props: any) => (
-            <tr {...props} className="cursor-pointer">
+            <tr {...props}>
               {props.children}
             </tr>
           ),

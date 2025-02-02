@@ -13,6 +13,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { Layout as BaseLayout } from "@/components/layout";
 import {
   IconCheck,
+  IconChevronRight,
   IconClick,
   IconRefresh,
   IconTrash,
@@ -96,6 +97,7 @@ const CaseEditPage = () => {
   // URL params
   const { params } = useParsed();
   const caseId = params?.caseId;
+  const hideHeader = params?.hideHeader === "true";
 
   // Data fetching hooks
   const { data: caseData } = useOne<ICase>({
@@ -364,7 +366,10 @@ const CaseEditPage = () => {
   return (
     <BaseLayout>
       <div className="p-6 min-h-screen flex flex-col">
-        <GeneralInformationWithHeader caseData={caseData?.data} />
+        <GeneralInformationWithHeader
+          caseData={caseData?.data}
+          hideHeader={hideHeader}
+        />
         <div className="bg-white rounded-lg p-4 mt-6 flex flex-col flex-1 relative">
           <LoadingOverlay
             visible={loading || documentLoading}
@@ -396,7 +401,7 @@ const CaseEditPage = () => {
               >
                 Extract citations
               </Button>
-              <Menu shadow="md" width={200}>
+              {/* <Menu shadow="md" width={200}>
                 <Menu.Target>
                   <Button
                     variant="default"
@@ -414,7 +419,7 @@ const CaseEditPage = () => {
                     Upload exhibit
                   </Menu.Item>
                 </Menu.Dropdown>
-              </Menu>
+              </Menu> */}
             </div>
           </div>
           <div className="grid grid-cols-12 text-sm gap-1 flex-1 pt-6 text-[#989898]">
@@ -429,8 +434,8 @@ const CaseEditPage = () => {
               {getMDocs().map((doc, _i) => (
                 <div
                   key={doc.id}
-                  onClick={() => setSelMDocId(doc.id)}
-                  className={`flex py-4 cursor-pointer border-t ${getSelDocCss(
+                  // onClick={() => setSelMDocId(doc.id)}
+                  className={`flex py-4 border-t ${getSelDocCss(
                     doc.id == selMDocId
                   )}`}
                 >
@@ -449,7 +454,7 @@ const CaseEditPage = () => {
                       {getGeneralStateText(doc)}
                     </div>
                   </div>
-                  <div className="w-20" onClick={(e) => e.stopPropagation()}>
+                  <div className="w-20 flex items-center justify-center gap-3" onClick={(e) => e.stopPropagation()}>
                     <DeleteConfirmModal
                       onDelete={() => handleDeleteDocument(doc)}
                       trigger={
@@ -457,6 +462,11 @@ const CaseEditPage = () => {
                           <IconTrash size={20} />
                         </div>
                       }
+                    />
+                    <IconChevronRight
+                      size={20}
+                      className="cursor-pointer text-[#989898] hover:text-[#2e2e2e]"
+                      onClick={() => setSelMDocId(doc.id)}
                     />
                   </div>
                 </div>

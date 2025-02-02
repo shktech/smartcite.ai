@@ -6,6 +6,7 @@ import { menuItems } from "@/utils/menuData";
 import Link from "next/link";
 import { IconLogout, IconNotes, IconSettings } from "@tabler/icons-react";
 import { Menu } from "@mantine/core";
+import { PricingPlanPill } from "@components/common/PricingPlanPill";
 
 export const Sidebar = () => {
   const pathname = usePathname();
@@ -13,6 +14,7 @@ export const Sidebar = () => {
   const caseId = searchParams.get("caseId");
   const { mutate: logout } = useLogout();
   const { data } = useGetIdentity();
+  console.log(data);
   const user = data as any;
   const selectedKey = pathname.split("/")[1].split("?")[0];
   const menus = menuItems;
@@ -40,7 +42,7 @@ export const Sidebar = () => {
           ))
         ) : (
           <Link
-            href='/cases'
+            href="/cases"
             className={`px-3 py-3 mx-3 no-underline hover:bg-[#f0f0f0] rounded-lg hover:text-[#0c1e29] duration-500 text-md flex items-center gap-2 ${
               selectedKey === "cases"
                 ? "bg-[#f4f4f4] text-[#292929] font-bold"
@@ -64,15 +66,33 @@ export const Sidebar = () => {
           <IconSettings />
           Settings
         </Link>
-        <div className="h-16 flex border-b border-[#eeeeef]">
+        <div className="h-32 flex border-t border-[#eeeeef]">
           <Menu position="right-end">
             <Menu.Target>
               <div className="w-full cursor-pointer">
-                <div className="rounded-lg hover:bg-[#f0f0f0] duration-500 flex items-center mx-3 mb-1 px-3 py-2 gap-2">
-                  <div className="w-9 h-9 flex items-center justify-center bg-[#394149] text-white rounded-full text-base">
-                    {user?.name.charAt(0).toUpperCase()}
+                <div className="rounded-lg hover:bg-[#f0f0f0] duration-500 flex items-center mx-3 mb-1 px-1 py-2 gap-2">
+                  <div className="flex flex-col">
+                    <div className="flex flex-row items-center gap-2">
+                      <div className="w-9 h-9 flex items-center justify-center bg-[#394149] text-white rounded-full text-base">
+                        {user?.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="text-sm">{user?.email}</div>
+                    </div>
+                    <div className="flex flex-col ml-2">
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-xs">Current Plan:</span>
+                        <PricingPlanPill
+                          plan={user?.profile?.attributes?.pricingPlan?.[0]}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-col ml-2">
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-xs">Pages Remaining:</span>
+                        <span className="text-xs">Unlimited out of Unlimited</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-sm">{user?.email}</div>
                 </div>
               </div>
             </Menu.Target>

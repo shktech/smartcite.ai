@@ -3,6 +3,7 @@ import { type AuthProvider } from "@refinedev/core";
 import {
   addUserToOrganization,
   getSuperAdminToken,
+  getUserById,
   getUserGroup,
 } from "@/services/keycloak/user.service";
 import { Group, RoleOptiosn } from "@/utils/util.constants";
@@ -15,13 +16,20 @@ const realmId = process.env.NEXT_PUBLIC_KEYCLOAK_REALM_ID;
 const clientId = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID;
 const clientSecret = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_SECRET;
 
-const getCurrentUser = () => {
+const getCurrentUser = async () => {
   const accessToken = localStorage.getItem("accessToken");
   if (accessToken) {
     const user = jwt.decode(accessToken as string) as any;
+    let profile = null;
+    try {
+      profile = await getUserById(user.sub, accessToken);
+    } catch {
+      console.log("Failed to fetch profile");
+    }
+    
     const keycloakClicnetId = clientId as string;
     const roles = user?.resource_access?.[keycloakClicnetId]?.roles;
-    return { ...user, roles: roles || [] };
+    return { ...user, profile, roles: roles || [] };
   }
   return null;
 };
@@ -176,6 +184,6 @@ export const authProvider: AuthProvider = {
     return null;
   },
   getIdentity: async () => {
-    return getCurrentUser();
+    return await getCurrentUser();
   },
 };
